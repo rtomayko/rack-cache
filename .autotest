@@ -1,0 +1,9 @@
+STDERR.puts "%s: loaded" % __FILE__
+
+Autotest.add_hook :initialize do |t|
+  t.add_mapping(/^lib\/.*\.rb$/) { |fn, _|
+    t.files_matching(/^test\/#{File.basename(fn, '.rb')}_test.rb$/) }
+  t.add_mapping(/^test\/.*_test\.rb$/) { |fn, _| fn }
+end
+
+# vim: ft=ruby
