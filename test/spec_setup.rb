@@ -1,3 +1,5 @@
+require 'pp'
+
 begin
   require 'test/spec'
 rescue LoadError => boom
@@ -12,3 +14,5 @@ rescue LoadError => boom
   require 'rack/cache'
 end
 
+class Test::Spec::Should
+end
