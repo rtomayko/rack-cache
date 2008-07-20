@@ -125,7 +125,7 @@ module Rack::Cache
     def debug_discard(message, *args)
     end
 
-    alias_method :debug, :debug_stderr
+    alias_method :debug, :debug_discard
 
   end
 

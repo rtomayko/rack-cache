@@ -2,17 +2,17 @@
 # response back upstream.
 on :pass do
   status, header, body = @backend.call(@request.env)
-  @response = Response.new(body, status, header)
-  @backend_response = @response
+  @backend_response = Response.new(body, status, header)
+  @response = @backend_response
   finish
 end
 
 # Called when the request is initially received.
 on :receive do
-  pass unless request.method? 'GET', 'HEAD'
-  pass if request.header? 'Cookie', 'Authorization', 'Expect'
   # TODO actual Cache-Control parsing
   pass if request.header['Cache-Control'] =~ /no-cache/
+  pass unless request.method? 'GET', 'HEAD'
+  pass if request.header? 'Cookie', 'Authorization', 'Expect'
   lookup
 end
 
@@ -44,9 +44,14 @@ end
 on :fetch do
   status, header, body = @backend.call(@backend_request.env)
   @backend_response = Response.new(body, status, header)
-  @response = @backend_response.dup
-  @response.extend Cacheable
-  store
+  if @backend_response.cacheable?
+    @response = @backend_response.dup
+    @response.extend Cacheable
+    store
+  else
+    @response = @backend_response
+    deliver
+  end
 end
 
 # Store the response in the cache and transfer control to

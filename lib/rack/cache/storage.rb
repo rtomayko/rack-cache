@@ -54,6 +54,10 @@ module Rack::Cache
         @contents.delete(key)
       end
 
+      def to_hash
+        @contents
+      end
+
     protected
 
       def fetch(key)
