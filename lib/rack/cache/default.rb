@@ -21,7 +21,7 @@ end
 # @object set to response object retrieved from cache. When
 # no object is found in the cache, control transfers to miss.
 on :lookup do
-  if object = @storage.get(request.url)
+  if object = @storage.get(request.fullpath)
     @object = Response.activate(object)
     hit if @object.fresh?
   end
@@ -58,7 +58,7 @@ end
 # the deliver event.
 on :store do
   @object = @response
-  @storage.put(@request.url, @object.persist)
+  @storage.put(@request.fullpath, @object.persist)
   deliver
 end
 
