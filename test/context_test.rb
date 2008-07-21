@@ -64,7 +64,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @response.headers.should.not.include 'Age'
   end
 
-  it 'passes on requests that include a Cache-Control header set to no-cache' do
+  xit 'passes on requests that include a Cache-Control header set to no-cache' do
     @app = cacheable_response
     get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
     @response.should.be.ok

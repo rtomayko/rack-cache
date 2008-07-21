@@ -16,22 +16,38 @@ module Rack::Cache
         end
     end
 
+    # Rebuilds the Cache-Control header based on the current contents of 
+    # the @cache_control Hash.
+    def rebuild_cache_control_header!
+      if @cache_control
+        headers['Cache-Control'] =
+          cache_control.collect do |key,value|
+            next nil unless value
+            next key if value == true
+            "#{key}=#{value}"
+          end.compact.join(', ')
+      end
+    end
+
+    private :rebuild_cache_control_header!
+
     # The number of seconds from #date that the object should be fresh for. This
     # method uses the max-age Cache-Control directive if present and falls back
     # to the Expires header. If no freshness information is available, zero is
     # returned.
     def max_age
-      @max_age ||=
-        if value = cache_control['max-age']
-          value.to_i
-        else
-          expires_at - date
-        end
+      if value = cache_control['max-age']
+        value.to_i
+      else
+        expires_at - date
+      end
     end
 
     # Sets the maximum age of the response to the specified value.
     def max_age=(value)
-      @max_age = value
+      cache_control['max-age'] = value.to_s
+      rebuild_cache_control_header!
+      max_age
     end
 
     # HTTP allows caches to take liberties with the freshness of objects; by
@@ -90,8 +106,11 @@ module Rack::Cache
       max_age - age
     end
 
+    # Set the response's time-to-live to the specified value. This adjusts the
+    # max_age attribute, which modifies the Cache-Control header.
     def ttl=(value)
-      @max_age = age + value
+      self.max_age = age + value
+      ttl
     end
 
     # Does the response's
@@ -116,7 +135,7 @@ module Rack::Cache
 
     def recalculate_freshness!
       now = Time.now
-      @date = 
+      @date =
         if date = headers['Date']
           Time.httpdate(date)
         else
