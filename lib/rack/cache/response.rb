@@ -79,6 +79,14 @@ module Rack::Cache
         end
     end
 
+    def last_modified
+      headers['Last-Modified']
+    end
+
+    def not_modified?(date)
+      date && last_modified == date
+    end
+
     CACHEABLE_RESPONSE_CODES = Set.new([200, 203, 300, 301, 302, 404, 410])
 
     def cacheable?

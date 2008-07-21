@@ -59,6 +59,7 @@ on :fetch do
     @response.extend Cacheable
     store
   else
+    debug "response isn't cacheable ..."
     @response = @backend_response
     deliver
   end
@@ -75,6 +76,12 @@ on :store do
 end
 
 on :deliver do
+  # Handle conditional GET w/ If-Modified-Since
+  if @response.not_modified?(@request.header['If-Modified-Since'])
+    debug 'upstream version is unmodified; sending 304'
+    response.status = 304
+    response.body = ''
+  end
   debug 'deliver response'
   finish
 end

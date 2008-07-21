@@ -74,6 +74,8 @@ module Rack::Cache
       }
     end
 
+  public
+
   private
 
     def debug_stderr(message, *args)
