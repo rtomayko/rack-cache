@@ -2,7 +2,7 @@ task :default => :test
 
 desc 'Run specs with unit test style output'
 task :test do
-  sh 'specrb -Ilib:test test/*_test.rb'
+  sh 'testrb -Ilib:test test/*_test.rb'
 end
 
 desc 'Run specs with story style output'
