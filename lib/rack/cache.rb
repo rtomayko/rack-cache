@@ -9,9 +9,11 @@ module Rack::Cache
   require 'rack/cache/request'
   require 'rack/cache/response'
   require 'rack/cache/context'
-  require 'rack/cache/language'
 
-  def self.new(*args, &b)
-    Context.new(*args, &b)
+  # Create a new Rack::Cache middleware component
+  # that fetches resources from the specified backend
+  # application.
+  def self.new(backend, options={}, &b)
+    Context.new(backend, options={}, &b)
   end
 end
