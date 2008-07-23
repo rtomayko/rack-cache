@@ -5,14 +5,14 @@ module Rack::Cache
     # The cache storage implementation. This should be an
     # instance of one of the classes defined under
     # Rack::Cache::Storage or 
-    attr_reader :storage
+    attr_accessor :storage
 
     # Set an option.
     def set(option, value=self)
       if value == self
         self.options = option.to_hash
       elsif value.kind_of?(Proc)
-        (class<<self;self;end).define_method(option) {|| value.call }
+        (class<<self;self;end).send(:define_method, option) { || value.call }
       else
         send "#{option}=", value
       end
