@@ -6,11 +6,12 @@ module Rack::Cache
 
     attr_reader :trace
 
-    def initialize
+    def initialize_config
       @events = Hash.new { |h,k| h[k.to_sym] = [] }
       @trace = []
-      super
     end
+
+    protected :initialize_config
 
     # Import the configuration file specified.
     def import(file)

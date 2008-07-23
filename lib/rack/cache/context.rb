@@ -1,24 +1,23 @@
 require 'rack/cache/config'
+require 'rack/cache/options'
 
 module Rack::Cache
 
   # The context of an individual request.
   #
   #   Rack::Adapter -> Rack::Cache -> RackApplication
-  # 
+  #
   class Context
+    include Rack::Cache::Options
     include Rack::Cache::Config
 
     # The Rack compatible object immediately downstream.
     attr_reader :backend
 
-    # Where cached objects are stored (Cache::Storage)
-    attr_reader :storage
-
     # The request as made to the RCL application.
     attr_reader :request
 
-    # The response that will be sent to upstream.
+    # The response that will be sent upstream.
     attr_reader :response
 
     # The response object retrieved from the cache, or nil if no cached
@@ -39,11 +38,12 @@ module Rack::Cache
 
     def initialize(backend, options={}, &b)
       @backend = backend
-      @options = options
-      @storage = options[:store] || Storage::Memory.new
-      super()
+      initialize_options(options)
+      initialize_config
       import 'rack/cache/config/default'
-      instance_eval(&block) if block_given?
+      instance_eval(&b) if block_given?
+      # initialize some instance variables here but we won't use
+      # them until we dup to process a request.
       @request = nil
       @response = nil
       @backend_request = nil
@@ -51,10 +51,10 @@ module Rack::Cache
       @object = nil
     end
 
-    # The Rack call interface.
+    # The Rack call interface. Note that the receiver acts as a
+    # prototype and runs each request in a duplicate object,
+    # unless the +rack.run_once+ variable is set in the environment.
     def call(env)
-      # receiver acts as a prototype and runs each request in a duplicate
-      # object unless the rack.run_once variable is set.
       if env['rack.run_once']
         call! env
       else
@@ -62,6 +62,7 @@ module Rack::Cache
       end
     end
 
+    # The actual call interface.
     def call!(env)
       @env = env
       @request = Request.new(env)
@@ -74,9 +75,9 @@ module Rack::Cache
       }
     end
 
-  public
-
   private
+
+    # TODO there has to be a better way
 
     def debug_stderr(message, *args)
       STDERR.printf "[RCL] #{message}\n", *args

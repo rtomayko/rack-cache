@@ -4,6 +4,8 @@ require 'rack/cache/config'
 class MockConfig
   include Rack::Cache::Config
 
+  alias_method :initialize, :initialize_config
+
   def configured!
     @configured = true
   end
