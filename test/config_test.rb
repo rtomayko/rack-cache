@@ -16,16 +16,13 @@ class MockConfig
 end
 
 describe 'Rack::Cache::Config' do
-
   before(:each) { @config = MockConfig.new }
 
-  it 'has events and trace variables after creation' do
-    @config.events.should.not.be.nil
-    @config.trace.should.not.be.nil
+  it 'has events after instantiation' do
+    @config.events.should.respond_to :[]
   end
 
-
-  it 'executes event handlers' do
+  it 'defines and executes event handlers' do
     executed = false
     @config.on(:foo) { executed = true }
     @config.perform :foo

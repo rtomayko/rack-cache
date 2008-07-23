@@ -83,7 +83,7 @@ module Rack::Cache
       headers['Last-Modified']
     end
 
-    def not_modified?(date)
+    def last_modified_at?(date)
       date && last_modified == date
     end
 
@@ -92,6 +92,11 @@ module Rack::Cache
     def cacheable?
       CACHEABLE_RESPONSE_CODES.include?(status) &&
       !(no_store? || no_cache?)
+    end
+
+    def validateable?
+      # TODO support ETags
+      cacheable? && header?('Last-Modified')
     end
 
   end

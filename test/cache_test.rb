@@ -19,9 +19,6 @@ end
 
 describe 'Rack::Cache::new' do
   before { @app = method(:dumb_app) }
-  it 'is defined' do
-    Rack::Cache.should.respond_to? :new
-  end
   it 'takes a backend and returns a middleware component' do
     Rack::Cache.new(@app).
       should.respond_to :call
@@ -30,7 +27,7 @@ describe 'Rack::Cache::new' do
     lambda { Rack::Cache.new(@app, {}) }.
       should.not.raise(ArgumentError)
   end
-  it 'takes a block and executes during initialization' do
+  it 'takes a block; executes it during initialization' do
     state, block_scope = 'not invoked', nil
     object =
       Rack::Cache.new @app do

@@ -17,7 +17,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
       # response date is 5 seconds ago; makes expiration tests easier
       res['Date'] = (Time.now - 5).httpdate
       res['Expires'] = (Time.now + 5).httpdate
-      yield req,res if block_given?
+      yield req, res if block_given?
     end
   end
 
@@ -25,7 +25,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     simple_resource *args do |req,res|
       res['Date'] = (Time.now - 5).httpdate
       res['Last-Modified'] = res['Date']
-      yield req,res if block_given?
+      yield req, res if block_given?
     end
   end
 
@@ -49,7 +49,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
 
   it 'passes on requests with Authorization' do
     @app = cacheable_response
-    get '/', 
+    get '/',
       'HTTP_AUTHORIZATION' => 'basic foobarbaz'
     @response.should.be.ok
     @context.should.a.performed :pass
@@ -183,16 +183,5 @@ protected
   def post(*args, &b)
     request(:post, *args, &b)
   end
-
-private
-
-  def method_missing(method_name, *args, &b)
-    if @response
-      @response.send method_name, *args, &b
-    else
-      super
-    end
-  end
-
 
 end

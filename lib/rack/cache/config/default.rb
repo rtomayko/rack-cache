@@ -77,7 +77,7 @@ end
 
 on :deliver do
   # Handle conditional GET w/ If-Modified-Since
-  if @response.not_modified?(@request.header['If-Modified-Since'])
+  if @response.last_modified_at?(@request.header['If-Modified-Since'])
     debug 'upstream version is unmodified; sending 304'
     response.status = 304
     response.body = ''

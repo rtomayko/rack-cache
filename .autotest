@@ -1,8 +1,7 @@
-
-
 Autotest.add_hook :initialize do |t|
   t.clear_mappings
-  t.add_exception(/^(?:\/.)?\.git.*/)
+  t.add_exception(/^(?:\/\.)?\.git.*/)
+  t.add_exception(/^(?:\/\.)?\[\..*/)
   t.add_mapping(/^lib\/.*\.rb$/) { |fn, _|
     t.files_matching(/^test\/#{File.basename(fn, '.rb')}_test.rb$/) }
   t.add_mapping(/^test\/.*_test\.rb$/) { |fn, _| fn }
