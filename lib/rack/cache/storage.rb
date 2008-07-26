@@ -162,9 +162,10 @@ module Rack::Cache
         storage_path(partition_sha(sha))
       end
 
+      # Write body to disk and return the SHA1 checksum.
       def disk_write(body)
         # TODO can only write one body at a time
-        temp_file = storage_path('CURRENT')
+        temp_file = storage_path("+#{$$}")
         digest = Digest::SHA1.new
         F.open(temp_file, 'w') do |wr|
           body.each do |part|
@@ -179,9 +180,10 @@ module Rack::Cache
         sha
       end
 
+      # Open the file stored for the corresponding SHA1
+      # checksum.
       def disk_read(sha)
-        path = body_path(sha)
-        File.open(path, 'r')
+        F.exist?(path = body_path(sha)) && F.open(path, 'rb')
       end
 
     end

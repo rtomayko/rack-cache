@@ -59,7 +59,8 @@ describe 'Rack::Cache::Storage' do
 
   describe 'DiskBackedMemory' do
     behaves_like 'A Cache Storage Provider'
-    before { @cache = Rack::Cache::Storage::DiskBackedMemory.new }
+    before { @cache = Rack::Cache::Storage::DiskBackedMemory.new('/tmp/disk_backed_memory') }
+    after  { FileUtils.rm_rf('/tmp/disk_backed_memory') }
   end
 
 end
