@@ -66,13 +66,18 @@ module Rack::Cache
     def call!(env)
       @env = env
       @request = Request.new(env)
-      @backend_request = Request.new(env.dup)
       @trace = []
       debug("%s %s", @request.request_method, @request.fullpath)
       catch(:finish) {
         perform :receive
         fail 'not finished'
       }
+    end
+
+  protected
+
+    def copy_request!
+      @backend_request = Request.new(@request.env.dup)
     end
 
   private

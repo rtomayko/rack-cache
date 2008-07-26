@@ -18,7 +18,7 @@ module Rack::Cache
       path = add_file_extension(file, 'rb')
       if path = locate_file_on_load_path(path)
         source = File.read(path)
-        eval source, nil, file
+        eval source, nil, path
         true
       else
         raise LoadError, 'no such file to load -- %s' % [file]

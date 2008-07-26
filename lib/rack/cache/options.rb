@@ -7,6 +7,14 @@ module Rack::Cache
     # Rack::Cache::Storage or 
     attr_accessor :storage
 
+    # The number of seconds that a cached object should be considered
+    # "fresh" when no explicit freshness information is provided in
+    # a response. Note that explicit Cache-Control or Expires headers
+    # in a response override this value.
+    #
+    # Default: 0
+    attr_accessor :default_ttl
+
     # Set an option.
     def set(option, value=self)
       if value == self
@@ -28,6 +36,7 @@ module Rack::Cache
 
     def initialize_options(options={})
       @storage = Storage::Memory.new
+      @default_ttl = 0
     end
 
   end

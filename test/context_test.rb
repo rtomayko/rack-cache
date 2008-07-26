@@ -15,7 +15,6 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   def cacheable_response(*args)
     simple_response *args do |req,res|
       # response date is 5 seconds ago; makes expiration tests easier
-      res['Date'] = (Time.now - 5).httpdate
       res['Expires'] = (Time.now + 5).httpdate
       yield req, res if block_given?
     end
@@ -23,7 +22,6 @@ describe 'Rack::Cache::Context (Default Configuration)' do
 
   def validatable_response(*args)
     simple_resource *args do |req,res|
-      res['Date'] = (Time.now - 5).httpdate
       res['Last-Modified'] = res['Date']
       yield req, res if block_given?
     end
@@ -80,20 +78,20 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @response.headers.should.not.include 'Age'
   end
 
-  it "fetches, but does not cache, responses with explicit no-cache directive" do
-    @app = cacheable_response { |req,res| res['Cache-Control'] = "no-cache" }
-    get '/'
-    @response.should.be.ok
-    @context.should.a.not.performed :store
-    @response.headers.should.not.include 'Age'
-  end
-
   it "fetches, but does not cache, responses with explicit no-store directive" do
     @app = cacheable_response { |req,res| res['Cache-Control'] = "no-store" }
     get '/'
     @response.should.be.ok
     @context.should.a.not.performed :store
     @response.headers.should.not.include 'Age'
+  end
+
+  it "fetches and caches responses with explicit no-cache directive" do
+    @app = cacheable_response { |req,res| res['Cache-Control'] = "no-cache" }
+    get '/'
+    @response.should.be.ok
+    @context.should.a.performed :store
+    @response.headers.should.include 'Age'
   end
 
   it 'fetches response from backend when cache misses' do
@@ -117,14 +115,16 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   end
 
   it 'hits cached and fresh responses to GET requests' do
-    @app = cacheable_response
+    @app =
+      cacheable_response do |req,res|
+        res['Date'] = (Time.now - 5).httpdate
+      end
 
     @basic_context = Rack::Cache::Context.new(@app)
     @context = @basic_context.dup
     @original = get('/')
     @original.should.be.ok
     @original.headers.should.include 'Date'
-    @original['Age'].should.be == '0'
     @context.should.a.performed :miss
     @context.should.a.performed :store
 
@@ -169,8 +169,8 @@ protected
     opts = { 'rack.run_once' => true }.merge(opts)
     @backend ||= @app
     @context ||= Rack::Cache::Context.new(@backend)
-    yield @context if block_given?
     @request = Rack::MockRequest.new(@context)
+    yield @context if block_given?
     @response = @request.send(method, uri, opts)
     @response.should.not.be.nil
     @response

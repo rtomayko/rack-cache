@@ -2,8 +2,8 @@
 # response back upstream.
 on :pass do
   debug 'pass request to backend'
-  status, header, body = @backend.call(@request.env)
-  @backend_response = Response.new(body, status, header)
+  @backend_request = @request
+  @backend_response = Response.new(*@backend.call(@request.env))
   @response = @backend_response
   finish
 end
@@ -44,7 +44,10 @@ end
 # Nothing was found in the cache.
 on :miss do
   debug 'cache miss'
-  @backend_request.header['If-Modified-Since'] = nil
+  # TODO extract code that builds request to forward
+  environment = @request.env.dup
+  environment.delete('If-Modified-Since')
+  @backend_request = Request.new(environment)
   fetch
 end
 
@@ -52,11 +55,9 @@ end
 # to the store event.
 on :fetch do
   debug 'fetch from backend'
-  status, header, body = @backend.call(@backend_request.env)
-  @backend_response = Response.new(body, status, header)
+  @backend_response = Response.new(*@backend.call(@backend_request.env))
   if @backend_response.cacheable?
     @response = @backend_response.dup
-    @response.extend Cacheable
     store
   else
     debug "response isn't cacheable ..."
@@ -68,10 +69,11 @@ end
 # Store the response in the cache and transfer control to
 # the deliver event.
 on :store do
-  @object = @response
-  @object.ttl = 120 if @object.ttl == 0
+  @object = @response.cache
+  @object.ttl = default_ttl if @object.ttl.nil?
   debug 'store backend response in cache (TTL: %ds)', @object.ttl
-  @storage.put(@request.fullpath, @object.persist)
+  @storage.put(@request.fullpath, object.to_a)
+  @response = @object
   deliver
 end
 
@@ -91,5 +93,5 @@ end
 # backend_response, and response objects should all be available
 # when this event is invoked.
 on :finish do
-  throw :finish, @response.finish
+  throw :finish, @response.to_a
 end
