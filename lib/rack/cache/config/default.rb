@@ -28,7 +28,7 @@ on :lookup do
     if @object.fresh?
       hit
     else
-      debug 'cached object found, but stale'
+      validate
     end
   end
   miss
@@ -41,12 +41,58 @@ on :hit do
   deliver
 end
 
+# The cache hit but the cached entity is no longer fresh, or
+# the request requires validation for some other reason.
+on :validate do
+  debug 'cached object found, but stale - validating w/ origin'
+
+  # TODO extract code that builds request to forward
+  environment = @request.env.dup
+  environment.delete('HTTP_IF_MODIFIED_SINCE')
+  environment.delete('HTTP_IF_NONE_MATCH')
+  @backend_request = Request.new(environment)
+
+  # add validators to the backend request
+  if last_modified = @object['Last-Modified']
+    @backend_request.headers['If-Modified-Since'] = last_modified
+  end
+  if etag = @object['ETag']
+    @backend_request.headers['If-None-Match'] = etag
+  end
+
+  # fetch the response from the backend
+  @backend_response = Response.new(*@backend.call(@backend_request.env))
+
+  # if we're just revalidating, merge headers, update the cache
+  # and hit.
+  if @backend_response.status == 304    # TODO 412 responses
+    debug "cached object up-to-date w/ backend"
+    @response = @object
+    # Merge headers
+    %w[Date Expires Cache-Control Etag Last-Modified].each do |hd|
+      next unless @backend_response.headers.key?(hd)
+      @response.headers[hd] = @backend_response.headers[hd]
+    end
+    @response.headers.delete('Age')
+    @object = @response
+    store
+  elsif @backend_response.cacheable?
+    debug "cached object refreshed"
+    @response = @backend_response.dup
+    store
+  else
+    debug "cached object is no longer cacheable ..."
+    @response = @backend_response
+    deliver
+  end
+end
+
 # Nothing was found in the cache.
 on :miss do
   debug 'cache miss'
   # TODO extract code that builds request to forward
   environment = @request.env.dup
-  environment.delete('If-Modified-Since')
+  environment.delete('HTTP_IF_MODIFIED_SINCE')
   @backend_request = Request.new(environment)
   fetch
 end
@@ -57,6 +103,7 @@ on :fetch do
   debug 'fetch from backend'
   @backend_response = Response.new(*@backend.call(@backend_request.env))
   if @backend_response.cacheable?
+    debug "response is cacheable ..."
     @response = @backend_response.dup
     store
   else

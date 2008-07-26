@@ -9,12 +9,13 @@ module Rack::Cache
     include Rack::Response::Helpers
     include Rack::Cache::ResponseHeaders
 
-    attr_reader :status, :headers, :body
+    attr_accessor :status, :headers, :body
 
     def initialize(status, headers, body)
       @status = status
       @headers = headers
       @body = body
+      @headers['Date'] ||= Time.now.httpdate
     end
 
     def to_a
@@ -45,7 +46,7 @@ module Rack::Cache
     # value overrides any expiration time specified by the origin
     # server.
     def max_age=(seconds)
-      if value
+      if seconds
         headers['X-Max-Age'] = seconds.to_i.to_s
       else
         headers.delete('X-Max-Age')
@@ -78,9 +79,14 @@ module Rack::Cache
       self
     end
 
-    # Returns a Rack response tuple.
+    # Prepare the object to be cached.
     def cache!
       headers['Age'] = age.to_s
+      if header?('X-Max-Age')
+        cache_control = self.cache_control.dup
+        cache_control['max-age'] = max_age.to_s
+        self.cache_control = cache_control
+      end
       remove_uncacheable_headers!
     end
 
