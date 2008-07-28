@@ -19,7 +19,7 @@ module Rack::Cache
     end
 
     def to_a
-      [status, headers, body]
+      [ status, headers, body ]
     end
 
     def dup

@@ -103,9 +103,8 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @response.headers.should.include 'Age'
   end
 
-  it 'caches cacheable responses to GET requests' do
+  it 'stores cacheable responses' do
     @app = cacheable_response
-
     get '/'
     @response.should.be.ok
     @response.headers.should.include 'Date'
@@ -114,7 +113,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.should.a.performed :store
   end
 
-  it 'hits cached and fresh responses to GET requests' do
+  it 'hits cached/fresh objects' do
     @app =
       cacheable_response do |req,res|
         res['Date'] = (Time.now - 5).httpdate
@@ -137,7 +136,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.should.a.not.performed :fetch
   end
 
-  it 'misses when cached response is not fresh' do
+  it 'revalidates cached/stale objects' do
     @app = cacheable_response
     @basic_context = Rack::Cache::Context.new(@app)
 
@@ -159,8 +158,8 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @cached = get('/')
     @cached.should.be.ok
     @cached['Age'].to_i.should.be == 0
-    @context.should.a.performed :miss
-    @context.should.a.performed :fetch
+    @context.should.a.performed :validate
+    @context.should.a.performed :store
   end
 
 protected

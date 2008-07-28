@@ -3,7 +3,9 @@
 on :pass do
   debug 'pass request to backend'
   @backend_request = @request
-  @backend_response = Response.new(*@backend.call(@request.env))
+  response = @backend.call(@request.env)
+  debug 'got response from backend, forwarding'
+  @backend_response = Response.new(*response)
   @response = @backend_response
   finish
 end
@@ -78,7 +80,7 @@ on :validate do
     store
   elsif @backend_response.cacheable?
     debug "cached object refreshed"
-    @response = @backend_response.dup
+    @object = @backend_response.dup
     store
   else
     debug "cached object is no longer cacheable ..."
@@ -104,7 +106,7 @@ on :fetch do
   @backend_response = Response.new(*@backend.call(@backend_request.env))
   if @backend_response.cacheable?
     debug "response is cacheable ..."
-    @response = @backend_response.dup
+    @object = @backend_response.dup
     store
   else
     debug "response isn't cacheable ..."
@@ -116,11 +118,11 @@ end
 # Store the response in the cache and transfer control to
 # the deliver event.
 on :store do
-  @object = @response.cache
+  fail "@object must be set before store" if @object.nil?
   @object.ttl = default_ttl if @object.ttl.nil?
   debug 'store backend response in cache (TTL: %ds)', @object.ttl
-  @storage.put(@request.fullpath, object.to_a)
-  @response = @object
+  @response = @object.cache
+  @storage.put(@request.fullpath, @response)
   deliver
 end
 

@@ -102,7 +102,7 @@ module Rack::Cache
       end
 
       def store(key, object)
-        status, headers, body = object
+        status, headers, body = object.to_a
         data = slurp(body)
         @contents[key] = [ status, headers, data ]
       end
