@@ -40,20 +40,65 @@ module Rack::Cache
 
   private
 
-    # TODO there has to be a better way
+    # TODO extract into log module
+    attr_writer :errors
 
-    def debug_stderr(message, *args)
-      STDERR.printf "[RCL] #{message}\n", *args
+    def errors
+      @errors ||=
+        ((@env && @env['rack.errors']) || STDERR)
     end
 
-    def debug_error_stream(message, *args)
-      @env['rack.errors'] << "[RCL] #{message}\n" % args
+    def nowhere
+      @null ||= File.open('/dev/null', 'w')
     end
 
-    def debug_discard(message, *args)
+    LOG_LEVELS = {
+      :trace    => [ 'TRACE', false ],
+      :info     => [ 'INFO ', true ],
+      :user     => [ 'USER ', true ],
+      :warn     => [ 'WARN ', true ],
+      :error    => [ 'ERROR', true ]
+    }
+
+    def verbose(*levels)
+      levels.each do |level|
+        fail "Unknown log level: #{level}" unless LOG_LEVELS.key?(level)
+        LOG_LEVELS[level][-1] = true
+      end
     end
 
-    alias_method :debug, :debug_error_stream
+    def quiet(*levels)
+      levels.each { |level| LOG_LEVELS[level][-1] = false }
+    end
+
+    def log(level, message=nil, *interpolators, &bk)
+      label, enabled = LOG_LEVELS[level]
+      return unless enabled
+      if block_given?
+        args.unshift message unless message.nil?
+        message = yield
+      end
+      errors.write "[RCL] [#{label}] #{message}\n" % interpolators
+      errors.flush
+    end
+
+    def trace(*message, &bk)
+      log :trace, *message, &bk
+    end
+
+    def info(*message, &bk)
+      log :info, *message, &bk
+    end
+
+    def warn(*message, &bk)
+      log :warn, *message, &bk
+    end
+
+    def error(*message, &bk)
+      log :error, *message, &bk
+    end
+
+    alias_method :debug, :trace
 
   end
 

@@ -19,6 +19,9 @@ module Rack::Cache
   # response body:
   #   [ status, headers, body ]
   #
+  # The storage interface's role is to take these things when given,
+  # and give them back when asked. There are no rules as to _how_ it
+  # gets done.
   module Storage
 
     # Storage Provider interface and abstract base class.
@@ -44,6 +47,8 @@ module Rack::Cache
       def replace(key, value)
         store key, value if get(key)
       end
+
+      # Subclasses 
 
     protected
 
