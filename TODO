@@ -1,0 +1,38 @@
+## 0.2
+
+  - BUG: negative TTL
+  - Baseline caching logic moved out of config, into Rack::Cache::Core
+  - Document events and transitions
+  - Document request, response, cached object
+  - Uses canonicalized URL for cache key:
+    - sorts params by key, then value
+    - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
+  - Separate entity store, key by SHA
+  - Separate header store, key by canonical URL, value is array of
+    headers that have been stored for that key.
+  - Memcached (use to store headers and entities)
+
+## 0.3
+
+  - Automatic cache invalidation on PUT, POST, DELETE.
+    - Invalidate at the request URI; or, anything that's "near" the request URI.
+    - Invalidate at the URI of the Location or Content-Location response header.
+  - Purge/invalidate specific cache entries
+  - Purge/invalidate everything
+
+## Backlog
+
+  - Vary
+  - Maximum size of cached entity
+  - Last-Modified factor: requests that have a Last-Modified header but no Expires
+    header have a TTL assigned based on the last modified age of the response:
+    TTL = (Age * Factor), or, 1h  = (10h * 0.1)
+  - Storage::FileSystem: host.com/path.[mime-extension]
+  - I wonder if it would be possible to run in threaded mode but with an
+    option to lock before making requests to the backend. The idea is to be
+    able to serve requests from cache in separate threads. This should
+    probably be implemented as a separate middleware component.
+  - Support server-specific X-Sendfile (or similar) for delivering cached
+    bodies.
+  - Serve cached copies when down - e.g., database connection drops and the
+    cache takes over what it can.

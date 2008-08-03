@@ -1,0 +1,10 @@
+## 0.1 (Sunday, August 3, 2008)
+
+  * Basic core with event support
+  * An #import method for bringing in config files
+  * Implement freshness based expiration
+  * Implement RFC 2616 If-Modified-Since based validation
+  * A not horribly shitty storage back-end (Hash in mem if we have to)
+  * Don't cache headers: Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization
+    TE, Trailers, Transfer-Encoding, Upgrade
+

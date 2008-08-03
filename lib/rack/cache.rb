@@ -2,7 +2,6 @@ require 'fileutils'
 require 'time'
 require 'rack'
 
-
 # Rack Caching Middleware
 module Rack::Cache
   require 'rack/cache/storage'
