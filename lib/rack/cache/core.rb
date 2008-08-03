@@ -31,12 +31,6 @@ module Rack::Cache
     # Array of event names that have been executed.
     attr_reader :trace
 
-    alias req request
-    alias res response
-
-    alias bereq backend_request
-    alias beres backend_response
-
     # Has the event been performed at any time during the request
     # life-cycle? Most useful for testing.
     def performed?(event)
@@ -76,7 +70,7 @@ module Rack::Cache
               nil
             end
         else
-          fail "NoEvent: #{event}"
+          fail "unknown event: #{event}"
         end
       end
     end
@@ -122,7 +116,7 @@ module Rack::Cache
 
   public
 
-    # We respond to messages with event names (performs the event).
+    # We respond to messages with event names by performing the event.
     def respond_to?(symbol, include_private=false)
       @events.key?(symbol) || super
     end
