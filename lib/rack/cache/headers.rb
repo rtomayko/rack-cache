@@ -43,6 +43,10 @@ module Rack::Cache
       end
     end
 
+    def etag
+      headers['Etag']
+    end
+
   end
 
 
@@ -56,6 +60,11 @@ module Rack::Cache
     end
 
     alias :header :headers
+
+    def if_modified_since
+      headers['If-Modified-Since']
+    end
+
   end
 
 
