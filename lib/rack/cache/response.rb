@@ -23,7 +23,9 @@ module Rack::Cache
     end
 
     def dup
-      Response.new(status, headers.dup, body)
+      object = Response.new(status, headers.dup, body)
+      yield object if block_given?
+      object
     end
 
     def [](header_name)
@@ -33,33 +35,6 @@ module Rack::Cache
     def []=(header_name, header_value)
       headers[header_name] = header_value
     end
-
-    def max_age
-      if age = headers['X-Max-Age']
-        age.to_i
-      else
-        super || 0
-      end
-    end
-
-    # The maximum age as calculated by the cache at some point. This
-    # value overrides any expiration time specified by the origin
-    # server.
-    def max_age=(seconds)
-      if seconds
-        headers['X-Max-Age'] = seconds.to_i.to_s
-      else
-        headers.delete('X-Max-Age')
-      end
-    end
-
-    def cache
-      object = dup
-      object.cache!
-      object
-    end
-
-  protected
 
     # Headers that should not be cached.
     HEADER_BLACKLIST = Set.new(%w[
@@ -79,15 +54,10 @@ module Rack::Cache
       self
     end
 
-    # Prepare the object to be cached.
-    def cache!
-      headers['Age'] = age.to_s
-      if header?('X-Max-Age')
-        cache_control = self.cache_control.dup
-        cache_control['max-age'] = max_age.to_s
-        self.cache_control = cache_control
-      end
-      remove_uncacheable_headers!
+    # Called immediately after an object is loaded from the
+    # cache.
+    def activate!
+      headers['Age'] = age.to_i.to_s
     end
 
   public
@@ -97,18 +67,6 @@ module Rack::Cache
       response = new(*object)
       response.send :activate!
       response
-    end
-
-  protected
-
-    # Called immediately after an object is loaded from the
-    # cache. This method recaluculates the response's Age
-    # and sets the X-Last-Used header to the time the response
-    # was last served by the cache.
-    def activate!
-      headers['X-Last-Used'] = (date + age).httpdate
-      headers.delete('Age')
-      headers['Age'] = age.to_i.to_s
     end
 
   end

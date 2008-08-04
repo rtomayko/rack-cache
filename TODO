@@ -1,9 +1,8 @@
 ## 0.2
 
+  * Baseline caching logic moved out of config, into Rack::Cache::Core
+  * Document events and transitions
   - BUG: negative TTL
-  - Baseline caching logic moved out of config, into Rack::Cache::Core
-  - Document events and transitions
-  - Document request, response, cached object
   - Uses canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
@@ -14,6 +13,7 @@
 
 ## 0.3
 
+  - Document request, response, cached object
   - Automatic cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.

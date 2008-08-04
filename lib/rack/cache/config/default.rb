@@ -1,146 +1,128 @@
-# Forward the request to the backend and call finish to send the
-# response back upstream.
-on :pass do
-  debug 'pass request to backend'
-  @backend_request = @request
-  response = @backend.call(@request.env)
-  debug 'got response from backend, forwarding'
-  @backend_response = Response.new(*response)
-  @response = @backend_response
-  finish
-end
-
-# Called when the request is initially received.
+# Called at the beginning of a request, after the complete request
+# has been received and parsed. Its purpose is to decide whether or
+# not to serve the request and how to do it.
+#
+# The request should not be modified.
+#
+# Possible transitions from receive:
+#
+#   * pass: pass the request to the backend the response upstream,
+#     bypassing all caching features.
+#
+#   * lookup: attempt to locate the object in the cache. Control will
+#     pass to the +lookup+ event where the result of cache lookup can
+#     be inspected.
+#
+#   * error: return the error code specified, abandoning the request.
+#
 on :receive do
-  debug 'receive request'
   # pass if request.header['Cache-Control'] =~ /no-cache/
   pass unless request.method? 'GET', 'HEAD'
   pass if request.header? 'Cookie', 'Authorization', 'Expect'
   lookup
 end
 
-# Attempt to lookup the request in the cache. If a potential
-# response is found, control transfers to the hit event with
-# @object set to response object retrieved from cache. When
-# no object is found in the cache, control transfers to miss.
-on :lookup do
-  debug 'lookup in cache'
-  if object = @storage.get(request.fullpath)
-    @object = Response.activate(object)
-    if @object.fresh?
-      hit
-    else
-      validate
-    end
-  end
-  miss
-end
-
-# The cache hit after a lookup.
-on :hit do
-  debug 'cache hit'
-  @response = @object
-  deliver
-end
-
-# The cache hit but the cached entity is no longer fresh, or
-# the request requires validation for some other reason.
-on :validate do
-  debug 'cached object found, but stale - validating w/ origin'
-
-  # TODO extract code that builds request to forward
-  environment = @request.env.dup
-  environment.delete('HTTP_IF_MODIFIED_SINCE')
-  environment.delete('HTTP_IF_NONE_MATCH')
-  @backend_request = Request.new(environment)
-
-  # add validators to the backend request
-  if last_modified = @object['Last-Modified']
-    @backend_request.headers['If-Modified-Since'] = last_modified
-  end
-  if etag = @object['ETag']
-    @backend_request.headers['If-None-Match'] = etag
-  end
-
-  # fetch the response from the backend
-  @backend_response = Response.new(*@backend.call(@backend_request.env))
-
-  # if we're just revalidating, merge headers, update the cache
-  # and hit.
-  if @backend_response.status == 304    # TODO 412 responses
-    debug "cached object up-to-date w/ backend"
-    @response = @object
-    # Merge headers
-    %w[Date Expires Cache-Control Etag Last-Modified].each do |hd|
-      next unless @backend_response.headers.key?(hd)
-      @response.headers[hd] = @backend_response.headers[hd]
-    end
-    @response.headers.delete('Age')
-    @object = @response
-    store
-  elsif @backend_response.cacheable?
-    debug "cached object refreshed"
-    @object = @backend_response.dup
-    store
-  else
-    debug "cached object is no longer cacheable ..."
-    @response = @backend_response
-    deliver
-  end
-end
-
-# Nothing was found in the cache.
-on :miss do
-  debug 'cache miss'
-  # TODO extract code that builds request to forward
-  environment = @request.env.dup
-  environment.delete('HTTP_IF_MODIFIED_SINCE')
-  @backend_request = Request.new(environment)
-  fetch
-end
-
-# Fetch the response from the backend and transfer control
-# to the store event.
-on :fetch do
-  debug 'fetch from backend'
-  @backend_response = Response.new(*@backend.call(@backend_request.env))
-  if @backend_response.cacheable?
-    debug "response is cacheable ..."
-    @object = @backend_response.dup
-    store
-  else
-    debug "response isn't cacheable ..."
-    @response = @backend_response
-    deliver
-  end
-end
-
-# Store the response in the cache and transfer control to
-# the deliver event.
-on :store do
-  fail "@object must be set before store" if @object.nil?
-  @object.ttl = default_ttl if @object.ttl.nil?
-  debug 'store backend response in cache (TTL: %ds)', @object.ttl
-  @response = @object.cache
-  @storage.put(@request.fullpath, @response)
-  deliver
-end
-
-on :deliver do
-  # Handle conditional GET w/ If-Modified-Since
-  if @response.last_modified_at?(@request.header['If-Modified-Since'])
-    debug 'upstream version is unmodified; sending 304'
-    response.status = 304
-    response.body = ''
-  end
-  debug 'deliver response'
+# Called upon entering pass mode. The request is passed on to the
+# backend, and the backend's response is passed on to the client,
+# but is not entered into the cache. The event is triggered immediately
+# after the response is received from the backend but before the it has
+# been sent upstream.
+#
+# Possible transitions from pass:
+#
+#   * finish: deliver the response upstream.
+#
+#   * error: return the error code specified, abandoning the request.
+#
+on :pass do
   finish
 end
 
-
-# Complete processing of the request. The backend_request,
-# backend_response, and response objects should all be available
-# when this event is invoked.
-on :finish do
-  throw :finish, @response.to_a
+# Called after a cache lookup when the requested document is not found
+# in the cache. Its purpose is to decide whether or not to attempt to
+# retrieve the document from the backend, and in what manner.
+#
+# Possible transitions from miss:
+#
+#   * fetch: retrieve the requested document from the backend with
+#     caching features enabled.
+#
+#   * pass: pass the request to the backend the response upstream,
+#     bypassing all caching features.
+#
+#   * error: return the error code specified and abandon request.
+#
+# The default configuration transfers control to the fetch event.
+on :miss do
+  fetch
 end
+
+# Called after a cache lookup when the requested document is found in
+# the cache and is fresh.
+#
+# Possible transitions from hit:
+#
+#   * deliver: transfer control to the deliver event, sending the cached
+#     response upstream.
+#
+#   * pass: abandon the cached object and transfer to pass mode. The
+#     original request is sent to the backend and the response sent
+#     upstream, bypassing all caching features.
+#
+#   * error: return the error code specified and abandon request.
+#
+on :hit do
+  deliver
+end
+
+# Called after a document has been successfully retrieved from the
+# backend or after a cached object was validated with the backend. During
+# validation, the original request is used as a template for a validation
+# request with the backend. The +original_response+ object contains the
+# response as received from the backend and +object+ will be set to the
+# cached response that triggered validation.
+#
+# Possible transitions from fetch:
+#
+#   * store: update the cached object with the validated response.
+#
+#   * deliver: deliver the object
+#
+#   * error: return the error code specified and abandon request.
+#
+on :fetch do
+  store if response.cacheable?
+  deliver
+end
+
+# Called immediately before +object+ is committed to cache storage.
+#
+# Possible transitions from store:
+#
+#   * persist: commit the object to cache and transfer control to
+#     the deliver event.
+#
+#   * deliver: transfer control to the deliver event without committing
+#     the object to cache.
+#
+#   * error: return the error code specified and abandon request.
+#
+on :store do
+  object.ttl = default_ttl if object.ttl.nil?
+  debug 'store backend response in cache (TTL: %ds)', object.ttl
+  persist
+end
+
+# Called immediately before +response+ is delivered upstream. +response+
+# may be modified at this point but the changes will not effect the
+# cache since the cached object has already been saved.
+#
+#   * finish: complete processing and send the response upstream
+#
+#   * error: return the error code specified and abandon request.
+#
+on :deliver do
+  finish
+end
+
+# vim: tw=72

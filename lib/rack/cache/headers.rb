@@ -141,14 +141,21 @@ module Rack::Cache
     end
 
     # The number of seconds after the time specified in the response's Date
-    # header when the the response should no longer be considered fresh. This
-    # method uses the 
+    # header when the the response should no longer be considered fresh. First
+    # check for a Cache-Control max-age value, and fall back on an expires
+    # header; return nil when no maximum age can be established.
     def max_age
       if age = cache_control['max-age']
         age.to_i
       elsif headers['Expires']
         Time.httpdate(headers['Expires']) - date
       end
+    end
+
+    # Set the age at which the response should no longer be considered fresh.
+    # Uses the Cache-Control max-age value.
+    def max_age=(value)
+      self.cache_control = cache_control.merge('max-age' => value.to_s)
     end
 
     # The expiration Time of the response as specified by the Expires header,

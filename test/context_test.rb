@@ -91,7 +91,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     get '/'
     @response.should.be.ok
     @context.should.a.performed :store
-    @response.headers.should.include 'Age'
+    @response.headers.should.not.include 'Age'
   end
 
   it 'fetches response from backend when cache misses' do
@@ -100,7 +100,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @response.should.be.ok
     @context.should.a.performed :miss
     @context.should.a.performed :fetch
-    @response.headers.should.include 'Age'
+    @response.headers.should.not.include 'Age'
   end
 
   it 'stores cacheable responses' do
@@ -108,7 +108,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     get '/'
     @response.should.be.ok
     @response.headers.should.include 'Date'
-    @response['Age'].should.be == '0'
+    @response['Age'].should.be.nil
     @context.should.a.performed :miss
     @context.should.a.performed :store
   end
@@ -145,7 +145,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @original = get('/')
     @original.should.be.ok
     @original.headers.should.include 'Date'
-    @original['Age'].should.be == '0'
+    @original['Age'].should.be.nil
     @context.should.a.performed :miss
     @context.should.a.performed :store
 
@@ -158,7 +158,9 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @cached = get('/')
     @cached.should.be.ok
     @cached['Age'].to_i.should.be == 0
-    @context.should.a.performed :validate
+    @context.should.a.not.performed :hit
+    @context.should.a.not.performed :miss
+    @context.should.a.performed :fetch
     @context.should.a.performed :store
   end
 
