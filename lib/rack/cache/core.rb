@@ -123,6 +123,7 @@ module Rack::Cache
     end
 
     def pass!
+      trace 'passing'
       fetch_from_backend!
       transition [:pass, :finish, :lookup], trigger(:pass) do |ev|
         ev == :pass ? :finish : ev
@@ -132,11 +133,14 @@ module Rack::Cache
     def lookup!
       if tuple = storage.get(original_request.fullpath)
         if (@object = Response.activate(tuple)).fresh?
+          trace 'cache hit'
           transition [:deliver, :pass], trigger(:hit)
         else
+          trace 'cache stale, validating...'
           validate!
         end
       else
+        trace 'cache miss'
         transition [:fetch, :pass], trigger(:miss)
       end
     end
@@ -152,7 +156,7 @@ module Rack::Cache
       fetch_from_backend!
 
       if original_response.status == 304
-        debug "cached object validated with backend"
+        trace "cached object valid"
         @response = object.dup
         @response.headers.delete('Age')
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
@@ -160,12 +164,15 @@ module Rack::Cache
           @response[name] = original_response[name]
         end
         @response.activate!
+      else
+        trace "cached object invalid"
       end
 
       transition [:store, :deliver], trigger(:fetch)
     end
 
     def fetch!
+      trace "fetching response from backend"
       volatile_request.
         env.delete('HTTP_IF_MODIFIED_SINCE')
       fetch_from_backend!
@@ -176,12 +183,16 @@ module Rack::Cache
       @object = response.dup
       @object.remove_uncacheable_headers!
       transition [:persist, :deliver], trigger(:store) do |event|
-        storage.put(original_request.fullpath, @object) if event == :persist
+        if event == :persist
+          trace "storing in cache"
+          storage.put original_request.fullpath, @object
+        end
         :deliver
       end
     end
 
     def deliver!
+      trace "delivering response ..."
       @response = response || object
       not_modified! if not_modified?
       transition [:finish], trigger(:deliver)
