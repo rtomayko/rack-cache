@@ -1,31 +1,31 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
 
+def simple_response(status=200, headers={}, body=['Hello World'])
+  Proc.new do |env|
+    response = Rack::Response.new(body, status, headers)
+    request = Rack::Request.new(env)
+    yield request, response if block_given?
+    response.finish
+  end
+end
+
+# Response generated five seconds ago that expires ten seconds later.
+def cacheable_response(*args)
+  simple_response *args do |req,res|
+    # response date is 5 seconds ago; makes expiration tests easier
+    res['Expires'] = (Time.now + 5).httpdate
+    yield req, res if block_given?
+  end
+end
+
+def validatable_response(*args)
+  simple_resource *args do |req,res|
+    res['Last-Modified'] = res['Date']
+    yield req, res if block_given?
+  end
+end
+
 describe 'Rack::Cache::Context (Default Configuration)' do
-
-  def simple_response(status=200, headers={}, body=['Hello World'])
-    Proc.new do |env|
-      response = Rack::Response.new(body, status, headers)
-      request = Rack::Request.new(env)
-      yield request, response if block_given?
-      response.finish
-    end
-  end
-
-  # Response generated five seconds ago that expires ten seconds later.
-  def cacheable_response(*args)
-    simple_response *args do |req,res|
-      # response date is 5 seconds ago; makes expiration tests easier
-      res['Expires'] = (Time.now + 5).httpdate
-      yield req, res if block_given?
-    end
-  end
-
-  def validatable_response(*args)
-    simple_resource *args do |req,res|
-      res['Last-Modified'] = res['Date']
-      yield req, res if block_given?
-    end
-  end
 
   before(:each) {
     @app = nil
@@ -183,6 +183,49 @@ protected
 
   def post(*args, &b)
     request(:post, *args, &b)
+  end
+
+end
+
+describe "Rack::Cache::Context (Logging)" do
+
+  before(:each) {
+    @errors = StringIO.new
+    @app = simple_response
+    @context = Rack::Cache::Context.new(@app)
+    @context.errors = @errors
+    (class<<@context;self;end).send :public, :log, :trace, :warn, :info
+  }
+
+  it 'responds to #log by writing message to #errors' do
+    @context.log :test, 'is this thing on?'
+    @errors.string.should.be == "[RCL] [TEST] is this thing on?\n"
+  end
+
+  it 'allows printf formatting arguments' do
+    @context.log :test, '%s %p %i %x', 'hello', 'goodbye', 42, 66
+    @errors.string.should.be == "[RCL] [TEST] hello \"goodbye\" 42 42\n"
+  end
+
+  it 'responds to #info by logging an :info message' do
+    @context.info 'informative stuff'
+    @errors.string.should.be == "[RCL] [INFO] informative stuff\n"
+  end
+
+  it 'responds to #warn by logging an :warn message' do
+    @context.warn 'kinda/maybe bad stuff'
+    @errors.string.should.be == "[RCL] [WARN] kinda/maybe bad stuff\n"
+  end
+
+  it 'responds to #trace by logging a :trace message' do
+    @context.trace 'some insignifacant event'
+    @errors.string.should.be == "[RCL] [TRACE] some insignifacant event\n"
+  end
+
+  it "doesn't log trace messages when not in verbose mode" do
+    @context.verbose = false
+    @context.trace 'some insignifacant event'
+    @errors.string.should.be == ""
   end
 
 end

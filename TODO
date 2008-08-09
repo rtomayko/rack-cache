@@ -2,6 +2,7 @@
 
   * Baseline caching logic moved out of config, into Rack::Cache::Core
   * Document events and transitions
+  * Logging
   - BUG: negative TTL
   - Uses canonicalized URL for cache key:
     - sorts params by key, then value

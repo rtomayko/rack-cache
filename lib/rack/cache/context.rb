@@ -38,52 +38,29 @@ module Rack::Cache
 
     alias_method :call!, :process_request
 
-  private
-
-    # TODO extract into log module
-    attr_writer :errors
-
+    # IO-like object that receives log, warning, and error messages;
+    # defaults to the rack.errors environment variable.
     def errors
-      @errors ||=
-        ((@env && @env['rack.errors']) || STDERR)
+      @errors || (@env && (@errors = @env['rack.errors'])) || STDERR
     end
 
-    def nowhere
-      @null ||= File.open('/dev/null', 'w')
+    # Set the output stream for log messages, warnings, and errors.
+    def errors=(ioish)
+      fail "stream must respond to :write" if ! ioish.respond_to?(:write)
+      @errors = ioish
     end
 
-    LOG_LEVELS = {
-      :trace    => [ 'TRACE', false ],
-      :info     => [ 'INFO ', true ],
-      :user     => [ 'USER ', true ],
-      :warn     => [ 'WARN ', true ],
-      :error    => [ 'ERROR', true ]
-    }
+  protected
 
-    def verbose(*levels)
-      levels.each do |level|
-        fail "Unknown log level: #{level}" unless LOG_LEVELS.key?(level)
-        LOG_LEVELS[level][-1] = true
-      end
-    end
-
-    def quiet(*levels)
-      levels.each { |level| LOG_LEVELS[level][-1] = false }
-    end
-
+    # Write a log message to the errors stream. +level+ is a symbol
+    # such as :error, :warn, :info, or :trace.
     def log(level, message=nil, *interpolators, &bk)
-      label, enabled = LOG_LEVELS[level]
-      return unless enabled
       if block_given?
         args.unshift message unless message.nil?
         message = yield
       end
-      errors.write "[RCL] [#{label}] #{message}\n" % interpolators
+      errors.write("[RCL] [#{level.to_s.upcase}] #{message}\n" % interpolators)
       errors.flush
-    end
-
-    def trace(*message, &bk)
-      log :trace, *message, &bk
     end
 
     def info(*message, &bk)
@@ -94,8 +71,9 @@ module Rack::Cache
       log :warn, *message, &bk
     end
 
-    def error(*message, &bk)
-      log :error, *message, &bk
+    def trace(*message, &bk)
+      return unless verbose?
+      log :trace, *message, &bk
     end
 
     alias_method :debug, :trace

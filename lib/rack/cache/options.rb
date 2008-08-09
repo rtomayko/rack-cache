@@ -2,9 +2,16 @@ module Rack::Cache
 
   module Options
 
-    # The cache storage implementation. This should be an
-    # instance of one of the classes defined under
-    # Rack::Cache::Storage or 
+    # Enable verbose trace logging.
+    #
+    # Default: true
+    attr_accessor :verbose
+
+    def verbose?
+      @verbose
+    end
+
+    # The cache storage implementation.
     attr_accessor :storage
 
     # The number of seconds that a cached object should be considered
@@ -28,13 +35,13 @@ module Rack::Cache
 
     # Set multiple options.
     def options=(hash={})
-      hash.each { |name,value| set(name,value) }
-      hash
+      hash.each { |name,value| set(name, value) }
     end
 
   private
 
     def initialize_options(options={})
+      @verbose = true
       @storage = Storage::Memory.new
       @default_ttl = 0
     end
