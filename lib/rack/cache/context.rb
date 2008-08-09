@@ -32,11 +32,14 @@ module Rack::Cache
       if env['rack.run_once']
         call! env
       else
-        dup.send :call!, env
+        # NOTE we can't use #dup here because we need methods defined
+        # on the metaclass copied.
+        clone.call! env
       end
     end
 
     alias_method :call!, :process_request
+    protected :call!
 
     # IO-like object that receives log, warning, and error messages;
     # defaults to the rack.errors environment variable.

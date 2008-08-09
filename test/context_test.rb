@@ -120,14 +120,14 @@ describe 'Rack::Cache::Context (Default Configuration)' do
       end
 
     @basic_context = Rack::Cache::Context.new(@app)
-    @context = @basic_context.dup
+    @context = @basic_context.clone
     @original = get('/')
     @original.should.be.ok
     @original.headers.should.include 'Date'
     @context.should.a.performed :miss
     @context.should.a.performed :store
 
-    @context = @basic_context.dup
+    @context = @basic_context.clone
     @cached = get('/')
     @cached.should.be.ok
     @cached['Date'].should.be == @original['Date']
@@ -141,7 +141,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @basic_context = Rack::Cache::Context.new(@app)
 
     # build initial request
-    @context = @basic_context.dup
+    @context = @basic_context.clone
     @original = get('/')
     @original.should.be.ok
     @original.headers.should.include 'Date'
@@ -154,7 +154,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.storage.to_hash.values.first[1]['Expires'] = Time.now.httpdate
 
     # build subsequent request; should be found but miss due to freshness
-    @context = @basic_context.dup
+    @context = @basic_context.clone
     @cached = get('/')
     @cached.should.be.ok
     @cached['Age'].to_i.should.be == 0

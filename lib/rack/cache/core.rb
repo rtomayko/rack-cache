@@ -30,18 +30,15 @@ module Rack::Cache
     # Event handlers
     attr_reader :events
 
-    # Array of event names that have been executed.
-    attr_reader :trace
-
     # Has the event been performed at any time during the request
     # life-cycle? Most useful for testing.
     def performed?(event)
-      @trace.include?(event)
+      @triggered.include?(event)
     end
 
     # Are we currently performing the event specified?
     def performing?(event)
-      @trace.last == event
+      @triggered.last == event
     end
 
     def request
@@ -61,22 +58,25 @@ module Rack::Cache
   protected
 
     # Attach rules to an event.
-    def on(event, &block)
-      @events[event].unshift block
-      (class << self;self;end).send :define_method, event do
-        throw :transition, event
+    def on(*events, &block)
+      events.each do |event|
+        @events[event].unshift block if block_given?
+        next if respond_to? event
+        (class<<self;self;end).send :define_method, event do
+          throw :transition, event
+        end
+        nil
       end
-      nil
     end
 
   private
 
     # Trigger processing of the event specified.
     def trigger(event)
-      if (events = @events[event]).any?
-        @trace << event
+      if @events.include? event
+        @triggered << event
         catch(:transition) do
-          events.each { |block| instance_eval(&block) }
+          @events[event].each { |block| instance_eval(&block) }
           nil
         end
       else
@@ -196,8 +196,11 @@ module Rack::Cache
     # Setup the core template. The object's state after execution
     # of this method will be duped and used for individual request.
     def initialize_core
+      @triggered = []
       @events = Hash.new { |h,k| h[k.to_sym] = [] }
-      @trace = []
+      on :receive, :pass, :miss, :hit, :fetch,
+        :lookup, :store, :persist, :deliver, :finish
+
       # initialize some instance variables; we won't use
       # them until we dup to process a request.
       @request = nil
@@ -210,15 +213,10 @@ module Rack::Cache
     # Process a request. This method is compatible with Rack's #call
     # interface.
     def process_request(env)
-      @trace = []
+      @triggered = []
       @env = env
       receive!
     end
-
-    %w[receive pass fetch lookup store hit miss deliver finish persist].each do |method_name|
-      method_name = method_name.to_sym
-      send(:define_method, method_name) { throw(:transition, method_name) }
-   end
 
   end
 end
