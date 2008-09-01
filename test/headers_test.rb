@@ -120,4 +120,43 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
+  describe '#vary' do
+    it 'is nil when no Vary header is present' do
+      @res.vary.should.be.nil?
+    end
+    it 'returns the literal value of the Vary header' do
+      @res.headers['Vary'] = 'Foo Bar Baz'
+      @res.vary.should.be == 'Foo Bar Baz'
+    end
+    it 'can be checked for existence using the #vary? method' do
+      @res.should.respond_to :vary?
+      @res.should.not.vary
+      @res.headers['Vary'] = '*'
+      @res.should.vary
+    end
+  end
+
+  describe '#requests_vary?' do
+    it 'always returns false when no Vary header is present in the response' do
+      @res.requests_vary?({}, {}).should.be false
+    end
+    it 'always returns true when the vary header is "*"' do
+      @res.headers['Vary'] = '*'
+      @res.requests_vary?({}, {}).should.be true
+    end
+    it 'returns true when at least one Vary header is different' do
+      @res.headers['Vary'] = 'User-Agent Accept-Language'
+      @res.requests_vary?(
+        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' },
+        {'HTTP_USER_AGENT' => 'iPhone',  'HTTP_ACCEPT_LANGUAGE' => 'en' }
+      ).should.be true
+    end
+    it 'returns false when all Vary headers are equal' do
+      @res.headers['Vary'] = 'User-Agent Accept-Language'
+      @res.requests_vary?(
+        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' },
+        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' }
+      ).should.not.be true
+    end
+  end
 end

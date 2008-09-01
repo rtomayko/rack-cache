@@ -205,6 +205,33 @@ module Rack::Cache
       time_value && last_modified == time_value
     end
 
+    # The literal value of the Vary header, or nil when no Vary header is
+    # present.
+    def vary
+      headers['Vary']
+    end
+
+    # Does the response include a Vary header?
+    def vary?
+      ! vary.nil?
+    end
+
+    # Determine whether the two environments vary based on the fields
+    # specified in the receiver's Vary header.
+    def requests_vary?(env1, env2)
+      case vary
+      when nil, ''
+        false
+      when '*'
+        true
+      else
+        vary.split(/\s+/).any? do |header_name|
+          key = "HTTP_#{header_name.upcase.tr('-', '_')}"
+          env1[key] != env2[key]
+        end
+      end
+    end
+
   end
 
 end
