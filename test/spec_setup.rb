@@ -10,12 +10,10 @@ rescue LoadError => boom
   require 'test/spec'
 end
 
-begin
-  require 'rack/cache'
-rescue LoadError => boom
-  $:.unshift File.join(File.dirname(File.dirname(__FILE__)), 'lib')
-  require 'rack/cache'
-end
+$LOAD_PATH.unshift File.dirname(File.dirname(__FILE__)) + '/lib'
+$LOAD_PATH.unshift File.dirname(__FILE__)
+
+require 'rack/cache'
 
 module TestHelpers
   include FileUtils
@@ -42,4 +40,28 @@ module TestHelpers
 
 end
 
+module RequestHelpers
+
+  def request(method, uri='/', opts={})
+    opts = { 'rack.run_once' => true }.merge(opts)
+    @backend ||= @app
+    @context ||= Rack::Cache::Context.new(@backend)
+    @request = Rack::MockRequest.new(@context)
+    yield @context if block_given?
+    @response = @request.send(method, uri, opts)
+    @response.should.not.be.nil
+    @response
+  end
+
+  def get(stem, env={}, &b)
+    request(:get, stem, env, &b)
+  end
+
+  def post(*args, &b)
+    request(:post, *args, &b)
+  end
+
+end
+
 Test::Unit::TestCase.send :include, TestHelpers
+Test::Unit::TestCase.send :include, RequestHelpers

@@ -1,20 +1,29 @@
+## 0.1
+
+  * Proof of concept
+  * Store everything in memory
+
 ## 0.2
 
   * Baseline caching logic moved out of config, into Rack::Cache::Core
   * Document events and transitions
-  * Logging
-  - BUG: negative TTL
-  - Uses canonicalized URL for cache key:
-    - sorts params by key, then value
-    - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
-  - Separate entity store, key by SHA
-  - Separate header store, key by canonical URL, value is array of
-    headers that have been stored for that key.
-  - Memcached (use to store headers and entities)
+  * Basic logging
+  * BUG: negative TTL
+  * EntityStore: entity bodies by SHA
+  * MetaStore: response headers by URL
+  * Vary support MetaStore
+  - Vary tests
+  - Add Vary support to Wink
+  - breakers.rb tests
 
 ## 0.3
 
   - Document request, response, cached object
+  - Canonicalized URL for cache key:
+    - sorts params by key, then value
+    - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
+  - Memcached (meta and entity store)
+  - Sqlite3 (meta and entity store)
   - Automatic cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
@@ -23,12 +32,11 @@
 
 ## Backlog
 
-  - Vary
   - Maximum size of cached entity
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
     header have a TTL assigned based on the last modified age of the response:
     TTL = (Age * Factor), or, 1h  = (10h * 0.1)
-  - Storage::FileSystem: host.com/path.[mime-extension]
+  - Read options from Rack env if present (rack.cache.XXX keys)
   - I wonder if it would be possible to run in threaded mode but with an
     option to lock before making requests to the backend. The idea is to be
     able to serve requests from cache in separate threads. This should

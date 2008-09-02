@@ -5,7 +5,6 @@ module Rack
   class MockResponse
 
     def initialize_with_body_closing(status, headers, body, errors=StringIO.new(""), &b)
-      puts [status, headers, body].inspect
       def body.each_with_auto_close(&block)
         r = each_without_auto_close(&block)
         close if respond_to? :close

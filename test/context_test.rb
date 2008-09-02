@@ -21,7 +21,7 @@ def cacheable_response(*args)
 end
 
 def validatable_response(*args)
-  simple_resource *args do |req,res|
+  simple_response *args do |req,res|
     res['Last-Modified'] = res['Date']
     yield req, res if block_given?
   end
@@ -171,27 +171,6 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.should.a.not.performed :miss
     @context.should.a.performed :fetch
     @context.should.a.performed :store
-  end
-
-protected
-
-  def request(method, uri='/', opts={})
-    opts = { 'rack.run_once' => true }.merge(opts)
-    @backend ||= @app
-    @context ||= Rack::Cache::Context.new(@backend)
-    @request = Rack::MockRequest.new(@context)
-    yield @context if block_given?
-    @response = @request.send(method, uri, opts)
-    @response.should.not.be.nil
-    @response
-  end
-
-  def get(*args, &b)
-    request(:get, *args, &b)
-  end
-
-  def post(*args, &b)
-    request(:post, *args, &b)
   end
 
 end

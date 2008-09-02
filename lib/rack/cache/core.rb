@@ -182,7 +182,7 @@ module Rack::Cache
       @object = response
       transition [:persist, :deliver], trigger(:store) do |event|
         if event == :persist
-          trace "storing in cache"
+          trace "queueing response for cache"
           meta_store.queue original_request, @object, entity_store
           @response = @object
         end
