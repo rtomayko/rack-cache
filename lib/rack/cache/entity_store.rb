@@ -82,8 +82,16 @@ module Rack::Cache
         nil
       end
 
+      # Open the entity body and return an IO object. The IO object's
+      # each method is overridden to read 4K blocks instead of lines.
       def open(key)
-        File.open(body_path(key), 'rb')
+        io = File.open(body_path(key), 'rb')
+        def io.each
+          while part = read(4096)
+            yield part
+          end
+        end
+        io
       rescue Errno::ENOENT
         nil
       end
