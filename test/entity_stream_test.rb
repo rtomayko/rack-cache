@@ -3,12 +3,6 @@ require 'rack/cache/entity_stream'
 
 describe 'Rack::Cache::EntityStream' do
 
-  before(:each) {
-  }
-
-  after(:each) {
-  }
-
   class MockIO < StringIO
     def initialize(*args, &close)
       super(*args)

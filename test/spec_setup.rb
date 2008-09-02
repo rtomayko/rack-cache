@@ -17,13 +17,8 @@ rescue LoadError => boom
   require 'rack/cache'
 end
 
-class Test::Spec::Should
-end
-
 module TestHelpers
-
   include FileUtils
-
   F = File
 
   @@temp_dir_count = 0
@@ -45,5 +40,6 @@ module TestHelpers
     F.open(path, 'w') { |io| io.write(data) }
   end
 
-  Test::Unit::TestCase.send :include, self
 end
+
+Test::Unit::TestCase.send :include, TestHelpers
