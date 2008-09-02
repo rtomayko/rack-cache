@@ -84,8 +84,7 @@ module Rack::Cache
       end
     end
 
-    # Transition from the currently processing event to the event
-    # specified.
+    # Transition from the currently processing event to the event specified.
     def transition(possible, event, *args, &tweek)
       if ! possible.include?(event)
         raise IllegalTransition,
@@ -111,7 +110,7 @@ module Rack::Cache
     # Mark the response as being not modified.
     def not_modified!
       response.status = 304
-      response.body = ''
+      response.body = []
     end
 
   private
@@ -131,8 +130,8 @@ module Rack::Cache
     end
 
     def lookup!
-      if tuple = storage.get(original_request.fullpath)
-        if (@object = Response.activate(tuple)).fresh?
+      if @object = meta_store.lookup(original_request, entity_store)
+        if @object.fresh?
           trace 'cache hit'
           transition [:deliver, :pass], trigger(:hit)
         else
@@ -180,12 +179,12 @@ module Rack::Cache
     end
 
     def store!
-      @object = response.dup
-      @object.remove_uncacheable_headers!
+      @object = response
       transition [:persist, :deliver], trigger(:store) do |event|
         if event == :persist
           trace "storing in cache"
-          storage.put original_request.fullpath, @object
+          meta_store.queue original_request, @object, entity_store
+          @response = @object
         end
         :deliver
       end

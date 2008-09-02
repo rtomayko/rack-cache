@@ -36,37 +36,10 @@ module Rack::Cache
       headers[header_name] = header_value
     end
 
-    # Headers that should not be cached.
-    HEADER_BLACKLIST = Set.new(%w[
-      Connection
-      Keep-Alive
-      Proxy-Authenticate
-      Proxy-Authorization
-      TE
-      Trailers
-      Transfer-Encoding
-      Upgrade
-    ])
-
-    # Removes all headers in HEADER_BLACKLIST
-    def remove_uncacheable_headers!
-      headers.reject! { |name,value| HEADER_BLACKLIST.include?(name) }
-      self
-    end
-
     # Called immediately after an object is loaded from the
     # cache.
     def activate!
       headers['Age'] = age.to_i.to_s
-    end
-
-  public
-
-    # Create a new Response with an object that was cached.
-    def self.activate(object)
-      response = new(*object)
-      response.send :activate!
-      response
     end
 
   end

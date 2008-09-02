@@ -8,12 +8,24 @@ module Rack::Cache
     # default but is likely to be disabled in a future release.
     attr_accessor :verbose
 
+    # The meta store implementation used to cache response headers. This
+    # may be set to an instance of one of the Rack::Cache::MetaStore
+    # implementation classes.
+    #
+    # For example, to use a Disk based meta store:
+    #   set :meta_store, Rack::Cache::MetaStore::Disk.new('./cache/meta')
+    #
+    # If no meta store is specified, the Rack::Cache::MetaStore::Heap
+    # implementation is used. This implementation has significant draw-backs
+    # so explicit configuration is recommended.
+    attr_accessor :meta_store
+
     # The entity store implementation used to cache response bodies. This
     # may be set to an instance of one of the Rack::Cache::EntityStore
     # implementation classes.
     #
     # For example, to use a Disk based entity store:
-    #   set :entity_store, Rack::Cache::EntityStore::Disk.new('./cache')
+    #   set :entity_store, Rack::Cache::EntityStore::Disk.new('./cache/entity')
     #
     # If no entity store is specified, the Rack::Cache::EntityStore::Heap
     # implementation is used. This implementation has significant draw-backs
@@ -53,6 +65,7 @@ module Rack::Cache
 
     def initialize_options(options={})
       @verbose = true
+      @meta_store = ::Rack::Cache::MetaStore::Heap.new
       @entity_store = ::Rack::Cache::EntityStore::Heap.new
       @default_ttl = 0
     end

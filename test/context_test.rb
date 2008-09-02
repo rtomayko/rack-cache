@@ -1,4 +1,6 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
+require 'rack/cache/context'
+require 'rack/mock_response_fix'
 
 def simple_response(status=200, headers={}, body=['Hello World'])
   Proc.new do |env|
@@ -109,8 +111,10 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @response.should.be.ok
     @response.headers.should.include 'Date'
     @response['Age'].should.be.nil
+    @response['X-Content-Digest'].should.be.nil
     @context.should.a.performed :miss
     @context.should.a.performed :store
+    @context.meta_store.to_hash.keys.length.should.be == 1
   end
 
   it 'hits cached/fresh objects' do
@@ -132,6 +136,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @cached.should.be.ok
     @cached['Date'].should.be == @original['Date']
     @cached['Age'].to_i.should.be > 0
+    @cached['X-Content-Digest'].should.not.be.nil
     @context.should.a.performed :hit
     @context.should.a.not.performed :fetch
   end
@@ -145,19 +150,23 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @original = get('/')
     @original.should.be.ok
     @original.headers.should.include 'Date'
+    @original.headers.should.not.include 'X-Content-Digest'
     @original['Age'].should.be.nil
     @context.should.a.performed :miss
     @context.should.a.performed :store
+    @original.body.each {}
+    @original.body.close if @original.body.respond_to? :close
 
     # go in and play around with the cached metadata directly ...
-    @context.storage.to_hash.values.length.should.be == 1
-    @context.storage.to_hash.values.first[1]['Expires'] = Time.now.httpdate
+    @context.meta_store.to_hash.values.length.should.be == 1
+    @context.meta_store.to_hash.values.first.first[1]['Expires'] = Time.now.httpdate
 
     # build subsequent request; should be found but miss due to freshness
     @context = @basic_context.clone
     @cached = get('/')
     @cached.should.be.ok
     @cached['Age'].to_i.should.be == 0
+    @cached['X-Content-Digest'].should.be.nil
     @context.should.a.not.performed :hit
     @context.should.a.not.performed :miss
     @context.should.a.performed :fetch
