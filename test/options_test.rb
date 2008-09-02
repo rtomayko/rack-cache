@@ -48,10 +48,10 @@ describe 'Rack::Cache::Options' do
     @options.bar.should.be == 'baz'
   end
 
-  it 'allows the storage backend to be configured' do
-    @options.should.respond_to :storage
-    @options.should.respond_to :storage=
-    @options.storage.should.not.be nil
+  it 'allows the entity store to be configured' do
+    @options.should.respond_to :entity_store
+    @options.should.respond_to :entity_store=
+    @options.entity_store.should.not.be nil
   end
 
   it 'allows log verbosity to be configured' do

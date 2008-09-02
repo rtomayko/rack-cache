@@ -1,3 +1,6 @@
+require 'enumerator'
+require 'digest/sha1'
+
 module Rack::Cache
 
   # Stream filter that reads from a source body, writes to a destination IOish

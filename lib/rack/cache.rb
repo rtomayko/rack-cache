@@ -4,7 +4,6 @@ require 'rack'
 
 # Rack Caching Middleware
 module Rack::Cache
-  require 'rack/cache/storage'
   require 'rack/cache/request'
   require 'rack/cache/response'
   require 'rack/cache/context'

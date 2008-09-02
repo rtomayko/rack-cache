@@ -12,9 +12,6 @@ describe 'Rack::Cache' do
   it 'has a Response class' do
     Rack::Cache::Response.should.be.kind_of Class
   end
-  it 'has a Storage module' do
-    Rack::Cache::Storage.should.be.kind_of Module
-  end
 end
 
 describe 'Rack::Cache::new' do

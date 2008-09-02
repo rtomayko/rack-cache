@@ -67,7 +67,7 @@ module Rack::Cache
       # already exist.
       attr_reader :root
 
-      def initialize(root="/tmp/rc-entity")
+      def initialize(root="/tmp/rack-cache/entity")
         @root = root
         FileUtils.mkdir_p root, :mode => 0755
       end
