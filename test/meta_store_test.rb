@@ -68,7 +68,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'should set the X-Content-Digest response header before storing' do
     queue_and_store_simple_entry
     req, res = @store.read('/test').first
-    res['X-Content-Digest'].should.be == ['a94a8fe5ccb19ba61c4c0873d391e987982fbbd3']
+    res['X-Content-Digest'].should.be == 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
   end
 
   it 'should find a stored entry with #lookup' do

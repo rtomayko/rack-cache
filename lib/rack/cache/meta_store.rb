@@ -64,10 +64,10 @@ module Rack::Cache
 
       # reconstruct response object
       # TODO what if body doesn't exist in entity store?
-      status = res['X-Status'].first.to_i
-      body_key = res['X-Content-Digest'].first
+      status = res['X-Status']
+      body_key = res['X-Content-Digest']
       body = entity_store.open(body_key)
-      response = Rack::Cache::Response.new(status, res, body)
+      response = Rack::Cache::Response.new(status.to_i, res, body)
       response.activate!
 
       # Return the cached response
@@ -81,7 +81,7 @@ module Rack::Cache
       res = persist_response(response)
       response.body =
         entity_store.queue(response.body) do |sha|
-          res['X-Content-Digest'] = [sha]
+          res['X-Content-Digest'] = sha
           store(key, req, res)
         end
     end
@@ -112,7 +112,7 @@ module Rack::Cache
     # returned must be marshalable.
     def persist_response(response)
       headers = response.headers.reject { |k,v| HEADER_BLACKLIST.include?(k) }
-      headers['X-Status'] = [response.status]
+      headers['X-Status'] = response.status.to_s
       headers
     end
 
