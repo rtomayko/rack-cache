@@ -165,6 +165,7 @@ module Rack::Cache
         @response.activate!
       else
         trace "cached object invalid"
+        @object = nil
       end
 
       transition [:store, :deliver], trigger(:fetch)
