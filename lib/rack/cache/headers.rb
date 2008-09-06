@@ -183,13 +183,13 @@ module Rack::Cache
     # Determine if the response is "fresh" in the sense that it can be
     # used without first validating with the origin.
     def fresh?
-      ttl > 0
+      ttl && ttl > 0
     end
 
     # Determine if the response is "stale" in the sense that it must be
     # validated with the origin before use.
     def stale?
-      ttl <= 0
+      ttl.nil? || ttl <= 0
     end
 
     # The String value of the Last-Modified header exactly as it appears

@@ -122,7 +122,7 @@ describe 'Rack::Cache::ResponseHeaders' do
 
   describe '#vary' do
     it 'is nil when no Vary header is present' do
-      @res.vary.should.be.nil?
+      @res.vary.should.be.nil
     end
     it 'returns the literal value of the Vary header' do
       @res.headers['Vary'] = 'Foo Bar Baz'

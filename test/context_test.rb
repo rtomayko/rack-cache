@@ -2,78 +2,79 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/context'
 require 'rack/mock_response_fix'
 
-def simple_response(status=200, headers={}, body=['Hello World'])
-  Proc.new do |env|
-    response = Rack::Response.new(body, status, headers)
-    request = Rack::Request.new(env)
-    yield request, response if block_given?
-    response.finish
+class Test::Unit::TestCase
+
+  def simple_response(status=200, headers={}, body=['Hello World'])
+    Proc.new do |env|
+      @called = true
+      response = Rack::Response.new(body, status, headers)
+      request = Rack::Request.new(env)
+      yield request, response if block_given?
+      response.finish
+    end
   end
+
+  # Response generated five seconds ago that expires ten seconds later.
+  def cacheable_response(*args)
+    simple_response *args do |req,res|
+      # response date is 5 seconds ago; makes expiration tests easier
+      res['Expires'] = (Time.now + 5).httpdate
+      yield req, res if block_given?
+    end
+  end
+
+  def validateable_response(last_modified=Time.now.httpdate)
+    simple_response do |req,res|
+      res['Last-Modified'] = last_modified
+      yield req, res if block_given?
+    end
+  end
+
 end
 
-# Response generated five seconds ago that expires ten seconds later.
-def cacheable_response(*args)
-  simple_response *args do |req,res|
-    # response date is 5 seconds ago; makes expiration tests easier
-    res['Expires'] = (Time.now + 5).httpdate
-    yield req, res if block_given?
-  end
-end
+describe 'The Rack::Cache Middleware' do
 
-def validateable_response(last_modified=Time.now.httpdate)
-  simple_response do |req,res|
-    res['Last-Modified'] = last_modified
-    yield req, res if block_given?
-  end
-end
-
-describe 'Rack::Cache::Context (Default Configuration)' do
-
-  before(:each) {
-    @app = nil
+  before :each do
+    @app = cacheable_response
     @backend = nil
     @context = nil
     @request = nil
     @response = nil
     @called = false
-  }
+  end
 
   it 'passes on non-GET/HEAD requests' do
-    @app = cacheable_response { @called = true }
     post '/'
     @response.should.be.ok
-    @called.should.be == true
+    @called.should.be true
     @context.should.a.performed :pass
     @response.headers.should.not.include 'Age'
   end
 
   it 'passes on requests with Authorization' do
-    @app = cacheable_response
-    get '/',
-      'HTTP_AUTHORIZATION' => 'basic foobarbaz'
+    get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
     @response.should.be.ok
+    @called.should.be true
     @context.should.a.performed :pass
     @response.headers.should.not.include 'Age'
   end
 
   it 'passes on requests with a Cookie' do
-    @app = cacheable_response
     get '/', 'HTTP_COOKIE' => 'foo=bar'
     @response.should.be.ok
+    @called.should.be true
     @context.should.a.performed :pass
     @response.headers.should.not.include 'Age'
   end
 
-  xit 'passes on requests that include a Cache-Control header set to no-cache' do
-    @app = cacheable_response
+  it 'caches requests with a Cache-Control header set to no-cache' do
     get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
     @response.should.be.ok
-    @context.should.a.performed :pass
+    @context.should.a.performed :store
     @response.headers.should.not.include 'Age'
   end
 
   it 'fetches response from backend when cache misses' do
-    @app = cacheable_response
     get '/'
     @response.should.be.ok
     @context.should.a.performed :miss
@@ -82,7 +83,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   end
 
   it "does not cache responses with non-cacheable response codes" do
-    @app = cacheable_response { |req,res| res.status = 303 }
+    @app = cacheable_response(303)
     get '/'
     @context.should.a.not.performed :store
     @response.status.should.be == 303
@@ -90,7 +91,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   end
 
   it "does not cache responses with explicit no-store directive" do
-    @app = cacheable_response { |req,res| res['Cache-Control'] = "no-store" }
+    @app = cacheable_response(200, 'Cache-Control' => 'no-store')
     get '/'
     @response.should.be.ok
     @context.should.a.not.performed :store
@@ -98,7 +99,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   end
 
   it "caches responses with explicit no-cache directive" do
-    @app = cacheable_response { |req,res| res['Cache-Control'] = "no-cache" }
+    @app = cacheable_response(200, 'Cache-Control' => 'no-cache')
     get '/'
     @response.should.be.ok
     @context.should.a.performed :store
@@ -106,7 +107,6 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   end
 
   it 'stores cacheable responses' do
-    @app = cacheable_response
     get '/'
     @response.should.be.ok
     @response.body.should.be == 'Hello World'
@@ -127,6 +127,13 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.should.a.performed :store
   end
 
+  it 'does not store non-cacheable/non-validateable response' do
+    @app = simple_response
+    get '/'
+    @response.should.be.ok
+    @context.should.a.not.performed :store
+  end
+
   it 'hits cached/fresh objects' do
     @app =
       cacheable_response do |req,res|
@@ -137,14 +144,17 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context = @basic_context.clone
     @original = get('/')
     @original.should.be.ok
+    @called.should.be true
     @original.headers.should.include 'Date'
     @context.should.a.performed :miss
     @context.should.a.performed :store
     @original.body.should.be == 'Hello World'
 
+    @called = false
     @context = @basic_context.clone
     @cached = get('/')
     @cached.should.be.ok
+    @called.should.not.be true
     @cached['Date'].should.be == @original['Date']
     @cached['Age'].to_i.should.be > 0
     @cached['X-Content-Digest'].should.not.be.nil
@@ -156,8 +166,8 @@ describe 'Rack::Cache::Context (Default Configuration)' do
   it 'fetches full response when cache stale and no validators present' do
     @app =
       cacheable_response do |req,res|
-        req.env['HTTP_IF_MODIFIED_SINCE'].should.be.nil 
-        req.env['HTTP_IF_NONE_MATCH'].should.be.nil 
+        req.env['HTTP_IF_MODIFIED_SINCE'].should.be.nil
+        req.env['HTTP_IF_NONE_MATCH'].should.be.nil
       end
     @basic_context = Rack::Cache::Context.new(@app)
 
@@ -165,6 +175,7 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context = @basic_context.clone
     @original = get('/')
     @original.should.be.ok
+    @called.should.be true
     @original.headers.should.include 'Date'
     @original.headers.should.not.include 'X-Content-Digest'
     @original['Age'].should.be.nil
@@ -178,8 +189,10 @@ describe 'Rack::Cache::Context (Default Configuration)' do
 
     # build subsequent request; should be found but miss due to freshness
     @context = @basic_context.clone
+    @called = false
     @cached = get('/')
     @cached.should.be.ok
+    @called.should.be true
     @cached['Age'].to_i.should.be == 0
     @cached['X-Content-Digest'].should.be.nil
     @context.should.a.not.performed :hit
@@ -189,10 +202,9 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @cached.body.should.be == 'Hello World'
   end
 
-  it 'validates cached responses with Last-Modified header but no freshness information' do
-    @last_modified = Time.now.httpdate
+  it 'validates cached responses with Last-Modified but no freshness information' do
     @app =
-      validateable_response(@last_modified) do |req,res|
+      validateable_response(Time.now.httpdate) do |req,res|
         if req.env['HTTP_IF_MODIFIED_SINCE'] == res['Last-Modified']
           res.status = 304
           res.body = ''
@@ -203,7 +215,8 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     # build initial request
     @context = @basic_context.clone
     @original = get('/')
-    @original.status.should.be == 200
+    @original.should.be.ok
+    @called.should.be true
     @original.headers.should.include 'Last-Modified'
     @original.headers.should.not.include 'X-Content-Digest'
     @original.body.should.be == 'Hello World'
@@ -212,8 +225,10 @@ describe 'Rack::Cache::Context (Default Configuration)' do
 
     # build subsequent request; should be found but miss due to freshness
     @context = @basic_context.clone
+    @called = false
     @cached = get('/')
-    @cached.status.should.be == 200
+    @cached.should.be.ok
+    @called.should.be true
     @cached.headers.should.include 'Last-Modified'
     @cached.headers.should.include 'X-Content-Digest'
     @cached['Age'].to_i.should.be == 0
@@ -223,15 +238,13 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     @context.should.a.performed :store
   end
 
-  it 'replaces cached responses when validation fails' do
+  it 'replaces cached responses when validation results in non-304 response' do
     count = 0
     @app =
       validateable_response(Time.now.httpdate) do |req,res|
         case (count+=1)
-        when 1
-          res.body = 'first response'
-        when 2
-          res.body = 'second response'
+        when 1 ; res.body = 'first response'
+        when 2 ; res.body = 'second response'
         when 3
           res.body = ''
           res.status = 304
@@ -260,47 +273,47 @@ describe 'Rack::Cache::Context (Default Configuration)' do
     count.should.be == 3
   end
 
-end
+  describe "Logging" do
 
-describe "Rack::Cache::Context (Logging)" do
+    before(:each) {
+      @errors = StringIO.new
+      @app = simple_response
+      @context = Rack::Cache::Context.new(@app)
+      @context.errors = @errors
+      (class<<@context;self;end).send :public, :log, :trace, :warn, :info
+    }
 
-  before(:each) {
-    @errors = StringIO.new
-    @app = simple_response
-    @context = Rack::Cache::Context.new(@app)
-    @context.errors = @errors
-    (class<<@context;self;end).send :public, :log, :trace, :warn, :info
-  }
+    it 'responds to #log by writing message to #errors' do
+      @context.log :test, 'is this thing on?'
+      @errors.string.should.be == "[RCL] [TEST] is this thing on?\n"
+    end
 
-  it 'responds to #log by writing message to #errors' do
-    @context.log :test, 'is this thing on?'
-    @errors.string.should.be == "[RCL] [TEST] is this thing on?\n"
-  end
+    it 'allows printf formatting arguments' do
+      @context.log :test, '%s %p %i %x', 'hello', 'goodbye', 42, 66
+      @errors.string.should.be == "[RCL] [TEST] hello \"goodbye\" 42 42\n"
+    end
 
-  it 'allows printf formatting arguments' do
-    @context.log :test, '%s %p %i %x', 'hello', 'goodbye', 42, 66
-    @errors.string.should.be == "[RCL] [TEST] hello \"goodbye\" 42 42\n"
-  end
+    it 'responds to #info by logging an :info message' do
+      @context.info 'informative stuff'
+      @errors.string.should.be == "[RCL] [INFO] informative stuff\n"
+    end
 
-  it 'responds to #info by logging an :info message' do
-    @context.info 'informative stuff'
-    @errors.string.should.be == "[RCL] [INFO] informative stuff\n"
-  end
+    it 'responds to #warn by logging an :warn message' do
+      @context.warn 'kinda/maybe bad stuff'
+      @errors.string.should.be == "[RCL] [WARN] kinda/maybe bad stuff\n"
+    end
 
-  it 'responds to #warn by logging an :warn message' do
-    @context.warn 'kinda/maybe bad stuff'
-    @errors.string.should.be == "[RCL] [WARN] kinda/maybe bad stuff\n"
-  end
+    it 'responds to #trace by logging a :trace message' do
+      @context.trace 'some insignifacant event'
+      @errors.string.should.be == "[RCL] [TRACE] some insignifacant event\n"
+    end
 
-  it 'responds to #trace by logging a :trace message' do
-    @context.trace 'some insignifacant event'
-    @errors.string.should.be == "[RCL] [TRACE] some insignifacant event\n"
-  end
+    it "doesn't log trace messages when not in verbose mode" do
+      @context.verbose = false
+      @context.trace 'some insignifacant event'
+      @errors.string.should.be == ""
+    end
 
-  it "doesn't log trace messages when not in verbose mode" do
-    @context.verbose = false
-    @context.trace 'some insignifacant event'
-    @errors.string.should.be == ""
   end
 
 end

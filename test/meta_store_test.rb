@@ -12,7 +12,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   # Low-level implementation methods ===========================================
 
   it 'writes a list of negotation tuples with #write' do
-    @store.write('/test', [[{}, {}]])
+    lambda { @store.write('/test', [[{}, {}]]) }.should.not.raise
   end
 
   it 'reads a list of negotation tuples with #read' do
