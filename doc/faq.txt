@@ -1,0 +1,52 @@
+Frequently Asked Questions
+==========================
+
+_TODO: these should be organized into sections and ordered sanely_
+
+General
+-------
+
+### Q: Why Rack::Cache? Why not use Squid, Varnish, Perlbol, etc.
+
+Rack::Cache is significantly more simple to setup as part of your existing Ruby
+application than a separate caching system. Rack::Cache runs entirely inside
+your backend application processes - no separate / external process is required.
+This lets Rack::Cache scale down to development environments and simple
+deployments very easily while not sacrificing the benefits of a standards-based
+approach to caching.
+
+### Q: Why Rack::Cache? Why not use Rails/Merb/FrameworkX's caching system?
+
+Rack::Cache takes a standards-based approach to caching that provides
+significant benefits over framework-integrated systems in many scenarios.
+
+Rack::Cache uses standard HTTP headers (`Expires`, `Cache-Control`, `Etag`,
+`Last-Modified`, etc) to determine what/when to cache. Designing applications to
+support these standard HTTP mechanisms gives the benefit of switching out
+different cache implementations in the future.
+
+In addition, using a standards-based approach to caching creates a clear
+separation between application and caching logic. The application need only
+specify a basic set of information about the resource and all decisions
+regarding how and when to cache is moved into the caching layer.
+
+Features
+--------
+
+### Q: Does Rack::Cache support validation?
+
+Yes. Both freshness and validation-based caching is supported. A response
+will be cached if it has a freshness lifetime (e.g., `Expires` or
+`Cache-Control: max-age=N` headers) and/or includes a validator (e.g.,
+`Last-Modified` or `ETag` headers). When the cache hits and the response is
+fresh, it's delivered immediately without talking to the backend application;
+when the cache is stale, the cached response is validated using a conditional
+GET request.
+
+### Q: Does Rack::Cache support fragment caching?
+
+Not really. Rack::Cache stores entire responses, including
+
+### Q: Can I do HTTPS with Rack::Cache?
+
+Sure. HTTPS is typically managed by a front-end web server or somewhere else

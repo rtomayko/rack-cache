@@ -15,19 +15,20 @@
   - Implement error transition
   - breakers.rb config and tests
   - no-cache.rb config and tests
-  - Memcached meta and entity stores
+  - memcached meta and entity stores
 
 ## 0.3
 
   - Document request, response, cached object
+  - Tool to generate config file documentation
   - Canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
+  - liberal, conservative, sane caching configs
   - Memcached (meta and entity store)
   - Sqlite3 (meta and entity store)
   - liberal, conservative, sane caching configs
   - Tool to generate config file documentation
-
   - Automatic cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
@@ -36,7 +37,13 @@
 
 ## Backlog
 
+  - Purge/invalidate specific cache entries
+  - Purge/invalidate everything
+  - Automatic cache invalidation on PUT, POST, DELETE.
+    - Invalidate at the request URI; or, anything that's "near" the request URI.
+    - Invalidate at the URI of the Location or Content-Location response header.
   - Maximum size of cached entity
+  - Are we doing HEAD properly?
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
     header have a TTL assigned based on the last modified age of the response:
     TTL = (Age * Factor), or, 1h  = (10h * 0.1)
