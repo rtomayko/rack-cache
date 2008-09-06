@@ -10,13 +10,13 @@ end
 describe_shared 'A Rack::Cache::EntityStore Implementation' do
 
   it 'responds to all required messages' do
-    %w[read open write queue exist?].each do |message|
+    %w[read open write exist?].each do |message|
       @store.should.respond_to message
     end
   end
 
   it 'stores bodies with #write' do
-    key = @store.write('My wild love went riding,')
+    key, size = @store.write('My wild love went riding,')
     key.should.not.be.nil
     key.should.be.sha_like
 
@@ -24,35 +24,20 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     data.should.be == 'My wild love went riding,'
   end
 
-  it 'stores streaming bodies with #queue' do
-    key = nil
-    body = @store.queue('She rode all the day;') {|key|}
-
-    body.should.respond_to :each
-    body.each {}
-    key.should.be.nil
-
-    body.close
-    key.should.not.be.nil
-    key.should.be.sha_like
-
-    @store.read(key).should.be == 'She rode all the day;'
-  end
-
   it 'correctly determines whether cached body exists for key with #exist?' do
-    key = @store.write('She rode to the devil,')
+    key, size = @store.write('She rode to the devil,')
     @store.should.exist key
     @store.should.not.exist '938jasddj83jasdh4438021ksdfjsdfjsdsf'
   end
 
   it 'can read data written with #write' do
-    key = @store.write('And asked him to pay.')
+    key, size = @store.write('And asked him to pay.')
     data = @store.read(key)
     data.should.be == 'And asked him to pay.'
   end
 
   it 'gives a 40 character SHA1 hex digest from #write' do
-    key = @store.write('she rode to the sea;')
+    key, size = @store.write('she rode to the sea;')
     key.should.not.be.nil
     key.length.should.be == 40
     key.should.be =~ /^[0-9a-z]+$/
@@ -60,7 +45,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'returns the entire body as a String from #read' do
-    key = @store.write('She gathered together')
+    key, size = @store.write('She gathered together')
     @store.read(key).should.be == 'She gathered together'
   end
 
@@ -69,7 +54,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'returns a Rack compatible body from #open' do
-    key = @store.write('Some shells for her hair.')
+    key, size = @store.write('Some shells for her hair.')
     body = @store.open(key)
     body.should.respond_to :each
     buf = ''
@@ -83,7 +68,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
 
   it 'can store large bodies with binary data' do
     pony = File.read(File.dirname(__FILE__) + '/pony.jpg')
-    key = @store.write(pony)
+    key, size = @store.write(pony)
     key.should.be == 'd0f30d8659b4d268c5c64385d9790024c2d78deb'
     data = @store.read(key)
     data.length.should.be == pony.length
@@ -99,7 +84,7 @@ describe 'Rack::Cache::EntityStore' do
     before { @store = Rack::Cache::EntityStore::Heap.new }
 
     it 'takes a Hash to ::new' do
-      @store = Rack::Cache::EntityStore::Heap.new('foo' => 'bar')
+      @store = Rack::Cache::EntityStore::Heap.new('foo' => ['bar'])
       @store.read('foo').should.be == 'bar'
     end
 
@@ -128,7 +113,7 @@ describe 'Rack::Cache::EntityStore' do
     end
 
     it 'spreads data over a 36² hash radius' do
-      (<<-PROSE).each { |line| @store.write(line).should.be.sha_like }
+      (<<-PROSE).each { |line| @store.write(line).first.should.be.sha_like }
         My wild love went riding,
         She rode all the day;
         She rode to the devil,

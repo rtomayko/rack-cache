@@ -97,8 +97,7 @@ module Rack::Cache
     # Declare the current request as volatile. This is necessary before
     # changes can be made to the request.
     def volatile_request
-      @request ||=
-        Request.new(original_request.env.dup)
+      @request ||= Request.new(original_request.env.dup)
     end
 
     # Delegate the request to the backend and create the response.
@@ -132,10 +131,10 @@ module Rack::Cache
     def lookup!
       if @object = meta_store.lookup(original_request, entity_store)
         if @object.fresh?
-          trace 'cache hit'
+          trace 'cache hit (ttl: %ds)', @object.ttl
           transition [:deliver, :pass], trigger(:hit)
         else
-          trace 'cache stale, validating...'
+          trace 'cache stale (ttl: %ds), validating...', @object.ttl
           validate!
         end
       else
@@ -159,8 +158,8 @@ module Rack::Cache
         @response = object.dup
         @response.headers.delete('Age')
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
-          next unless original_response.header?(name)
-          @response[name] = original_response[name]
+          next unless value = original_response.headers[name]
+          @response[name] = value
         end
         @response.activate!
       else
@@ -183,8 +182,8 @@ module Rack::Cache
       @object = response
       transition [:persist, :deliver], trigger(:store) do |event|
         if event == :persist
-          trace "queueing response for cache"
-          meta_store.queue original_request, @object, entity_store
+          trace "writing response for cache"
+          meta_store.store original_request, @object, entity_store
           @response = @object
         end
         :deliver

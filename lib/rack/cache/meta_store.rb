@@ -65,8 +65,7 @@ module Rack::Cache
       # reconstruct response object
       # TODO what if body doesn't exist in entity store?
       status = res['X-Status']
-      body_key = res['X-Content-Digest']
-      body = entity_store.open(body_key)
+      body = entity_store.open(res['X-Content-Digest'])
       response = Rack::Cache::Response.new(status.to_i, res, body)
       response.activate!
 
@@ -74,30 +73,33 @@ module Rack::Cache
       response
     end
 
-    # Queue the re
-    def queue(request, response, entity_store)
+    # Write a cache entry to the store under the given key. Existing
+    # entries are read and any that match the response are removed.
+    # This method calls #write with the new list of cache entries.
+    def store(request, response, entity_store)
+      # TODO canonicalize URL key
       key = request.fullpath
       req = persist_request(request)
       res = persist_response(response)
-      response.body =
-        entity_store.queue(response.body) do |sha|
-          res['X-Content-Digest'] = sha
-          store(key, req, res)
-        end
+
+      # write the response body to the entity store if this is the
+      # original response.
+      if res['X-Content-Digest'].nil?
+        dig, size = entity_store.write(response.body)
+        res['X-Content-Digest'] = dig
+        res['Content-Length'] = size.to_s
+        response.body = entity_store.open(dig)
+      end
+
+      # read existing cache entries, adding this one to the list
+      entries = read(key)
+      vary = res['Vary']
+      entries.reject! { |q,s| vary == '*' || vary == s['Vary'] }
+      entries.unshift [req, res]
+      write key, entries
     end
 
   private
-
-    # Write a queued cache entry to the store under the given key. Existing
-    # entries are read and any existing entries that match the response are
-    # removed. This method calls #write with the new list of cache entries.
-    def store(key, request, response)
-      entries = read(key)
-      vary = response['Vary']
-      entries.reject! { |req,res| vary == '*' || vary == res['Vary'] }
-      entries.unshift [request, response]
-      write key, entries
-    end
 
     # Extract the environment Hash from +request+ while making any
     # necessary modifications in preparation for persistence. The Hash
@@ -192,7 +194,7 @@ module Rack::Cache
       attr_reader :root
 
       def initialize(root="/tmp/rack-cache/meta-#{ARGV[0]}")
-        @root = root
+        @root = File.expand_path(root)
         FileUtils.mkdir_p(root, :mode => 0755)
       end
 

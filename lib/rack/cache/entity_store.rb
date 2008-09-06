@@ -1,4 +1,4 @@
-require 'rack/cache/entity_stream'
+require 'digest/sha1'
 
 module Rack::Cache
 
@@ -7,10 +7,39 @@ module Rack::Cache
   # which becomes the response body's key.
   #--
   # TODO document pros and cons of different EntityStore implementations
-  module EntityStore
+  class EntityStore
+
+    # Read all data associated with the given key and return as a single
+    # String.
+    def read(key)
+      if input = open(key)
+        buf = []
+        input.each { |part| buf << part }
+        input.close if input.respond_to? :close
+        buf.join
+      end
+    end
+
+    # Read body calculating the SHA1 checksum and size while
+    # yielding each chunk to the block. If the body responds to close,
+    # call it after iteration is complete. Return a two-tuple of the form:
+    # [ hexdigest, size ].
+    def slurp(body)
+      digest, size = Digest::SHA1.new, 0
+      body.each do |part|
+        size += part.length
+        digest << part
+        yield part
+      end
+      body.close if body.respond_to? :close
+      [ digest.hexdigest, size ]
+    end
+
+    private :slurp
+
 
     # Stores entity bodies on the heap using a Hash object.
-    class Heap
+    class Heap < EntityStore
 
       # Create the store with the specified backing Hash.
       def initialize(hash={})
@@ -23,44 +52,31 @@ module Rack::Cache
         @hash.include?(key)
       end
 
-      # Read all data associated with the given key and return as a single
-      # String.
-      def read(key)
-        @hash[key]
-      end
-
       # Return an object suitable for use as a Rack response body for the
       # specified key.
       def open(key)
-        [ read(key) ] if exist?(key)
+        (body = @hash[key]) && body.dup
+      end
+
+      # Read all data associated with the given key and return as a single
+      # String.
+      def read(key)
+        (body = @hash[key]) && body.join
       end
 
       # Write the Rack response body immediately and return the SHA key.
       def write(body)
-        key = nil
-        io = queue(body) { |key| }
-        io.each { }
-        io.close
-        key
-      end
-
-      # Queue the Rack response body provided for eventual write to the
-      # backing store. Returns a Rack response body that should replace the
-      # body provided. When the returned body is closed, the block is invoked
-      # with the key used.
-      def queue(body, &block)
-        EntityStream.new body, StringIO.new do |filter|
-          key = filter.hexdigest
-          @hash[key] = filter.dest.string
-          block.call key unless block.nil?
-        end
+        buf = []
+        key, size = slurp(body) { |part| buf << part }
+        @hash[key] = buf
+        [key, size]
       end
 
     end
 
 
     # Stores entity bodies on disk at the specified path.
-    class Disk
+    class Disk < EntityStore
 
       # Path where entities should be stored. This directory is
       # created the first time the store is instansiated if it does not
@@ -97,28 +113,21 @@ module Rack::Cache
       end
 
       def write(body)
-        key = nil
-        io = queue(body) {|key|}
-        io.each {}
-        io.close
-        key
-      end
-
-      def queue(body, &block)
-        filename = ['in', $$, Thread.current.object_id].join('-')
+        filename = ['buf', $$, Thread.current.object_id].join('-')
         temp_file = storage_path(filename)
-        dest = File.open(temp_file, 'wb')
-        EntityStream.new body, dest do |filter|
-          key = filter.hexdigest
-          path = body_path(key)
-          if File.exist?(path)
-            File.unlink temp_file
-          else
-            FileUtils.mkdir_p File.dirname(path), :mode => 0755
-            FileUtils.mv temp_file, path
-          end
-          block.call key unless block.nil?
+        key, size =
+          File.open(temp_file, 'wb') { |dest|
+            slurp(body) { |part| dest.write(part) }
+          }
+
+        path = body_path(key)
+        if File.exist?(path)
+          File.unlink temp_file
+        else
+          FileUtils.mkdir_p File.dirname(path), :mode => 0755
+          FileUtils.mv temp_file, path
         end
+        [key, size]
       end
 
     protected

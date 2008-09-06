@@ -41,52 +41,41 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
   # Abstract methods ===========================================================
 
-  define_method :queue_simple_entry do
+  define_method :store_simple_entry do
     @request = mock_request('/test', {})
     @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
     body = @response.body
-    @store.queue(@request, @response, entity_store)
+    @store.store(@request, @response, entity_store)
     @response.body.should.not.be body
   end
 
-  it 'should prepare but not store new cache entry with #queue' do
-    queue_simple_entry
-    @store.read('/test').should.be.empty
-  end
-
-  define_method :queue_and_store_simple_entry do
-    queue_simple_entry
-    @response.body.each{}
-    @response.body.close
-  end
-
-  it 'should store queued cache entry after response body is closed' do
-    queue_and_store_simple_entry
+  it 'should store cache entry' do
+    store_simple_entry
     @store.read('/test').should.not.be.empty
   end
 
   it 'should set the X-Content-Digest response header before storing' do
-    queue_and_store_simple_entry
+    store_simple_entry
     req, res = @store.read('/test').first
     res['X-Content-Digest'].should.be == 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
   end
 
   it 'should find a stored entry with #lookup' do
-    queue_and_store_simple_entry
+    store_simple_entry
     response = @store.lookup(@request, entity_store)
     response.should.not.be.nil
     response.should.be.kind_of Rack::Cache::Response
   end
 
   it 'should restore response headers properly with #lookup' do
-    queue_and_store_simple_entry
+    store_simple_entry
     response = @store.lookup(@request, entity_store)
     response.headers.reject{|k,v| k =~ /^X-/}.
-      should.be == @response.headers.merge('Age' => '0')
+      should.be == @response.headers.merge('Age' => '0', 'Content-Length' => '4')
   end
 
   it 'should restore response body from entity store with #lookup' do
-    queue_and_store_simple_entry
+    store_simple_entry
     response = @store.lookup(@request, entity_store)
     body = '' ; response.body.each {|p| body << p}
     body.should.be == 'test'
