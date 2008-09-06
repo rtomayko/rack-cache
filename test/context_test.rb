@@ -285,27 +285,27 @@ describe 'The Rack::Cache Middleware' do
 
     it 'responds to #log by writing message to #errors' do
       @context.log :test, 'is this thing on?'
-      @errors.string.should.be == "[RCL] [TEST] is this thing on?\n"
+      @errors.string.should.be == "[cache] test: is this thing on?\n"
     end
 
     it 'allows printf formatting arguments' do
       @context.log :test, '%s %p %i %x', 'hello', 'goodbye', 42, 66
-      @errors.string.should.be == "[RCL] [TEST] hello \"goodbye\" 42 42\n"
+      @errors.string.should.be == "[cache] test: hello \"goodbye\" 42 42\n"
     end
 
     it 'responds to #info by logging an :info message' do
       @context.info 'informative stuff'
-      @errors.string.should.be == "[RCL] [INFO] informative stuff\n"
+      @errors.string.should.be == "[cache] info: informative stuff\n"
     end
 
     it 'responds to #warn by logging an :warn message' do
       @context.warn 'kinda/maybe bad stuff'
-      @errors.string.should.be == "[RCL] [WARN] kinda/maybe bad stuff\n"
+      @errors.string.should.be == "[cache] warn: kinda/maybe bad stuff\n"
     end
 
     it 'responds to #trace by logging a :trace message' do
       @context.trace 'some insignifacant event'
-      @errors.string.should.be == "[RCL] [TRACE] some insignifacant event\n"
+      @errors.string.should.be == "[cache] trace: some insignifacant event\n"
     end
 
     it "doesn't log trace messages when not in verbose mode" do

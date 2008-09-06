@@ -63,7 +63,7 @@ module Rack::Cache
         args.unshift message unless message.nil?
         message = yield
       end
-      errors.write("[RCL] [#{level.to_s.upcase}] #{message}\n" % interpolators)
+      errors.write("[cache] #{level}: #{message}\n" % interpolators)
       errors.flush
     end
 
