@@ -16,7 +16,6 @@
 #   * error: return the error code specified, abandoning the request.
 #
 on :receive do
-  # pass if request.header['Cache-Control'] =~ /no-cache/
   pass unless request.method? 'GET', 'HEAD'
   pass if request.header? 'Cookie', 'Authorization', 'Expect'
   lookup
