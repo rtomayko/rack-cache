@@ -59,6 +59,24 @@ describe 'Rack::Cache::ResponseHeaders' do
     @now, @res, @one_hour_ago = nil
   }
 
+  describe '#validateable?' do
+    it 'is true when Last-Modified header present' do
+      @res = MockResponse.new(200, { 'Last-Modified' => @one_hour_ago.httpdate }, '')
+      @res.extend Rack::Cache::ResponseHeaders
+      @res.should.be.validateable
+    end
+    it 'is true when Etag header present' do
+      @res = MockResponse.new(200, { 'Etag' => '"12345"' }, '')
+      @res.extend Rack::Cache::ResponseHeaders
+      @res.should.be.validateable
+    end
+    it 'is false when no validator is present' do
+      @res = MockResponse.new(200, {}, '')
+      @res.extend Rack::Cache::ResponseHeaders
+      @res.should.not.be.validateable
+    end
+  end
+
   describe '#date' do
     it 'uses the Date header if present' do
       @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')

@@ -111,7 +111,7 @@ describe 'Rack::Cache::Context' do
     cache.meta_store.to_hash.keys.length.should.be == 1
   end
 
-  it 'caches responses with a Cache-Control/max-age directive' do
+  it 'caches responses with a max-age directive' do
     respond_with 200, 'Cache-Control' => 'max-age=5'
     get '/'
 
@@ -169,6 +169,30 @@ describe 'Rack::Cache::Context' do
     response.body.should.be == 'Hello World'
   end
 
+  it 'hits cached response with max-age directive' do
+    respond_with 200,
+      'Date' => (Time.now - 5).httpdate,
+      'Cache-Control' => 'max-age=10'
+
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.headers.should.include 'Date'
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+    response.body.should.be == 'Hello World'
+
+    get '/'
+    response.should.be.ok
+    app.should.not.be.called
+    response['Date'].should.be == responses.first['Date']
+    response['Age'].to_i.should.be > 0
+    response['X-Content-Digest'].should.not.be.nil
+    cache.should.a.performed :hit
+    cache.should.a.not.performed :fetch
+    response.body.should.be == 'Hello World'
+  end
+
   it 'fetches full response when cache stale and no validators present' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
 
@@ -200,7 +224,7 @@ describe 'Rack::Cache::Context' do
     response.body.should.be == 'Hello World'
   end
 
-  it 'validates cached responses with Last-Modified but no freshness information' do
+  it 'validates cached responses with Last-Modified and no freshness information' do
     timestamp = Time.now.httpdate
     respond_with do |req,res|
       res['Last-Modified'] = timestamp
@@ -227,6 +251,41 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Last-Modified'
     response.headers.should.include 'X-Content-Digest'
     response['Age'].to_i.should.be == 0
+    response['X-Origin-Status'].should.be == '304'
+    response.body.should.be == 'Hello World'
+    cache.should.a.not.performed :miss
+    cache.should.a.performed :fetch
+    cache.should.a.performed :store
+  end
+
+  it 'validates cached responses with ETag and no freshness information' do
+    timestamp = Time.now.httpdate
+    respond_with do |req,res|
+      res['ETAG'] = '"12345"'
+      if req.env['HTTP_IF_NONE_MATCH'] == res['Etag']
+        res.status = 304
+        res.body = []
+      end
+    end
+
+    # build initial request
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.headers.should.include 'Etag'
+    response.headers.should.not.include 'X-Content-Digest'
+    response.body.should.be == 'Hello World'
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+
+    # build subsequent request; should be found but miss due to freshness
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.headers.should.include 'Etag'
+    response.headers.should.include 'X-Content-Digest'
+    response['Age'].to_i.should.be == 0
+    response['X-Origin-Status'].should.be == '304'
     response.body.should.be == 'Hello World'
     cache.should.a.not.performed :miss
     cache.should.a.performed :fetch

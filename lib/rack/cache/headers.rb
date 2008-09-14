@@ -100,10 +100,8 @@ module Rack::Cache
     # Determine if the response includes headers that can be used
     # to validate the response with the origin server using a
     # conditional request.
-    #--
-    # TODO Support ETags
     def validateable?
-      header?('Last-Modified') # || header?('ETags')
+      header?('Last-Modified') || header?('Etag')
     end
 
     # Indicates that the response should not be served from cache without first

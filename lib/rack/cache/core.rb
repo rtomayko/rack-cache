@@ -157,6 +157,7 @@ module Rack::Cache
         trace "cached object valid"
         @response = object.dup
         @response.headers.delete('Age')
+        @response.headers['X-Origin-Status'] = '304'
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
           next unless value = original_response.headers[name]
           @response[name] = value
@@ -172,8 +173,9 @@ module Rack::Cache
 
     def fetch!
       trace "fetching response from backend"
-      volatile_request.
-        env.delete('HTTP_IF_MODIFIED_SINCE')
+      volatile_request
+      request.env.delete('HTTP_IF_MODIFIED_SINCE')
+      request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend!
       transition [:store, :deliver], trigger(:fetch)
     end
@@ -182,8 +184,8 @@ module Rack::Cache
       @object = response
       transition [:persist, :deliver], trigger(:store) do |event|
         if event == :persist
-          trace "writing response for cache"
-          meta_store.store original_request, @object, entity_store
+          trace "writing response to cache"
+          meta_store.store(original_request, @object, entity_store)
           @response = @object
         end
         :deliver
