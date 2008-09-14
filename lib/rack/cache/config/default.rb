@@ -108,7 +108,7 @@ end
 #
 on :store do
   object.ttl = default_ttl if object.ttl.nil?
-  trace 'store backend response in cache (TTL: %ds)', object.ttl
+  trace 'store backend response in cache (ttl: %ds)', object.ttl
   persist
 end
 
