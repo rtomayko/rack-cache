@@ -49,36 +49,87 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @response.body.should.not.be body
   end
 
-  it 'should store cache entry' do
+  it 'stores a cache entry' do
     store_simple_entry
     @store.read('/test').should.not.be.empty
   end
 
-  it 'should set the X-Content-Digest response header before storing' do
+  it 'sets the X-Content-Digest response header before storing' do
     store_simple_entry
     req, res = @store.read('/test').first
     res['X-Content-Digest'].should.be == 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
   end
 
-  it 'should find a stored entry with #lookup' do
+  it 'finds a stored entry with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, entity_store)
     response.should.not.be.nil
     response.should.be.kind_of Rack::Cache::Response
   end
 
-  it 'should restore response headers properly with #lookup' do
+  it 'restores response headers properly with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, entity_store)
     response.headers.reject{|k,v| k =~ /^X-/}.
       should.be == @response.headers.merge('Age' => '0', 'Content-Length' => '4')
   end
 
-  it 'should restore response body from entity store with #lookup' do
+  it 'restores response body from entity store with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, entity_store)
     body = '' ; response.body.each {|p| body << p}
     body.should.be == 'test'
+  end
+
+  # Vary =======================================================================
+
+
+  it 'does not return entries that Vary with #lookup' do
+    req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
+    req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+    res = mock_response(200, {'Vary' => 'Foo Bar'}, ['test'])
+    @store.store(req1, res, entity_store)
+
+    @store.lookup(req2, entity_store).should.be.nil
+  end
+
+  it 'stores multiple responses for each Vary combination' do
+    req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+    res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
+    @store.store(req1, res1, entity_store)
+
+    req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+    res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
+    @store.store(req2, res2, entity_store)
+
+    req3 = mock_request('/test', {'HTTP_FOO' => 'Baz',   'HTTP_BAR' => 'Boom'})
+    res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
+    @store.store(req3, res3, entity_store)
+
+    slurp(@store.lookup(req3, entity_store).body).should.be == 'test 3'
+    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 1'
+    slurp(@store.lookup(req2, entity_store).body).should.be == 'test 2'
+
+    @store.read('/test').length.should.be == 3
+  end
+
+  it 'overwrites non-varying responses with #store' do
+    req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+    res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
+    @store.store(req1, res1, entity_store)
+    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 1'
+
+    req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+    res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
+    @store.store(req2, res2, entity_store)
+    slurp(@store.lookup(req2, entity_store).body).should.be == 'test 2'
+
+    req3 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+    res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
+    @store.store(req3, res3, entity_store)
+    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 3'
+
+    @store.read('/test').length.should.be == 2
   end
 
   # Helper Methods =============================================================
@@ -96,6 +147,12 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
   define_method :entity_store do ||
     @entity_store ||= @store.default_entity_store.new
+  end
+
+  define_method :slurp do |body|
+    buf = ''
+    body.each {|part| buf << part }
+    buf
   end
 
 end

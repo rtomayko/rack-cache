@@ -324,4 +324,74 @@ describe 'Rack::Cache::Context' do
     count.should.be == 3
   end
 
+  describe 'with responses that include a Vary header' do
+
+    before(:each) do
+      count = 0
+      respond_with 200 do |req,res|
+        res['Vary'] = 'Accept User-Agent Foo'
+        res['Cache-Control'] = 'max-age=10'
+        res['X-Response-Count'] = (count+=1).to_s
+        res.body = req.env['HTTP_USER_AGENT']
+      end
+    end
+
+    it 'serves from cache when headers match' do
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/1.0'
+      response.should.be.ok
+      response.body.should.be == 'Bob/1.0'
+      cache.should.a.performed :miss
+      cache.should.a.performed :store
+
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/1.0'
+      response.should.be.ok
+      response.body.should.be == 'Bob/1.0'
+      cache.should.a.performed :hit
+      cache.should.a.not.performed :fetch
+      response.headers.should.include 'X-Content-Digest'
+    end
+
+    it 'stores multiple responses when headers differ' do
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/1.0'
+      response.should.be.ok
+      response.body.should.be == 'Bob/1.0'
+      response['X-Response-Count'].should.be == '1'
+
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/2.0'
+      cache.should.a.performed :miss
+      cache.should.a.performed :store
+      response.body.should.be == 'Bob/2.0'
+      response['X-Response-Count'].should.be == '2'
+
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/1.0'
+      cache.should.a.performed :hit
+      response.body.should.be == 'Bob/1.0'
+      response['X-Response-Count'].should.be == '1'
+
+      get '/',
+        'HTTP_ACCEPT' => 'text/html',
+        'HTTP_USER_AGENT' => 'Bob/2.0'
+      cache.should.a.performed :hit
+      response.body.should.be == 'Bob/2.0'
+      response['X-Response-Count'].should.be == '2'
+
+      get '/',
+        'HTTP_USER_AGENT' => 'Bob/2.0'
+      cache.should.a.performed :miss
+      response.body.should.be == 'Bob/2.0'
+      response['X-Response-Count'].should.be == '3'
+    end
+
+  end
+
 end

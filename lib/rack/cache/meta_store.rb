@@ -46,24 +46,19 @@ module Rack::Cache
       # bail out if we have nothing cached
       return nil if entries.empty?
 
-      # try to find a response that was cached for a request that
-      # matches the current requests varying headers.
-      perfect_match =
+      # find a cached entry that matches the request.
+      match =
         entries.detect do |req,res|
-          requests_match? request.env, req, res['Vary']
+          vary = res['Vary']
+          vary.nil? || (vary == '') || requests_match?(vary, request.env, req)
         end
 
-      # if no match was found, use the first cached response (we'll
-      # need to validate it)
-      req, res =
-        if perfect_match.nil?
-          entries.first
-        else
-          perfect_match
-        end
+      # bail out if nothing matched
+      return nil if match.nil?
 
       # reconstruct response object
       # TODO what if body doesn't exist in entity store?
+      req, res = match
       status = res['X-Status']
       body = entity_store.open(res['X-Content-Digest'])
       response = Rack::Cache::Response.new(status.to_i, res, body)
@@ -85,16 +80,19 @@ module Rack::Cache
       # write the response body to the entity store if this is the
       # original response.
       if res['X-Content-Digest'].nil?
-        dig, size = entity_store.write(response.body)
-        res['X-Content-Digest'] = dig
+        digest, size = entity_store.write(response.body)
+        res['X-Content-Digest'] = digest
         res['Content-Length'] = size.to_s
-        response.body = entity_store.open(dig)
+        response.body = entity_store.open(digest)
       end
 
-      # read existing cache entries, adding this one to the list
-      entries = read(key)
+      # read existing cache entries, remove non-varying, and add this one to
+      # the list
       vary = res['Vary']
-      entries.reject! { |q,s| vary == '*' || vary == s['Vary'] }
+      entries =
+        read(key).reject do |ereq,eres|
+          (vary == eres['Vary']) && requests_match?(vary, ereq, req)
+        end
       entries.unshift [req, res]
       write key, entries
     end
@@ -105,8 +103,9 @@ module Rack::Cache
     # necessary modifications in preparation for persistence. The Hash
     # returned must be marshalable.
     def persist_request(request)
-      request.env.dup.
-        select { |key,val| key =~ /^[0-9A-Z_]+$/ }
+      env = request.env.dup
+      env.reject! { |key,val| key =~ /[^0-9A-Z_]/ }
+      env
     end
 
     # Extract the headers Hash from +response+ while making any
@@ -118,16 +117,14 @@ module Rack::Cache
       headers
     end
 
-    # Determine whether the requests match based on a Vary response header.
-    def requests_match?(env1, env2, vary)
-      case vary
-      when nil, '' then true
-      when '*'     then false
-      else
-        vary.split(/\s+/).all? do |header_name|
-          key = "HTTP_#{header_name.upcase.tr('-', '_')}"
-          env1[key] == env2[key]
-        end
+
+    # Determine whether the two environment hashes are non-varying based on
+    # the vary response header value provided.
+    def requests_match?(vary, env1, env2)
+      return true if vary.nil? || vary == ''
+      vary.split(/\s+/).all? do |header|
+        key = "HTTP_#{header.upcase.tr('-', '_')}"
+        env1[key] == env2[key]
       end
     end
 

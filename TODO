@@ -6,15 +6,16 @@
 ## 0.2
 
   * Baseline caching logic moved out of config, into Rack::Cache::Core
-  * Document events and transitions
-  * Basic logging
-  * BUG: negative TTL
-  * EntityStore: entity bodies by SHA
+  * Document events and transitions in rack/cache/config/default.rb
+  * Basic logging support.
+  * EntityStore: store entity bodies by SHA
   * MetaStore: response headers by URL
-  * Vary support MetaStore
-  - Vary tests
-  - Add Vary support to Wink
-  - breakers.rb tests
+  * Add support for Vary
+  * ETag validation
+  - Implement error transition
+  - breakers.rb config and tests
+  - no-cache.rb config and tests
+  - Memcached meta and entity stores
 
 ## 0.3
 
@@ -24,6 +25,9 @@
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
   - Memcached (meta and entity store)
   - Sqlite3 (meta and entity store)
+  - liberal, conservative, sane caching configs
+  - Tool to generate config file documentation
+
   - Automatic cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
@@ -43,5 +47,9 @@
     probably be implemented as a separate middleware component.
   - Support server-specific X-Sendfile (or similar) for delivering cached
     bodies.
-  - Serve cached copies when down - e.g., database connection drops and the
-    cache takes over what it can.
+  - stale-while-revalidate
+  - Serve cached copies when down (see: stale-if-error) - e.g., database
+    connection drops and the cache takes over what it can. 
+  - When a cache misses due to Vary, try to validate using the best match. Note
+    that you can't do this with a weak validator, so only strong etags can be
+    used.
