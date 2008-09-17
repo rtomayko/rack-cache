@@ -70,29 +70,29 @@ Configuration
 
 Rack::Cache includes a configuration system (inspired by [Varnish][var]'s
 [VCL configuration language][vcl]) that can be used to specify fairly
-complicated cache policy. The system is built around a series of
+sophisticated cache policy. The system is built around a series of
 interceptable events and transitions that can be controlled through
 a simple configuration language.
 
     use Rack::Cache do
       on :receive do
-        pass if request.url =~ %r|/uncacheable/|
-        error 402 if request.referrer =~ /digg.com/
+        pass! if request.url =~ %r|/uncacheable/|
+        error! 402 if request.referrer =~ /digg.com/
       end
       on :miss do
         trace 'missed: %s', request.url
       end
     end
 
-Some statements are considered _transitioning_, in that they cause the
+Some statements are considered _transitioning_ in that they cause the
 current event to halt processing. In the example above, both the
-`pass` and `error` statements cause the `:receive` event to halt (the
+`pass!` and `error!` statements cause the `:receive` event to halt (the
 block is immediately exited via `throw`), which causes the machine to
 begin transitioning to the subsequent event.
 
 Caching policy can be layered. Event handlers are executed in
 last-on/first-off (LOFO) order until a transitioning statement is
-made. This allows small bits of cache policy to be captured in
+executed. This allows small bits of cache policy to be captured in
 separate files and combined as needed:
 
     use Rack::Cache do

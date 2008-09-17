@@ -9,5 +9,5 @@
 # processing.
 
 on :receive do
-  pass if request.header['Cache-Control'] =~ /no-cache/
+  pass! if request.header['Cache-Control'] =~ /no-cache/
 end

@@ -38,7 +38,7 @@ describe 'Rack::Cache::Core' do
   it 'records event execution history' do
     @core.on(:foo) {}
     @core.trigger :foo
-    @core.should.a.performed? :foo
+    @core.should.a.performed :foo
   end
 
   it 'raises an exception when asked to perform an unknown event' do
@@ -48,14 +48,16 @@ describe 'Rack::Cache::Core' do
   end
 
   it 'raises an exception when asked to transition to an unknown event' do
-    lambda { @core.send(:transition, [ :foo, :bar ], :baz) }.
+    @core.on(:bling) {}
+    @core.on(:foo) { bling! }
+    lambda { @core.send(:transition, :foo, [:bar, :baz]) }.
       should.raise Rack::Cache::IllegalTransition
   end
 
   it 'runs events when a message matching the event name is sent to the receiver' do
     x = 'not executed'
     @core.on(:foo) { x = 'executed' }
-    @core.should.respond_to :foo
+    @core.should.respond_to :foo!
     @core.trigger(:foo).should.be.nil
     x.should.be == 'executed'
   end
@@ -64,7 +66,7 @@ describe 'Rack::Cache::Core' do
     x = []
     @core.on(:foo) {
       x << 'in foo, before transitioning to bar'
-      bar
+      bar!
       x << 'in foo, after transitioning to bar'
     }
     @core.on(:bar) { x << 'in bar' }

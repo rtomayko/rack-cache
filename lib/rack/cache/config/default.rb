@@ -16,9 +16,9 @@
 #   * error: return the error code specified, abandoning the request.
 #
 on :receive do
-  pass unless request.method? 'GET', 'HEAD'
-  pass if request.header? 'Cookie', 'Authorization', 'Expect'
-  lookup
+  pass! unless request.method? 'GET', 'HEAD'
+  pass! if request.header? 'Cookie', 'Authorization', 'Expect'
+  lookup!
 end
 
 # Called upon entering pass mode. The request is passed on to the
@@ -34,7 +34,7 @@ end
 #   * error: return the error code specified, abandoning the request.
 #
 on :pass do
-  finish
+  finish!
 end
 
 # Called after a cache lookup when the requested document is not found
@@ -53,7 +53,7 @@ end
 #
 # The default configuration transfers control to the fetch event.
 on :miss do
-  fetch
+  fetch!
 end
 
 # Called after a cache lookup when the requested document is found in
@@ -71,7 +71,7 @@ end
 #   * error: return the error code specified and abandon request.
 #
 on :hit do
-  deliver
+  deliver!
 end
 
 # Called after a document has been successfully retrieved from the
@@ -90,8 +90,8 @@ end
 #   * error: return the error code specified and abandon request.
 #
 on :fetch do
-  store if response.cacheable?
-  deliver
+  store! if response.cacheable?
+  deliver!
 end
 
 # Called immediately before +object+ is committed to cache storage.
@@ -109,7 +109,7 @@ end
 on :store do
   object.ttl = default_ttl if object.ttl.nil?
   trace 'store backend response in cache (ttl: %ds)', object.ttl
-  persist
+  persist!
 end
 
 # Called immediately before +response+ is delivered upstream. +response+
@@ -121,7 +121,7 @@ end
 #   * error: return the error code specified and abandon request.
 #
 on :deliver do
-  finish
+  finish!
 end
 
 # vim: tw=72
