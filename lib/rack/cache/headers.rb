@@ -94,7 +94,7 @@ module Rack::Cache
     # True when a +Cache-Control+ header with +max-age+ value
     # is present or when the +Expires+ header is set.
     def freshness_information?
-      header?('Expires') || cache_control['max-age']
+      header?('Expires') || !cache_control['max-age'].nil?
     end
 
     # Determine if the response includes headers that can be used
@@ -108,7 +108,7 @@ module Rack::Cache
     # revalidating with the origin server. Note that this does not necessary
     # imply that a caching agent ought not store the response in its cache.
     def no_cache?
-      cache_control['no-cache']
+      !cache_control['no-cache'].nil?
     end
 
     # Indicates that the response should not be stored under any

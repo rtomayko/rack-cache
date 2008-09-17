@@ -47,6 +47,11 @@ describe 'Rack::Cache::Core' do
     end
   end
 
+  it 'raises an exception when asked to transition to an unknown event' do
+    lambda { @core.send(:transition, [ :foo, :bar ], :baz) }.
+      should.raise Rack::Cache::IllegalTransition
+  end
+
   it 'runs events when a message matching the event name is sent to the receiver' do
     x = 'not executed'
     @core.on(:foo) { x = 'executed' }

@@ -58,11 +58,7 @@ module Rack::Cache
 
     # Write a log message to the errors stream. +level+ is a symbol
     # such as :error, :warn, :info, or :trace.
-    def log(level, message=nil, *interpolators, &bk)
-      if block_given?
-        args.unshift message unless message.nil?
-        message = yield
-      end
+    def log(level, message=nil, *interpolators)
       errors.write("[cache] #{level}: #{message}\n" % interpolators)
       errors.flush
     end

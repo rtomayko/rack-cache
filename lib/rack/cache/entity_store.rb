@@ -12,12 +12,7 @@ module Rack::Cache
     # Read all data associated with the given key and return as a single
     # String.
     def read(key)
-      if input = open(key)
-        buf = []
-        input.each { |part| buf << part }
-        input.close if input.respond_to? :close
-        buf.join
-      end
+      raise NotImplemented
     end
 
     # Read body calculating the SHA1 checksum and size while

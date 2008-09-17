@@ -13,6 +13,11 @@ task :test => FileList['test/*_test.rb'] do |t|
   sh "ruby -Ilib:test #{suite} -e ''", :verbose => false
 end
 
+desc 'Generate test coverage report'
+task :rcov do
+  sh "rcov -Ilib:test test/*_test.rb"
+end
+
 # PACKAGING ============================================================
 
 def spec

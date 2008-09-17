@@ -23,4 +23,15 @@ describe 'Rack::Cache::Response' do
     @response.to_a.should.be == [200, {'Date' => @now.httpdate}, '']
   end
 
+  it 'retrieves headers with #[]' do
+    @response.headers['X-Foo'] = 'bar'
+    @response.should.respond_to :[]
+    @response['X-Foo'].should.be == 'bar'
+  end
+
+  it 'sets headers with #[]=' do
+    @response.should.respond_to :[]=
+    @response['X-Foo'] = 'bar'
+    @response.headers['X-Foo'].should.be == 'bar'
+  end
 end

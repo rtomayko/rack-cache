@@ -36,11 +36,6 @@ module Rack::Cache
       @triggered.include?(event)
     end
 
-    # Are we currently performing the event specified?
-    def performing?(event)
-      @triggered.last == event
-    end
-
     def request
       @request || @original_request
     end
@@ -143,7 +138,6 @@ module Rack::Cache
       end
     end
 
-    # TODO handle 412 responses
     def validate!
       volatile_request
 

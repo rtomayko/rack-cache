@@ -40,6 +40,12 @@ describe 'Rack::Cache::Headers' do
       @res.cache_control['foo'].should.be == 'bar'
       @res.cache_control['baz'].should.be true
     end
+    it 'removes the header when given an empty hash' do
+      @res.headers['Cache-Control'] = 'max-age=600, must-revalidate'
+      @res.cache_control['max-age'].should.be == '600'
+      @res.cache_control = {}
+      @res.headers.should.not.include 'Cache-Control'
+    end
   end
 
 end
@@ -116,6 +122,44 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
     it 'gives a #max_age of nil when no freshness information available' do
       @res.max_age.should.be.nil
+    end
+  end
+
+  describe '#freshness_information?' do
+    it 'is true when Expires header is present' do
+      @res.headers['Expires'] = Time.now.httpdate
+      @res.freshness_information?.should.be true
+    end
+    it 'is true when a Cache-Control max-age directive is present' do
+      @res.headers['Cache-Control'] = 'max-age=500'
+      @res.freshness_information?.should.be true
+    end
+    it 'is not true otherwise' do
+      @res.freshness_information?.should.be false
+    end
+  end
+
+  describe '#no_cache?' do
+    it 'is true when a Cache-Control no-cache directive is present' do
+      @res.headers['Cache-Control'] = 'no-cache'
+      @res.no_cache?.should.be true
+    end
+    it 'is false otherwise' do
+      @res.no_cache?.should.be false
+    end
+  end
+
+  describe '#stale?' do
+    it 'is true when TTL cannot be established' do
+      @res.should.be.stale
+    end
+    it 'is false when the TTL is <= 0' do
+      @res.headers['Expires'] = (@res.now + 10).httpdate
+      @res.should.not.be.stale
+    end
+    it 'is true when the TTL is >= 0' do
+      @res.headers['Expires'] = (@res.now - 10).httpdate
+      @res.should.be.stale
     end
   end
 
