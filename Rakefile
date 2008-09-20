@@ -1,4 +1,9 @@
+require 'rake/clean'
+
 task :default => :spec
+
+CLEAN.include %w[coverage/ doc/api tags]
+CLOBBER.include %w[dist]
 
 # SPECS ===============================================================
 
