@@ -71,8 +71,9 @@ module Rack::Cache
     # Write a cache entry to the store under the given key. Existing
     # entries are read and any that match the response are removed.
     # This method calls #write with the new list of cache entries.
+    #--
+    # TODO canonicalize URL key
     def store(request, response, entity_store)
-      # TODO canonicalize URL key
       key = request.fullpath
       req = persist_request(request)
       res = persist_response(response)
@@ -98,7 +99,6 @@ module Rack::Cache
     end
 
   private
-
     # Extract the environment Hash from +request+ while making any
     # necessary modifications in preparation for persistence. The Hash
     # returned must be marshalable.
@@ -129,7 +129,6 @@ module Rack::Cache
     end
 
   protected
-
     # Locate all cached negotiations that match the specified request
     # URL key. The result must be an Array of all cached negotation
     # tuples. An empty Array must be returned if nothing is cached for
@@ -145,13 +144,20 @@ module Rack::Cache
       raise NotImplemented
     end
 
-    # Remove all cached entries at the key specified.
+    # Remove all cached entries at the key specified. No error is raised
+    # when the key does not exist.
     def purge(key)
       raise NotImplemented
     end
 
     def default_entity_store
       raise NotImplemented
+    end
+
+    # Generate a SHA-1 hex digest for the specified string. This is a
+    # simple utility method for meta store implementations.
+    def hexdigest(data)
+      Digest::SHA1.hexdigest(data)
     end
 
   public
@@ -172,7 +178,8 @@ module Rack::Cache
       end
 
       def purge(key)
-        @hash.delete(key) || []
+        @hash.delete(key)
+        nil
       end
 
       def default_entity_store
@@ -183,7 +190,6 @@ module Rack::Cache
         @hash
       end
     end
-
 
     # Concrete MetaStore implementation that stores negotiations on disk.
     class Disk < MetaStore
@@ -212,11 +218,10 @@ module Rack::Cache
 
       def purge(key)
         path = key_path(key)
-        result = read(key)
         File.unlink(path)
-        result
+        nil
       rescue Errno::ENOENT
-        []
+        nil
       end
 
       def default_entity_store
@@ -224,13 +229,8 @@ module Rack::Cache
       end
 
     private
-
       def key_path(key)
         File.join(root, spread(hexdigest(key)))
-      end
-
-      def hexdigest(key)
-        Digest::SHA1.hexdigest(key)
       end
 
       def spread(sha, n=2)
@@ -241,8 +241,48 @@ module Rack::Cache
 
     end
 
-    # TODO: Sqlite3 MetaStore implementation
-    # TODO: Memcached MetaStore implementation
+    # Stores negotiation meta information in memcached. Keys are not stored
+    # directly since memcached has a 250-byte limit on key names. Instead,
+    # the SHA-1 hexdigest of the key is used.
+    class MemCache < MetaStore
+
+      # A Memcached instance.
+      attr_reader :cache
+
+      def initialize(server="localhost:11211")
+        @cache =
+          if server.respond_to?(:stats)
+            server
+          else
+            require 'memcached'
+            Memcached.new(server)
+          end
+      end
+
+      def read(key)
+        key = hexdigest(key)
+        cache.get(key)
+      rescue Memcached::NotFound
+        []
+      end
+
+      def write(key, entries)
+        key = hexdigest(key)
+        cache.set(key, entries)
+      end
+
+      def purge(key)
+        key = hexdigest(key)
+        cache.delete(key)
+        nil
+      rescue Memcached::NotFound
+        nil
+      end
+
+      def default_entity_store
+        Rack::Cache::EntityStore::Disk
+      end
+    end
 
   end
 

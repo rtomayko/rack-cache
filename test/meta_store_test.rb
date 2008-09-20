@@ -33,10 +33,23 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.read('/test').should.be.empty
   end
 
-  it 'returns purged entries from #purge' do
+  it 'returns nil from #purge' do
     @store.write('/test', [[{},{}]])
-    @store.purge('/test').should.be == [[{},{}]]
-    @store.purge('/test').should.be.empty
+    @store.purge('/test').should.be nil
+    @store.read('/test').should.be == []
+  end
+
+  %w[/test http://example.com:8080/ /test?x=y /test?x=y&p=q].each do |key|
+    it "can read and write key: '#{key}'" do
+      lambda { @store.write(key, [[{},{}]]) }.should.not.raise
+      @store.read(key).should.be == [[{},{}]]
+    end
+  end
+
+  it "can read and write fairly large keys" do
+    key = "b" * 4096
+    lambda { @store.write(key, [[{},{}]]) }.should.not.raise
+    @store.read(key).should.be == [[{},{}]]
   end
 
   # Abstract methods ===========================================================
@@ -82,7 +95,6 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   end
 
   # Vary =======================================================================
-
 
   it 'does not return entries that Vary with #lookup' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
@@ -157,8 +169,22 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
 end
 
-describe 'Rack::Cache::MetaStore' do
+# Set the MEMCACHED environment variable as follows to enable testing
+# of the MemCached meta store.
+ENV['MEMCACHED'] ||= 'localhost:11215'
+$memcached = nil
 
+def have_memcached?(server=ENV['MEMCACHED'])
+  return true if $memcached
+  require 'memcached'
+  $memcached = Memcached.new(server)
+  $memcached.set('ping', '')
+  true
+rescue => boom
+  false
+end
+
+describe 'Rack::Cache::MetaStore' do
   describe 'Heap' do
     it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
     before { @store = Rack::Cache::MetaStore::Heap.new }
@@ -175,5 +201,23 @@ describe 'Rack::Cache::MetaStore' do
       @store, @entity_store = nil
       remove_entry_secure @temp_dir
     end
+  end
+
+  if have_memcached?
+    describe 'MemCache' do
+      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
+      before :each do
+        @temp_dir = create_temp_directory
+        $memcached.flush
+        @store = Rack::Cache::MetaStore::MemCache.new($memcached)
+        @entity_store = Rack::Cache::EntityStore::Disk.new("#{@temp_dir}/entity")
+      end
+      after :each do
+        @store, @entity_store = nil
+        remove_entry_secure @temp_dir
+      end
+    end
+  else
+    STDERR.puts "memcached tests disabled: MEMCACHED environment variable not set or server down."
   end
 end
