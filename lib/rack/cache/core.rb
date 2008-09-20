@@ -267,10 +267,10 @@ module Rack::Cache
     end
 
   public
-    def metaclass #:nodoc
+    def metaclass #:nodoc:
       (class << self ; self ; end)
     end
-    def meta_def(name, *args, &blk) #:nodoc
+    def meta_def(name, *args, &blk) #:nodoc:
       metaclass.send :define_method, name, *args, &blk
     end
 

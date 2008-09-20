@@ -3,3 +3,4 @@ tags
 .vimrc
 /dist
 /coverage
+/doc/api

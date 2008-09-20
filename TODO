@@ -12,36 +12,37 @@
   * MetaStore: response headers by URL
   * Add support for Vary
   * ETag validation
-  - Implement error transition
-  - breakers.rb config and tests
-  - no-cache.rb config and tests
-  - memcached meta and entity stores
+  * Implement error transition
+  * memcached meta and entity store implementations
+  - URL based backing store configuration
+    - Disk - file:cache (relative), file://path (absolute), file:~/cache (home)
+    - Heap - heap:[object] (object is eval'd for Hash)
+    - Memcached - memcached://host:port/[namespace][?option=value&[options=value]]
+    - Sqlite3 - sqlite3:///filename[.sqlite3]/[table]
+  - Tool to generate config file documentation
+  - Document request, response, cached object
+  - Sample app
 
 ## 0.3
 
-  - Document request, response, cached object
-  - Tool to generate config file documentation
+  - BUG: meta store hits but entity misses
+  - breakers.rb config and tests
+  - no-cache.rb config and tests
+  - liberal, conservative, sane caching configs
   - Canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
-  - liberal, conservative, sane caching configs
-  - Memcached (meta and entity store)
-  - Sqlite3 (meta and entity store)
-  - liberal, conservative, sane caching configs
-  - Tool to generate config file documentation
+  - Support server-specific X-Sendfile (or similar) for delivering cached
+    bodies.
+  - Sqlite3 (meta store)
   - Automatic cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
-  - Purge/invalidate specific cache entries
-  - Purge/invalidate everything
 
 ## Backlog
 
   - Purge/invalidate specific cache entries
   - Purge/invalidate everything
-  - Automatic cache invalidation on PUT, POST, DELETE.
-    - Invalidate at the request URI; or, anything that's "near" the request URI.
-    - Invalidate at the URI of the Location or Content-Location response header.
   - Maximum size of cached entity
   - Are we doing HEAD properly?
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
@@ -52,8 +53,6 @@
     option to lock before making requests to the backend. The idea is to be
     able to serve requests from cache in separate threads. This should
     probably be implemented as a separate middleware component.
-  - Support server-specific X-Sendfile (or similar) for delivering cached
-    bodies.
   - stale-while-revalidate
   - Serve cached copies when down (see: stale-if-error) - e.g., database
     connection drops and the cache takes over what it can. 

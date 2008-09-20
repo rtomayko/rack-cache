@@ -22,7 +22,6 @@ module Rack::Cache
   # directly. Concrete subclasses should implement the protected #read,
   # #write, and #purge methods. Care has been taken to keep these low-level
   # methods dumb and straight-forward to implement.
-  #
   class MetaStore
 
     # Headers that should not be stored in cache (from RFC 2616).
