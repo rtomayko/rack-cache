@@ -9,12 +9,6 @@ module Rack::Cache
   # TODO document pros and cons of different EntityStore implementations
   class EntityStore
 
-    # Read all data associated with the given key and return as a single
-    # String.
-    def read(key)
-      raise NotImplemented
-    end
-
     # Read body calculating the SHA1 checksum and size while
     # yielding each chunk to the block. If the body responds to close,
     # call it after iteration is complete. Return a two-tuple of the form:
@@ -68,7 +62,6 @@ module Rack::Cache
       end
 
     end
-
 
     # Stores entity bodies on disk at the specified path.
     class Disk < EntityStore
@@ -126,7 +119,6 @@ module Rack::Cache
       end
 
     protected
-
       def storage_path(stem)
         File.join root, stem
       end
@@ -140,9 +132,55 @@ module Rack::Cache
       def body_path(key)
         storage_path spread(key)
       end
-
     end
 
+
+    # Stores entity bodies in memcached.
+    class MemCache < EntityStore
+
+      # Path where entities should be stored. This directory is
+      # created the first time the store is instansiated if it does not
+      # already exist.
+      attr_reader :cache
+
+      def initialize(server="localhost:11211")
+        @cache =
+          if server.respond_to?(:stats)
+            server
+          else
+            require 'memcached'
+            Memcached.new(server)
+          end
+      end
+
+      def exist?(key)
+        cache.append(key, '')
+        true
+      rescue Memcached::NotStored
+        false
+      end
+
+      def read(key)
+        cache.get(key, false)
+      rescue Memcached::NotFound
+        nil
+      end
+
+      def open(key)
+        if data = read(key)
+          [data]
+        else
+          nil
+        end
+      end
+
+      def write(body)
+        buf = StringIO.new
+        key, size = slurp(body){|part| buf.write(part) }
+        cache.set(key, buf.string, 0, false)
+        [key, size]
+      end
+    end
   end
 
 end

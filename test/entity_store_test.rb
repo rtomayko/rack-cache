@@ -66,7 +66,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     @store.open('87fe0a1ae82a518592f6b12b0183e950b4541c62').should.be.nil
   end
 
-  it 'can store large bodies with binary data' do
+  it 'can store largish bodies with binary data' do
     pony = File.read(File.dirname(__FILE__) + '/pony.jpg')
     key, size = @store.write(pony)
     key.should.be == 'd0f30d8659b4d268c5c64385d9790024c2d78deb'
@@ -82,12 +82,10 @@ describe 'Rack::Cache::EntityStore' do
   describe 'Heap' do
     it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
     before { @store = Rack::Cache::EntityStore::Heap.new }
-
     it 'takes a Hash to ::new' do
       @store = Rack::Cache::EntityStore::Heap.new('foo' => ['bar'])
       @store.read('foo').should.be == 'bar'
     end
-
     it 'uses its own Hash with no args to ::new' do
       @store.read('foo').should.be.nil
     end
@@ -95,23 +93,19 @@ describe 'Rack::Cache::EntityStore' do
 
   describe 'Disk' do
     it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
-
     before do
       @temp_dir = create_temp_directory
       @store = Rack::Cache::EntityStore::Disk.new(@temp_dir)
     end
-
     after do
       @store = nil
       remove_entry_secure @temp_dir
     end
-
     it 'takes a path to ::new and creates the directory' do
       path = @temp_dir + '/foo'
       @store = Rack::Cache::EntityStore::Disk.new(path)
       File.should.be.a.directory path
     end
-
     it 'spreads data over a 36² hash radius' do
       (<<-PROSE).each { |line| @store.write(line).first.should.be.sha_like }
         My wild love went riding,
@@ -168,4 +162,15 @@ describe 'Rack::Cache::EntityStore' do
     end
   end
 
+  need_memcached 'entity store tests' do
+    describe 'MemCache' do
+      it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
+      before do
+        @store = Rack::Cache::EntityStore::MemCache.new($memcached)
+      end
+      after do
+        @store = nil
+      end
+    end
+  end
 end

@@ -169,20 +169,6 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
 end
 
-# Set the MEMCACHED environment variable as follows to enable testing
-# of the MemCached meta store.
-ENV['MEMCACHED'] ||= 'localhost:11215'
-$memcached = nil
-
-def have_memcached?(server=ENV['MEMCACHED'])
-  return true if $memcached
-  require 'memcached'
-  $memcached = Memcached.new(server)
-  $memcached.set('ping', '')
-  true
-rescue => boom
-  false
-end
 
 describe 'Rack::Cache::MetaStore' do
   describe 'Heap' do
@@ -203,7 +189,7 @@ describe 'Rack::Cache::MetaStore' do
     end
   end
 
-  if have_memcached?
+  need_memcached 'metastore tests' do
     describe 'MemCache' do
       it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
       before :each do
@@ -217,7 +203,5 @@ describe 'Rack::Cache::MetaStore' do
         remove_entry_secure @temp_dir
       end
     end
-  else
-    STDERR.puts "memcached tests disabled: MEMCACHED environment variable not set or server down."
   end
 end

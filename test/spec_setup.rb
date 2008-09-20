@@ -10,10 +10,36 @@ rescue LoadError => boom
   require 'test/spec'
 end
 
+# Set the MEMCACHED environment variable as follows to enable testing
+# of the MemCached meta and entity stores.
+ENV['MEMCACHED'] ||= 'localhost:11215'
+$memcached = nil
+
+def have_memcached?(server=ENV['MEMCACHED'])
+  return true if $memcached
+  require 'memcached'
+  $memcached = Memcached.new(server)
+  $memcached.set('ping', '')
+  true
+rescue => boom
+  $memcached = nil
+  false
+end
+
+def need_memcached(forwhat)
+  if have_memcached?
+    yield
+  else
+    STDERR.puts "skipping memcached #{forwhat} (MEMCACHED environment variable not set)"
+  end
+end
+
+# Setup the load path ..
 $LOAD_PATH.unshift File.dirname(File.dirname(__FILE__)) + '/lib'
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'rack/cache'
+
 
 # Methods for constructing downstream applications / response
 # generators.
@@ -151,3 +177,4 @@ class Object
     class_eval { define_method name, &blk }
   end
 end
+
