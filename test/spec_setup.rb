@@ -46,6 +46,7 @@ module CacheContextHelpers
     @cache = nil
     @caches = []
     @errors = StringIO.new
+    @cache_config = nil
 
     @called = false
     @request = nil
@@ -55,7 +56,7 @@ module CacheContextHelpers
 
   def teardown_cache_context
     @app, @cache_template, @cache, @caches, @called,
-    @request, @response, @responses = nil
+    @request, @response, @responses, @cache_config = nil
   end
 
   # A basic response with 200 status code and a tiny body.
@@ -74,13 +75,17 @@ module CacheContextHelpers
     @app
   end
 
+  def cache_config(&block)
+    @cache_config = block
+  end
+
   def request(method, uri='/', opts={})
     opts = { 'rack.run_once' => true, 'rack.errors' => @errors }.merge(opts)
 
     fail 'response not specified (use respond_with)' if @app.nil?
     @app.reset! if @app.respond_to?(:reset!)
 
-    @cache_prototype ||= Rack::Cache::Context.new(@app)
+    @cache_prototype ||= Rack::Cache::Context.new(@app, &@cache_config)
     @cache = @cache_prototype.clone
     @caches << @cache
     @request = Rack::MockRequest.new(@cache)

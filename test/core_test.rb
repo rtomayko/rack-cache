@@ -50,8 +50,21 @@ describe 'Rack::Cache::Core' do
   it 'raises an exception when asked to transition to an unknown event' do
     @core.on(:bling) {}
     @core.on(:foo) { bling! }
-    lambda { @core.send(:transition, :foo, [:bar, :baz]) }.
+    lambda { @core.transition(from=:foo, to=[:bar, :baz]) }.
       should.raise Rack::Cache::IllegalTransition
+  end
+
+  it 'passes transition arguments to handlers' do
+    passed = nil
+    @core.meta_def(:perform_bar) do |*args|
+      passed = args
+      'hi'
+    end
+    @core.on(:bar) {}
+    @core.on(:foo) { bar! 1, 2, 3 }
+    result = @core.transition(from=:foo, to=[:bar])
+    passed.should.be == [1,2,3]
+    result.should.be == 'hi'
   end
 
   it 'runs events when a message matching the event name is sent to the receiver' do
@@ -70,7 +83,7 @@ describe 'Rack::Cache::Core' do
       x << 'in foo, after transitioning to bar'
     }
     @core.on(:bar) { x << 'in bar' }
-    @core.trigger(:foo).should.be == :bar
+    @core.trigger(:foo).should.be == [:bar]
     @core.trigger(:bar).should.be.nil
     x.should.be == [
       'in foo, before transitioning to bar',
@@ -79,9 +92,8 @@ describe 'Rack::Cache::Core' do
   end
 
   it 'returns the transition event name' do
-    @core.on(:foo) { throw(:transition, :bar) }
-    @core.trigger(:foo).should.be == :bar
+    @core.on(:foo) { throw(:transition, [:bar]) }
+    @core.trigger(:foo).should.be == [:bar]
   end
-
 
 end

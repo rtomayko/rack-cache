@@ -325,7 +325,6 @@ describe 'Rack::Cache::Context' do
   end
 
   describe 'with responses that include a Vary header' do
-
     before(:each) do
       count = 0
       respond_with 200 do |req,res|
@@ -390,6 +389,75 @@ describe 'Rack::Cache::Context' do
       cache.should.a.performed :miss
       response.body.should.be == 'Bob/2.0'
       response['X-Response-Count'].should.be == '3'
+    end
+  end
+
+  describe 'when transitioning to the error state' do
+
+    setup { respond_with(200) }
+
+    it 'creates a blank slate response object with 500 status with no args' do
+      cache_config do
+        on(:receive) { error! }
+      end
+      get '/'
+      response.status.should.be == 500
+      response.body.should.be.empty
+      cache.should.a.performed :error
+    end
+
+    it 'sets the status code with one arg' do
+      cache_config do
+        on(:receive) { error! 505 }
+      end
+      get '/'
+      response.status.should.be == 505
+    end
+
+    it 'sets the status and headers with args: status, Hash' do
+      cache_config do
+        on(:receive) { error! 504, 'Content-Type' => 'application/x-foo' }
+      end
+      get '/'
+      response.status.should.be == 504
+      response['Content-Type'].should.be == 'application/x-foo'
+      response.body.should.be.empty
+    end
+
+    it 'sets the status and body with args: status, String' do
+      cache_config do
+        on(:receive) { error! 503, 'foo bar baz' }
+      end
+      get '/'
+      response.status.should.be == 503
+      response.body.should.be == 'foo bar baz'
+    end
+
+    it 'sets the status and body with args: status, Array' do
+      cache_config do
+        on(:receive) { error! 503, ['foo bar baz'] }
+      end
+      get '/'
+      response.status.should.be == 503
+      response.body.should.be == 'foo bar baz'
+    end
+
+    it 'fires the error event before finishing' do
+      fired = false
+      cache_config do
+        on(:receive) { error! }
+        on(:error) {
+          fired = true
+          response.status.should.be == 500
+          response['Content-Type'] = 'application/x-foo'
+          response.body = ['overridden response body']
+        }
+      end
+      get '/'
+      fired.should.be true
+      response.status.should.be == 500
+      response.body.should.be == 'overridden response body'
+      response['Content-Type'].should.be == 'application/x-foo'
     end
 
   end

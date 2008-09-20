@@ -96,7 +96,7 @@ module Rack::Cache
       events.each do |event|
         @events[event].unshift block if block_given?
         next if respond_to? "#{event}!"
-        meta_def("#{event}!") { |*args| throw(:transition, event, *args) }
+        meta_def("#{event}!") { |*args| throw(:transition, [event, *args]) }
         nil
       end
     end
@@ -117,13 +117,13 @@ module Rack::Cache
     def perform_receive
       @original_request = Request.new(@env)
       info "%s %s", @original_request.request_method, @original_request.fullpath
-      transition(from=:receive, to=[:pass, :lookup])
+      transition(from=:receive, to=[:pass, :lookup, :error])
     end
 
     def perform_pass
       trace 'passing'
       fetch_from_backend
-      transition(from=:pass, to=[:pass, :finish, :lookup]) do |event|
+      transition(from=:pass, to=[:pass, :finish, :lookup, :error]) do |event|
         if event == :pass
           :finish
         else
@@ -132,18 +132,26 @@ module Rack::Cache
       end
     end
 
+    def perform_error(code=500, headers={}, body=nil)
+      body, headers = headers, {} unless headers.is_a?(Hash)
+      headers = {} if headers.nil?
+      body = [] if body.nil? || body == ''
+      @response = Rack::Cache::Response.new(code, headers, body)
+      transition(from=:error, to=[:finish])
+    end
+
     def perform_lookup
       if @object = meta_store.lookup(original_request, entity_store)
         if @object.fresh?
           trace 'cache hit (ttl: %ds)', @object.ttl
-          transition(from=:hit, to=[:deliver, :pass])
+          transition(from=:hit, to=[:deliver, :pass, :error])
         else
           trace 'cache stale (ttl: %ds), validating...', @object.ttl
           perform_validate
         end
       else
         trace 'cache miss'
-        transition(from=:miss, to=[:fetch, :pass])
+        transition(from=:miss, to=[:fetch, :pass, :error])
       end
     end
 
@@ -169,7 +177,7 @@ module Rack::Cache
         trace "cached object invalid"
         @object = nil
       end
-      transition(from=:fetch, to=[:store, :deliver])
+      transition(from=:fetch, to=[:store, :deliver, :error])
     end
 
     def perform_fetch
@@ -178,18 +186,20 @@ module Rack::Cache
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend
-      transition(from=:fetch, to=[:store, :deliver])
+      transition(from=:fetch, to=[:store, :deliver, :error])
     end
 
     def perform_store
       @object = response
-      transition(from=:store, to=[:persist, :deliver]) do |event|
+      transition(from=:store, to=[:persist, :deliver, :error]) do |event|
         if event == :persist
           trace "writing response to cache"
           meta_store.store(original_request, @object, entity_store)
           @response = @object
+          :deliver
+        else
+          event
         end
-        :deliver
       end
     end
 
@@ -200,7 +210,7 @@ module Rack::Cache
         response.status = 304
         response.body = []
       end
-      transition(from=:deliver, to=[:finish])
+      transition(from=:deliver, to=[:finish, :error])
     end
 
     def perform_finish
@@ -211,10 +221,10 @@ module Rack::Cache
     # Transition from the currently processing event to another event
     # after triggering event handlers.
     def transition(from, to)
-      ev = trigger(from)
+      ev, *args = trigger(from)
       raise IllegalTransition, "No transition to :#{ev}" unless to.include?(ev)
       ev = yield ev if block_given?
-      send "perform_#{ev}"
+      send "perform_#{ev}", *args
     end
 
     # Trigger processing of the event specified.
@@ -237,7 +247,7 @@ module Rack::Cache
       @triggered = []
       @events = Hash.new { |h,k| h[k.to_sym] = [] }
       on :receive, :pass, :miss, :hit, :fetch, :lookup, :store,
-        :persist, :deliver, :finish
+        :persist, :deliver, :finish, :error
 
       # initialize some instance variables; we won't use
       # them until we dup to process a request.
