@@ -1,5 +1,5 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
-require 'rack/cache/meta_store'
+require 'rack/cache/metastore'
 
 describe_shared 'A Rack::Cache::MetaStore Implementation' do
 

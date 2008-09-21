@@ -1,5 +1,5 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
-require 'rack/cache/entity_store'
+require 'rack/cache/entitystore'
 
 class Object
   def sha_like?

@@ -3,7 +3,8 @@ require 'rack/cache/options'
 require 'rack/cache/core'
 require 'rack/cache/request'
 require 'rack/cache/response'
-require 'rack/cache/meta_store'
+require 'rack/cache/metastore'
+require 'rack/cache/entitystore'
 
 module Rack::Cache
 

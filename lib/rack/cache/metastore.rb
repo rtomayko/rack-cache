@@ -1,3 +1,4 @@
+require 'rack'
 require 'fileutils'
 require 'digest/sha1'
 
@@ -6,7 +7,7 @@ module Rack::Cache
   # The meta store is responsible for storing and retrieving negotiation
   # tuples keyed by request URL.
   #
-  # == Negotiation Tuples
+  # === Negotiation Tuples
   #
   # The meta store keeps a list of "negotiation tuples" for each canonical
   # request URL. A negotiation tuple is a two element Array of the form:
@@ -16,7 +17,7 @@ module Rack::Cache
   # keys (i.e., those that start with "HTTP_") are stored. The +response+
   # element is a Hash of cached HTTP response headers for the paired request.
   #
-  # == Backing Implementations
+  # === Backing Implementations
   #
   # The MetaStore class is abstract and should not be instanstiated
   # directly. Concrete subclasses should implement the protected #read,
@@ -164,6 +165,7 @@ module Rack::Cache
     # Concrete MetaStore implementation that uses a simple Hash to store
     # negotiations on the heap.
     class Heap < MetaStore
+
       def initialize(hash={})
         @hash = hash
       end
@@ -181,18 +183,18 @@ module Rack::Cache
         nil
       end
 
+      def to_hash
+        @hash
+      end
+
       def default_entity_store
         Rack::Cache::EntityStore::Heap
       end
 
-      def to_hash
-        @hash
-      end
     end
 
     # Concrete MetaStore implementation that stores negotiations on disk.
     class Disk < MetaStore
-
       attr_reader :root
 
       def initialize(root="/tmp/rack-cache/meta-#{ARGV[0]}")

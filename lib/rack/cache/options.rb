@@ -1,9 +1,10 @@
-require 'rack/cache/entity_store'
+require 'rack'
+require 'rack/cache/entitystore'
+require 'rack/cache/metastore'
 
 module Rack::Cache
 
   module Options
-
     # Enable verbose trace logging. This option is currently enabled by
     # default but is likely to be disabled in a future release.
     attr_accessor :verbose
