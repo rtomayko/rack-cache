@@ -117,7 +117,6 @@ module Rack::Cache
       headers
     end
 
-
     # Determine whether the two environment hashes are non-varying based on
     # the vary response header value provided.
     def requests_match?(vary, env1, env2)
@@ -150,10 +149,6 @@ module Rack::Cache
       raise NotImplemented
     end
 
-    def default_entity_store
-      raise NotImplemented
-    end
-
     # Generate a SHA-1 hex digest for the specified string. This is a
     # simple utility method for meta store implementations.
     def hexdigest(data)
@@ -165,7 +160,6 @@ module Rack::Cache
     # Concrete MetaStore implementation that uses a simple Hash to store
     # negotiations on the heap.
     class Heap < MetaStore
-
       def initialize(hash={})
         @hash = hash
       end
@@ -187,11 +181,14 @@ module Rack::Cache
         @hash
       end
 
-      def default_entity_store
-        Rack::Cache::EntityStore::Heap
+      # heap:/
+      def self.resolve(uri)
+        new
       end
-
     end
+
+    HEAP = Heap
+    MEM = HEAP
 
     # Concrete MetaStore implementation that stores negotiations on disk.
     class Disk < MetaStore
@@ -225,10 +222,6 @@ module Rack::Cache
         nil
       end
 
-      def default_entity_store
-        Rack::Cache::EntityStore::Disk
-      end
-
     private
       def key_path(key)
         File.join(root, spread(hexdigest(key)))
@@ -240,7 +233,24 @@ module Rack::Cache
         sha
       end
 
+    public
+
+      # Create a Disk store from the given URI. The following variations
+      # may be used to root the path at different locations:
+      #
+      #   * Absolute: file:/var/cache/entity
+      #   * Relative: file:path/from/
+      #   * Home: file:~/path/from/home
+      #   * Other Home: file:~user/path/from/home
+      def self.resolve(uri)
+        path = File.expand_path(uri.opaque || uri.path)
+        new path
+      end
+
     end
+
+    DISK = Disk
+    FILE = Disk
 
     # Stores negotiation meta information in memcached. Keys are not stored
     # directly since memcached has a 250-byte limit on key names. Instead,
@@ -250,13 +260,13 @@ module Rack::Cache
       # A Memcached instance.
       attr_reader :cache
 
-      def initialize(server="localhost:11211")
+      def initialize(server="localhost:11211", options={})
         @cache =
           if server.respond_to?(:stats)
             server
           else
             require 'memcached'
-            Memcached.new(server)
+            Memcached.new(server, options)
           end
       end
 
@@ -280,10 +290,35 @@ module Rack::Cache
         nil
       end
 
-      def default_entity_store
-        Rack::Cache::EntityStore::Disk
+      extend Rack::Utils
+
+      # Create MemCache store for the given URI. The URI must specify
+      # a host and may specify a port, namespace, and options:
+      #
+      # memcached://example.com:11211/namespace?opt1=val1&opt2=val2
+      #
+      # Query parameter names and values are documented with the memcached
+      # library: http://tinyurl.com/4upqnd
+      def self.resolve(uri)
+        server = "#{uri.host}:#{uri.port || '11211'}"
+        options = parse_query(uri.query)
+        options.keys.each do |key|
+          value =
+            case value = options.delete(key)
+            when 'true' ; true
+            when 'false' ; false
+            else value.to_sym
+            end
+          options[k.to_sym] = value
+        end
+        options[:namespace] = uri.path.sub(/^\//, '')
+        new server, options
       end
+
     end
+
+    MEMCACHE = MemCache
+    MEMCACHED = MemCache
 
   end
 

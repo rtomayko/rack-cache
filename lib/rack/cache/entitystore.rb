@@ -1,7 +1,6 @@
 require 'digest/sha1'
 
 module Rack::Cache
-
   # Entity stores are used to cache response bodies across requests. All
   # Implementations are required to calculate a SHA checksum of the data written
   # which becomes the response body's key.
@@ -61,7 +60,13 @@ module Rack::Cache
         [key, size]
       end
 
+      def self.resolve(uri)
+        new
+      end
     end
+
+    HEAP = Heap
+    MEM  = Heap
 
     # Stores entity bodies on disk at the specified path.
     class Disk < EntityStore
@@ -71,7 +76,7 @@ module Rack::Cache
       # already exist.
       attr_reader :root
 
-      def initialize(root="/tmp/rack-cache/entity")
+      def initialize(root)
         @root = root
         FileUtils.mkdir_p root, :mode => 0755
       end
@@ -132,7 +137,15 @@ module Rack::Cache
       def body_path(key)
         storage_path spread(key)
       end
+
+      def self.resolve(uri)
+        path = File.expand_path(uri.opaque || uri.path)
+        new path
+      end
     end
+
+    DISK = Disk
+    FILE = Disk
 
 
     # Stores entity bodies in memcached.
@@ -143,13 +156,13 @@ module Rack::Cache
       # already exist.
       attr_reader :cache
 
-      def initialize(server="localhost:11211")
+      def initialize(server="localhost:11211", options={})
         @cache =
           if server.respond_to?(:stats)
             server
           else
             require 'memcached'
-            Memcached.new(server)
+            Memcached.new(server, options)
           end
       end
 
@@ -180,7 +193,36 @@ module Rack::Cache
         cache.set(key, buf.string, 0, false)
         [key, size]
       end
+
+      extend Rack::Utils
+
+      # Create MemCache store for the given URI. The URI must specify
+      # a host and may specify a port, namespace, and options:
+      #
+      # memcached://example.com:11211/namespace?opt1=val1&opt2=val2
+      #
+      # Query parameter names and values are documented with the memcached
+      # library: http://tinyurl.com/4upqnd
+      def self.resolve(uri)
+        server = "#{uri.host}:#{uri.port || '11211'}"
+        options = parse_query(uri.query)
+        options.keys.each do |key|
+          value =
+            case value = options.delete(key)
+            when 'true' ; true
+            when 'false' ; false
+            else value.to_sym
+            end
+          options[k.to_sym] = value
+        end
+        options[:namespace] = uri.path.sub(/^\//, '')
+        new server, options
+      end
     end
+
+    MEMCACHE = MemCache
+    MEMCACHED = MemCache
+
   end
 
 end

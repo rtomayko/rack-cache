@@ -1,4 +1,4 @@
-## 0.1
+## 0.1 / 2008-07-21 / Unreleased
 
   * Proof of concept
   * Store everything in memory
@@ -14,11 +14,9 @@
   * ETag validation
   * Implement error transition
   * memcached meta and entity store implementations
+  * Get rid of default_entity_store
   - URL based backing store configuration
-    - Disk - file:cache (relative), file://path (absolute), file:~/cache (home)
-    - Heap - heap:[object] (object is eval'd for Hash)
-    - Memcached - memcached://host:port/[namespace][?option=value&[options=value]]
-    - Sqlite3 - sqlite3:///filename[.sqlite3]/[table]
+  - Update MetaStore/EntityStore documentation
   - Tool to generate config file documentation
   - Document request, response, cached object
   - Sample app

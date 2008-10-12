@@ -8,6 +8,10 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @response = mock_response(200, {}, ['hello world'])
     @entity_store = nil
   end
+  after do
+    @store = nil
+    @entity_store = nil
+  end
 
   # Low-level implementation methods ===========================================
 
@@ -58,7 +62,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @request = mock_request('/test', {})
     @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
     body = @response.body
-    @store.store(@request, @response, entity_store)
+    @store.store(@request, @response, @entity_store)
     @response.body.should.not.be body
   end
 
@@ -75,21 +79,21 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
   it 'finds a stored entry with #lookup' do
     store_simple_entry
-    response = @store.lookup(@request, entity_store)
+    response = @store.lookup(@request, @entity_store)
     response.should.not.be.nil
     response.should.be.kind_of Rack::Cache::Response
   end
 
   it 'restores response headers properly with #lookup' do
     store_simple_entry
-    response = @store.lookup(@request, entity_store)
+    response = @store.lookup(@request, @entity_store)
     response.headers.reject{|k,v| k =~ /^X-/}.
       should.be == @response.headers.merge('Age' => '0', 'Content-Length' => '4')
   end
 
   it 'restores response body from entity store with #lookup' do
     store_simple_entry
-    response = @store.lookup(@request, entity_store)
+    response = @store.lookup(@request, @entity_store)
     body = '' ; response.body.each {|p| body << p}
     body.should.be == 'test'
   end
@@ -100,27 +104,27 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
     res = mock_response(200, {'Vary' => 'Foo Bar'}, ['test'])
-    @store.store(req1, res, entity_store)
+    @store.store(req1, res, @entity_store)
 
-    @store.lookup(req2, entity_store).should.be.nil
+    @store.lookup(req2, @entity_store).should.be.nil
   end
 
   it 'stores multiple responses for each Vary combination' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-    @store.store(req1, res1, entity_store)
+    @store.store(req1, res1, @entity_store)
 
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
     res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
-    @store.store(req2, res2, entity_store)
+    @store.store(req2, res2, @entity_store)
 
     req3 = mock_request('/test', {'HTTP_FOO' => 'Baz',   'HTTP_BAR' => 'Boom'})
     res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
-    @store.store(req3, res3, entity_store)
+    @store.store(req3, res3, @entity_store)
 
-    slurp(@store.lookup(req3, entity_store).body).should.be == 'test 3'
-    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 1'
-    slurp(@store.lookup(req2, entity_store).body).should.be == 'test 2'
+    slurp(@store.lookup(req3, @entity_store).body).should.be == 'test 3'
+    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 1'
+    slurp(@store.lookup(req2, @entity_store).body).should.be == 'test 2'
 
     @store.read('/test').length.should.be == 3
   end
@@ -128,18 +132,18 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'overwrites non-varying responses with #store' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-    @store.store(req1, res1, entity_store)
-    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 1'
+    @store.store(req1, res1, @entity_store)
+    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 1'
 
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
     res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
-    @store.store(req2, res2, entity_store)
-    slurp(@store.lookup(req2, entity_store).body).should.be == 'test 2'
+    @store.store(req2, res2, @entity_store)
+    slurp(@store.lookup(req2, @entity_store).body).should.be == 'test 2'
 
     req3 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
-    @store.store(req3, res3, entity_store)
-    slurp(@store.lookup(req1, entity_store).body).should.be == 'test 3'
+    @store.store(req3, res3, @entity_store)
+    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 3'
 
     @store.read('/test').length.should.be == 2
   end
@@ -157,10 +161,6 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     Rack::Cache::Response.new(status, headers, body)
   end
 
-  define_method :entity_store do ||
-    @entity_store ||= @store.default_entity_store.new
-  end
-
   define_method :slurp do |body|
     buf = ''
     body.each {|part| buf << part }
@@ -173,7 +173,10 @@ end
 describe 'Rack::Cache::MetaStore' do
   describe 'Heap' do
     it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
-    before { @store = Rack::Cache::MetaStore::Heap.new }
+    before do
+      @store = Rack::Cache::MetaStore::Heap.new
+      @entity_store = Rack::Cache::EntityStore::Heap.new
+    end
   end
 
   describe 'Disk' do
@@ -184,7 +187,6 @@ describe 'Rack::Cache::MetaStore' do
       @entity_store = Rack::Cache::EntityStore::Disk.new("#{@temp_dir}/entity")
     end
     after do
-      @store, @entity_store = nil
       remove_entry_secure @temp_dir
     end
   end
@@ -196,11 +198,7 @@ describe 'Rack::Cache::MetaStore' do
         @temp_dir = create_temp_directory
         $memcached.flush
         @store = Rack::Cache::MetaStore::MemCache.new($memcached)
-        @entity_store = Rack::Cache::EntityStore::Disk.new("#{@temp_dir}/entity")
-      end
-      after :each do
-        @store, @entity_store = nil
-        remove_entry_secure @temp_dir
+        @entity_store = Rack::Cache::EntityStore::Heap.new
       end
     end
   end
