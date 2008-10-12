@@ -20,11 +20,12 @@ module Rack::Cache
     # The Rack compatible object immediately downstream.
     attr_reader :backend
 
-    def initialize(backend, options={}, &b)
+    def initialize(backend, options={}, &block)
+      @errors = nil
       @backend = backend
       initialize_options options
       initialize_core
-      initialize_config &b
+      initialize_config(&block)
     end
 
     # The Rack call interface. Note that the receiver acts as a

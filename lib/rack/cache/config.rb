@@ -5,7 +5,7 @@ module Rack::Cache
     # Evaluate a block of configuration code within the scope of
     # receiver.
     def configure(&block)
-      instance_eval &block if block_given?
+      instance_eval(&block) if block_given?
     end
 
     # Import the configuration file specified, evaluating its
@@ -24,9 +24,9 @@ module Rack::Cache
   private
 
     # Load the default configuration.
-    def initialize_config(&b)
+    def initialize_config(&block)
       import 'rack/cache/config/default'
-      configure &b
+      configure(&block)
     end
 
     # Attempt to expand +file+ to a full path by possibly adding an
