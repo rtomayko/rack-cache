@@ -37,6 +37,11 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.read('/test').should.be.empty
   end
 
+  it 'succeeds when purging non-existing entries' do
+    @store.read('/test').should.be.empty
+    @store.purge('/test')
+  end
+
   it 'returns nil from #purge' do
     @store.write('/test', [[{},{}]])
     @store.purge('/test').should.be nil
