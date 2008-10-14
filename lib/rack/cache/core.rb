@@ -141,7 +141,7 @@ module Rack::Cache
     end
 
     def perform_lookup
-      if @object = meta_store.lookup(original_request, entity_store)
+      if @object = metastore.lookup(original_request, entitystore)
         if @object.fresh?
           trace 'cache hit (ttl: %ds)', @object.ttl
           transition(from=:hit, to=[:deliver, :pass, :error])
@@ -194,7 +194,7 @@ module Rack::Cache
       transition(from=:store, to=[:persist, :deliver, :error]) do |event|
         if event == :persist
           trace "writing response to cache"
-          meta_store.store(original_request, @object, entity_store)
+          metastore.store(original_request, @object, entitystore)
           @response = @object
           :deliver
         else
@@ -262,7 +262,7 @@ module Rack::Cache
     # interface.
     def process_request(env)
       @triggered = []
-      @env = env
+      @env = @default_options.merge(env)
       perform_receive
     end
 

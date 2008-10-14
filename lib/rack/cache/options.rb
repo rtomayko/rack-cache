@@ -1,74 +1,107 @@
 require 'rack'
-require 'rack/cache/entitystore'
-require 'rack/cache/metastore'
+require 'rack/cache/storage'
 
 module Rack::Cache
 
   module Options
+
+    class << self
+      private
+      def option_accessor(key)
+        define_method(key) { || read_option(key) }
+        define_method("#{key}=") { |value| write_option(key, value) }
+        define_method("#{key}?") { || !! read_option(key) }
+      end
+    end
+
     # Enable verbose trace logging. This option is currently enabled by
     # default but is likely to be disabled in a future release.
-    attr_accessor :verbose
+    option_accessor :verbose
 
-    # The meta store implementation used to cache response headers. This
-    # may be set to an instance of one of the Rack::Cache::MetaStore
-    # implementation classes.
-    #
-    # For example, to use a Disk based meta store:
-    #   set :meta_store, Rack::Cache::MetaStore::Disk.new('./cache/meta')
-    #
-    # If no meta store is specified, the Rack::Cache::MetaStore::Heap
-    # implementation is used. This implementation has significant draw-backs
-    # so explicit configuration is recommended.
-    attr_accessor :meta_store
+    # The storage resolver. Defaults to the Rack::Cache.storage singleton instance
+    # of Rack::Cache::Storage. This object is responsible for resolving metastore
+    # and entitystore URIs to an implementation instances.
+    option_accessor :storage
 
-    # The entity store implementation used to cache response bodies. This
-    # may be set to an instance of one of the Rack::Cache::EntityStore
-    # implementation classes.
+    # A URI specifying the meta-store implementation that should be used to store
+    # request/response meta information. The following URIs schemes are
+    # supported:
     #
-    # For example, to use a Disk based entity store:
-    #   set :entity_store, Rack::Cache::EntityStore::Disk.new('./cache/entity')
+    # * heap:/
+    # * file:/absolute/path or file:relative/path
+    # * memcached://localhost:11211[/namespace]
     #
-    # If no entity store is specified, the Rack::Cache::EntityStore::Heap
-    # implementation is used. This implementation has significant draw-backs
-    # so explicit configuration is recommended.
-    attr_accessor :entity_store
+    # If no meta store is specified the 'heap:/' store is assumed. This
+    # implementation has significant draw-backs so explicit configuration is
+    # recommended.
+    option_accessor :metastore
+
+    # A URI specifying the entity-store implement that should be used to store
+    # response bodies. See the metastore option for information on supported URI
+    # schemes.
+    #
+    # If no entity store is specified the 'heap:/' store is assumed. This
+    # implementation has significant draw-backs so explicit configuration is
+    # recommended.
+    option_accessor :entitystore
 
     # The number of seconds that a cached object should be considered
     # "fresh" when no explicit freshness information is provided in
-    # a response. Note that explicit Cache-Control or Expires headers
-    # in a response override this value.
+    # a response. Explicit Cache-Control or Expires headers
+    # override this value.
     #
     # Default: 0
-    attr_accessor :default_ttl
+    option_accessor :default_ttl
 
-    # Is verbose logging enabled?
-    def verbose?
-      @verbose
-    end
-
-    # Set an option.
-    def set(option, value=self)
-      if value == self
-        self.options = option.to_hash
-      elsif value.kind_of?(Proc)
-        (class<<self;self;end).send(:define_method, option) { || value.call }
-      else
-        send "#{option}=", value
-      end
+    # The underlying options Hash. During initialization (or outside of a
+    # request), this is a default values Hash. During a request, this is the
+    # Rack environment Hash. The default values Hash is merged in underneath
+    # the Rack environment before each request is processed.
+    def options
+      @env || @default_options
     end
 
     # Set multiple options.
     def options=(hash={})
-      hash.each { |name,value| set(name, value) }
+      hash.each { |key,value| write_option(key, value) }
+    end
+
+    # Set an environment option.
+    def set(option, value=self)
+      if value == self
+        self.options = option.to_hash
+      else
+        write_option option, value
+      end
+    end
+
+  protected
+    def read_option(key)
+      options[option_name(key)]
+    end
+
+    def write_option(key, value)
+      options[option_name(key)] = value
+    end
+
+    def option_name(key)
+      case key
+      when Symbol ; "rack-cache.#{key}"
+      when String ; key
+      else raise ArgumentError
+      end
     end
 
   private
-
     def initialize_options(options={})
-      @verbose = true
-      @meta_store = ::Rack::Cache::MetaStore::Heap.new
-      @entity_store = ::Rack::Cache::EntityStore::Heap.new
-      @default_ttl = 0
+      @default_options = {
+        'rack-cache.verbose'     => true,
+        'rack-cache.storage'     => Rack::Cache.storage,
+        'rack-cache.metastore'   => 'heap:/',
+        'rack-cache.entitystore' => 'heap:/',
+        'rack-cache.default_ttl' => 0
+      }
+      @default_options.merge!(options)
     end
 
   end

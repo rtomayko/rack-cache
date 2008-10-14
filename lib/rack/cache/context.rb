@@ -3,8 +3,7 @@ require 'rack/cache/options'
 require 'rack/cache/core'
 require 'rack/cache/request'
 require 'rack/cache/response'
-require 'rack/cache/metastore'
-require 'rack/cache/entitystore'
+require 'rack/cache/storage'
 
 module Rack::Cache
 
@@ -22,13 +21,14 @@ module Rack::Cache
 
     def initialize(backend, options={}, &block)
       @errors = nil
+      @env = nil
       @backend = backend
       initialize_options options
       initialize_core
       initialize_config(&block)
     end
 
-    # The Rack call interface. Note that the receiver acts as a
+    # The Rack call interface. The receiver acts as a
     # prototype and runs each request in a duplicate object,
     # unless the +rack.run_once+ variable is set in the environment.
     def call(env)
@@ -54,6 +54,20 @@ module Rack::Cache
     def errors=(ioish)
       fail "stream must respond to :write" if ! ioish.respond_to?(:write)
       @errors = ioish
+    end
+
+    # The configured MetaStore instance. Changing the rack-cache.metastore
+    # environment variable effects this object.
+    def metastore
+      uri = options['rack-cache.metastore']
+      storage.meta_store[uri]
+    end
+
+    # The configured EntityStore instance. Changing the rack-cache.entitystore
+    # environment variable effects this object.
+    def entitystore
+      uri = options['rack-cache.entitystore']
+      storage.entity_store[uri]
     end
 
   protected

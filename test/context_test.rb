@@ -108,7 +108,7 @@ describe 'Rack::Cache::Context' do
     response['X-Content-Digest'].should.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    cache.meta_store.to_hash.keys.length.should.be == 1
+    cache.metastore.to_hash.keys.length.should.be == 1
   end
 
   it 'caches responses with a max-age directive' do
@@ -122,7 +122,7 @@ describe 'Rack::Cache::Context' do
     response['X-Content-Digest'].should.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    cache.meta_store.to_hash.keys.length.should.be == 1
+    cache.metastore.to_hash.keys.length.should.be == 1
   end
 
   it 'caches responses with a Last-Modified validator but no freshness information' do
@@ -208,8 +208,8 @@ describe 'Rack::Cache::Context' do
     response.body.should.be == 'Hello World'
 
     # go in and play around with the cached metadata directly ...
-    cache.meta_store.to_hash.values.length.should.be == 1
-    cache.meta_store.to_hash.values.first.first[1]['Expires'] = Time.now.httpdate
+    cache.metastore.to_hash.values.length.should.be == 1
+    cache.metastore.to_hash.values.first.first[1]['Expires'] = Time.now.httpdate
 
     # build subsequent request; should be found but miss due to freshness
     get '/'

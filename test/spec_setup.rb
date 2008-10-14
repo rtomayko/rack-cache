@@ -78,6 +78,8 @@ module CacheContextHelpers
     @request = nil
     @response = nil
     @responses = []
+
+    @storage = Rack::Cache::Storage.new
   end
 
   def teardown_cache_context
@@ -106,7 +108,11 @@ module CacheContextHelpers
   end
 
   def request(method, uri='/', opts={})
-    opts = { 'rack.run_once' => true, 'rack.errors' => @errors }.merge(opts)
+    opts = {
+      'rack.run_once' => true,
+      'rack.errors' => @errors,
+      'rack-cache.storage' => @storage
+    }.merge(opts)
 
     fail 'response not specified (use respond_with)' if @app.nil?
     @app.reset! if @app.respond_to?(:reset!)

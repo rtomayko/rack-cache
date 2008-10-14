@@ -46,4 +46,9 @@ module Rack::Cache
     end
   end
 
+  @@storage = Storage.new
+  def self.storage
+    @@storage
+  end
+
 end
