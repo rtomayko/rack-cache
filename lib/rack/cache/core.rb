@@ -32,24 +32,25 @@ module Rack::Cache
   # to perform various types of request/response manipulation.
   module Core
 
-    # The request as received from upstream. This object should never
-    # be modified. If the request requires modification before being
-    # sent to the downstream application, use the #request object after
-    # calling #volatile_request. The object is an instance of the
-    # Rack::Cache::Request class, which includes many utility methods
-    # for inspecting the state of the request.
+    # The request exactly as received. The object is an instance of the
+    # Rack::Cache::Request class, which includes many utility methods for
+    # inspecting the state of the request.
+    #
+    # This object cannot be modified. If the request requires modification
+    # before being delivered to the downstream application, use the
+    # #request object.
     attr_reader :original_request
 
-    # The response as received from the downstream application. This
-    # object should never be modified. Use the #response object to access
-    # the response to be sent back upstream. The object is an instance
-    # of the Rack::Cache::Response class, which include many utility
-    # methods for inspecting the state of the response.
+    # The response exactly as received from the downstream application. The
+    # object is an instance of the Rack::Cache::Response class, which includes
+    # utility methods for inspecting the state of the response.
+    #
+    # The original response should not be modified. Use the #response object to
+    # access the response to be sent back upstream.
     attr_reader :original_response
 
-    # A response object retrieved from cache, or nil if no cached
-    # response was found. The object is an instance of the
-    # Rack::Cache::Response class.
+    # A response object retrieved from cache, or nil if no cached response was
+    # found. The object is an instance of the Rack::Cache::Response class.
     attr_reader :object
 
     # The request that will be made downstream on the application. This
@@ -57,13 +58,7 @@ module Rack::Cache
     # object is an instance of the Rack::Cache::Request class, which includes
     # utility methods for inspecting and modifying various aspects of the
     # HTTP request.
-    #
-    # The #volatile_request method ensures that a separate clone of the original
-    # request is created and made available here for situations where the
-    # original requests needs to be modified.
-    def request
-      @request || @original_request
-    end
+    attr_reader :request
 
     # The response that will be sent upstream. Defaults to the response
     # received from the downstream application (#original_response) but
@@ -71,12 +66,7 @@ module Rack::Cache
     # is an instance of the Rack::Cache::Response class, which includes a
     # variety of utility methods for inspecting and modifying the HTTP
     # response.
-    def response
-      @response || @original_response
-    end
-
-    # Event handlers.
-    attr_reader :events
+    attr_reader :response
 
     # Has the given event been performed at any time during the
     # request life-cycle? Useful for testing.
@@ -85,11 +75,8 @@ module Rack::Cache
     end
 
   protected
-    # Declare the current request as volatile. This is necessary before
-    # changes can be made to the request.
-    def volatile_request
-      @request ||= Request.new(original_request.env.dup)
-    end
+    # Event handlers.
+    attr_reader :events
 
     # Attach rules to an event.
     def on(*events, &block)
@@ -109,13 +96,15 @@ module Rack::Cache
 
     # Delegate the request to the backend and create the response.
     def fetch_from_backend
-      response = backend.call(request.env)
-      @original_response = Response.new(*response)
+      status, headers, body = backend.call(request.env)
+      @original_response = Response.new(status, headers.dup.freeze, body)
+      @response = Response.new(status, headers, body)
     end
 
   private
     def perform_receive
-      @original_request = Request.new(@env)
+      @original_request = Request.new(@env.dup.freeze)
+      @request = Request.new(@env)
       info "%s %s", @original_request.request_method, @original_request.fullpath
       transition(from=:receive, to=[:pass, :lookup, :error])
     end
@@ -144,7 +133,9 @@ module Rack::Cache
       if @object = metastore.lookup(original_request, entitystore)
         if @object.fresh?
           trace 'cache hit (ttl: %ds)', @object.ttl
-          transition(from=:hit, to=[:deliver, :pass, :error])
+          transition(from=:hit, to=[:deliver, :pass, :error]) do |event|
+            @response = @object if event == :deliver
+          end
         else
           trace 'cache stale (ttl: %ds), validating...', @object.ttl
           perform_validate
@@ -156,8 +147,6 @@ module Rack::Cache
     end
 
     def perform_validate
-      volatile_request
-
       # add our cached validators to the backend request
       request.headers['If-Modified-Since'] = object.last_modified
       request.headers['If-None-Match'] = object.etag
@@ -182,7 +171,6 @@ module Rack::Cache
 
     def perform_fetch
       trace "fetching response from backend"
-      volatile_request
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend
@@ -190,7 +178,7 @@ module Rack::Cache
     end
 
     def perform_store
-      @object = response
+      @object = @response
       transition(from=:store, to=[:persist, :deliver, :error]) do |event|
         if event == :persist
           trace "writing response to cache"
@@ -205,7 +193,6 @@ module Rack::Cache
 
     def perform_deliver
       trace "delivering response ..."
-      @response = response || object
       if not_modified?
         response.status = 304
         response.body = []

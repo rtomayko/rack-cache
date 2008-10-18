@@ -4,7 +4,7 @@ require 'rack/cache/core'
 class MockCore
   include Rack::Cache::Core
   alias_method :initialize, :initialize_core
-  public :on, :transition, :trigger
+  public :on, :transition, :trigger, :events
 end
 
 describe 'Rack::Cache::Core' do
