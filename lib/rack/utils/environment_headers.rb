@@ -1,6 +1,6 @@
 require 'rack/utils'
 
-module Rack::Utils
+module Rack::Utils #:nodoc:
   # A facade over a Rack Environment Hash that gives access to headers
   # using their normal RFC 2616 names.
 

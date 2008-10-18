@@ -1,0 +1,34 @@
+digraph cache_logic {
+  nodesep=1.0
+
+  node[fontname="Helvetica"]
+  edge[fontname="Helvetica"]
+
+  receive -> pass;
+  receive -> lookup;
+
+  pass -> finish;
+
+  lookup -> hit;
+  lookup -> validate;
+  lookup -> miss;
+
+  hit -> deliver;
+  hit -> pass;
+
+  miss -> fetch;
+  miss -> pass;
+
+  validate -> fetch;
+  validate -> deliver;
+
+  fetch -> store;
+  fetch -> deliver;
+
+  store -> persist;
+  store -> deliver;
+
+  persist -> deliver;
+
+  deliver -> finish;
+}

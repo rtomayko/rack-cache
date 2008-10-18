@@ -4,3 +4,12 @@ tags
 /dist
 /coverage
 /doc/api
+/doc/*.png
+/doc/*.pdf
+/doc/*.svg
+/doc/config
+/doc/configuration.html
+/doc/index.html
+/doc/license.html
+/doc/storage.html
+/doc/faq.html

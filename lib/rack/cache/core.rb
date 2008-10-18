@@ -14,18 +14,18 @@ module Rack::Cache
   # logic, calls out to an event handler, and then kicks off the next
   # transition.
   #
-  # Five object of interest are made available during execution:
+  # Five objects of interest are made available during execution:
   #
-  # * #original_request - The request as originally received. This object
-  #   is not modified.
-  # * #request - The request that may eventually be sent downstream in
-  #   case of pass or miss. This object defaults to the #original_request
+  # * +original_request+ - The request as originally received. This object
+  #   is never modified.
+  # * +request+ - The request that may eventually be sent downstream in
+  #   case of pass or miss. This object defaults to the +original_request+
   #   but may be modified or replaced entirely.
-  # * #original_response - The response exactly as specified by the
-  #   downstream application. This is nil on cache hit.
-  # * #object - The response loaded from cache or stored to cache. This
-  #   object becomes #response if the cached response is valid.
-  # * #response - The response that will be delivered upstream after
+  # * +original_response+ - The response exactly as specified by the
+  #   downstream application; +nil+ on cache hit.
+  # * +object+ - The response loaded from cache or stored to cache. This
+  #   object becomes +response+ if the cached response is valid.
+  # * +response+ - The response that will be delivered upstream after
   #   processing is complete. This object may be modified as necessary.
   #
   # These objects can be accessed and modified from within event handlers
@@ -88,6 +88,7 @@ module Rack::Cache
       end
     end
 
+  private
     # Determine if the response's Last-Modified date matches the
     # If-Modified-Since value provided in the original request.
     def not_modified?

@@ -4,20 +4,16 @@ require 'digest/sha1'
 
 module Rack::Cache
 
-  # The meta store is responsible for storing and retrieving negotiation
-  # tuples keyed by request URL.
+  # The meta store is responsible for storing meta information about a
+  # request/response pair keyed by the request's URL.
   #
-  # === Negotiation Tuples
-  #
-  # The meta store keeps a list of "negotiation tuples" for each canonical
-  # request URL. A negotiation tuple is a two element Array of the form:
+  # The meta store keeps a list of request/response pairs for each canonical
+  # request URL. A request/response pair is a two element Array of the form:
   #   [request, response]
   #
   # The +request+ element is a Hash of Rack environment keys. Only protocol
   # keys (i.e., those that start with "HTTP_") are stored. The +response+
   # element is a Hash of cached HTTP response headers for the paired request.
-  #
-  # === Backing Implementations
   #
   # The MetaStore class is abstract and should not be instanstiated
   # directly. Concrete subclasses should implement the protected #read,
@@ -128,15 +124,15 @@ module Rack::Cache
     end
 
   protected
-    # Locate all cached negotiations that match the specified request
-    # URL key. The result must be an Array of all cached negotation
-    # tuples. An empty Array must be returned if nothing is cached for
+    # Locate all cached request/response pairs that match the specified
+    # URL key. The result must be an Array of all cached request/response
+    # pairs. An empty Array must be returned if nothing is cached for
     # the specified key.
     def read(key)
       raise NotImplemented
     end
 
-    # Store an Array of negotiation tuples for the given key. Concrete
+    # Store an Array of request/response pairs for the given key. Concrete
     # implementations should not attempt to filter or concatenate the
     # list in any way.
     def write(key, negotiations)
@@ -158,7 +154,7 @@ module Rack::Cache
   public
 
     # Concrete MetaStore implementation that uses a simple Hash to store
-    # negotiations on the heap.
+    # request/response pairs on the heap.
     class Heap < MetaStore
       def initialize(hash={})
         @hash = hash
@@ -190,7 +186,8 @@ module Rack::Cache
     HEAP = Heap
     MEM = HEAP
 
-    # Concrete MetaStore implementation that stores negotiations on disk.
+    # Concrete MetaStore implementation that stores request/response
+    # pairs on disk.
     class Disk < MetaStore
       attr_reader :root
 
@@ -252,7 +249,7 @@ module Rack::Cache
     DISK = Disk
     FILE = Disk
 
-    # Stores negotiation meta information in memcached. Keys are not stored
+    # Stores request/response pairs in memcached. Keys are not stored
     # directly since memcached has a 250-byte limit on key names. Instead,
     # the SHA-1 hexdigest of the key is used.
     class MemCache < MetaStore

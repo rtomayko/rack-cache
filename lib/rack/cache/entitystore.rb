@@ -4,8 +4,6 @@ module Rack::Cache
   # Entity stores are used to cache response bodies across requests. All
   # Implementations are required to calculate a SHA checksum of the data written
   # which becomes the response body's key.
-  #--
-  # TODO document pros and cons of different EntityStore implementations
   class EntityStore
 
     # Read body calculating the SHA1 checksum and size while
@@ -146,7 +144,6 @@ module Rack::Cache
 
     DISK = Disk
     FILE = Disk
-
 
     # Stores entity bodies in memcached.
     class MemCache < EntityStore

@@ -7,33 +7,37 @@
 
   * Baseline caching logic moved out of config, into Rack::Cache::Core
   * Document events and transitions in rack/cache/config/default.rb
-  * Basic logging support.
-  * EntityStore: store entity bodies by SHA
-  * MetaStore: response headers by URL
+  * Basic logging support (trace, debug, warn, info from within Context)
+  * EntityStore: store entity bodies keyed by SHA
+  * MetaStore: store response headers keyed by URL
   * Add support for Vary
   * ETag validation
-  * Implement error transition
+  * Implement error! transition
   * memcached meta and entity store implementations
   * Get rid of default_entity_store
-  - URL based backing store configuration
-  - Update MetaStore/EntityStore documentation
-  - Tool to generate config file documentation
+  * URL based storage configuration
+  * Read options from Rack env if present (rack-cache.XXX keys)
+  * Document storage areas and implementations
+  - Document configuration/events
   - Document request, response, cached object
-  - Sample app
+  - Website
 
 ## 0.3
 
   - BUG: meta store hits but entity misses
-  - breakers.rb config and tests
-  - no-cache.rb config and tests
+  - BUG: HEAD request on invalid entry caches zero-length response
+  - Are we doing HEAD properly?
   - liberal, conservative, sane caching configs
+  - Sample app
+  - breakers.rb doc and tests
+  - no-cache.rb doc and tests
   - Canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
   - Support server-specific X-Sendfile (or similar) for delivering cached
     bodies.
   - Sqlite3 (meta store)
-  - Automatic cache invalidation on PUT, POST, DELETE.
+  - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
 
@@ -42,11 +46,9 @@
   - Purge/invalidate specific cache entries
   - Purge/invalidate everything
   - Maximum size of cached entity
-  - Are we doing HEAD properly?
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
     header have a TTL assigned based on the last modified age of the response:
     TTL = (Age * Factor), or, 1h  = (10h * 0.1)
-  - Read options from Rack env if present (rack.cache.XXX keys)
   - I wonder if it would be possible to run in threaded mode but with an
     option to lock before making requests to the backend. The idea is to be
     able to serve requests from cache in separate threads. This should
@@ -57,3 +59,5 @@
   - When a cache misses due to Vary, try to validate using the best match. Note
     that you can't do this with a weak validator, so only strong etags can be
     used.
+  - Consider implementing ESI (http://www.w3.org/TR/esi-lang). This should
+    probably be implemented as a separate middleware component.
