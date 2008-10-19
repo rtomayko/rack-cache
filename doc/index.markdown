@@ -3,7 +3,7 @@ for [Rack][]-based applications that produce freshness (`Expires`,
 `Cache-Control`) and/or validation (`Last-Modified`, `ETag`) information.
 
   * Standards-based ([RFC 2616][rfc] / [Section 13][s13]).
-  * Freshness _and_ expiration based caching and validation.
+  * Freshness/expiration based caching and validation.
   * Portable: 100% Ruby / works with any Rack-enabled framework.
   * [VCL][]ish configuration language for advanced caching policies.
   * Disk, memcached, and heap memory storage backends.

@@ -7,7 +7,7 @@ module Rack::Cache
 
     class << self
       private
-      def option_accessor(key)
+      def attr_accessor(key)
         define_method(key) { || read_option(key) }
         define_method("#{key}=") { |value| write_option(key, value) }
         define_method("#{key}?") { || !! read_option(key) }
@@ -16,12 +16,12 @@ module Rack::Cache
 
     # Enable verbose trace logging. This option is currently enabled by
     # default but is likely to be disabled in a future release.
-    option_accessor :verbose
+    attr_accessor :verbose
 
     # The storage resolver. Defaults to the Rack::Cache.storage singleton instance
     # of Rack::Cache::Storage. This object is responsible for resolving metastore
     # and entitystore URIs to an implementation instances.
-    option_accessor :storage
+    attr_accessor :storage
 
     # A URI specifying the meta-store implementation that should be used to store
     # request/response meta information. The following URIs schemes are
@@ -34,7 +34,7 @@ module Rack::Cache
     # If no meta store is specified the 'heap:/' store is assumed. This
     # implementation has significant draw-backs so explicit configuration is
     # recommended.
-    option_accessor :metastore
+    attr_accessor :metastore
 
     # A URI specifying the entity-store implement that should be used to store
     # response bodies. See the metastore option for information on supported URI
@@ -43,7 +43,7 @@ module Rack::Cache
     # If no entity store is specified the 'heap:/' store is assumed. This
     # implementation has significant draw-backs so explicit configuration is
     # recommended.
-    option_accessor :entitystore
+    attr_accessor :entitystore
 
     # The number of seconds that a cached object should be considered
     # "fresh" when no explicit freshness information is provided in
@@ -51,7 +51,7 @@ module Rack::Cache
     # override this value.
     #
     # Default: 0
-    option_accessor :default_ttl
+    attr_accessor :default_ttl
 
     # The underlying options Hash. During initialization (or outside of a
     # request), this is a default values Hash. During a request, this is the
@@ -75,7 +75,7 @@ module Rack::Cache
       end
     end
 
-  protected
+  private
     def read_option(key)
       options[option_name(key)]
     end
@@ -101,7 +101,7 @@ module Rack::Cache
         'rack-cache.entitystore' => 'heap:/',
         'rack-cache.default_ttl' => 0
       }
-      @default_options.merge!(options)
+      self.options = options
     end
 
   end

@@ -5,17 +5,9 @@ def dumb_app(env)
   [ 200, {'Content-Type' => 'text/plain'}, body ]
 end
 
-describe 'Rack::Cache' do
-  it 'has a Request class' do
-    Rack::Cache::Request.should.be.kind_of Class
-  end
-  it 'has a Response class' do
-    Rack::Cache::Response.should.be.kind_of Class
-  end
-end
-
 describe 'Rack::Cache::new' do
   before { @app = method(:dumb_app) }
+
   it 'takes a backend and returns a middleware component' do
     Rack::Cache.new(@app).
       should.respond_to :call
@@ -23,6 +15,11 @@ describe 'Rack::Cache::new' do
   it 'takes an options Hash' do
     lambda { Rack::Cache.new(@app, {}) }.
       should.not.raise(ArgumentError)
+  end
+  it 'sets options provided in the options Hash' do
+    object = Rack::Cache.new(@app, :foo => 'bar', 'foo.bar' => 'bling')
+    object.options['foo.bar'].should.be == 'bling'
+    object.options['rack-cache.foo'].should.be == 'bar'
   end
   it 'takes a block; executes it during initialization' do
     state, block_scope = 'not invoked', nil
