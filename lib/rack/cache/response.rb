@@ -42,6 +42,11 @@ module Rack::Cache
       object
     end
 
+    def freeze
+      @headers.freeze
+      super
+    end
+
   end
 
 end

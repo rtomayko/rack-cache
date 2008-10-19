@@ -98,8 +98,9 @@ module Rack::Cache
     # Delegate the request to the backend and create the response.
     def fetch_from_backend
       status, headers, body = backend.call(request.env)
-      @original_response = Response.new(status, headers.dup.freeze, body)
-      @response = Response.new(status, headers, body)
+      response = Response.new(status, headers, body)
+      @response = response.dup
+      @original_response = response.freeze
     end
 
   private
@@ -136,6 +137,7 @@ module Rack::Cache
           trace 'cache hit (ttl: %ds)', @object.ttl
           transition(from=:hit, to=[:deliver, :pass, :error]) do |event|
             @response = @object if event == :deliver
+            event
           end
         else
           trace 'cache stale (ttl: %ds), validating...', @object.ttl
