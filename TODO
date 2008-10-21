@@ -17,8 +17,9 @@
   * Get rid of default_entity_store
   * URL based storage configuration
   * Read options from Rack env if present (rack-cache.XXX keys)
+  - Rename `object` to `entry`.
   * Document storage areas and implementations
-  - Document configuration/events
+  * Document configuration/events
   - Document request, response, cached object
   - Website
 

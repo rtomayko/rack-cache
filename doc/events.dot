@@ -1,34 +1,27 @@
 digraph cache_logic {
-  nodesep=1.0
+  nodesep=1.25;
+  center=true;
 
-  node[fontname="Helvetica"]
-  edge[fontname="Helvetica"]
+  node[fontname="Lucida Sans Unicode",labelloc=c,margin=0.10,0.03]
+  edge[fontname="Lucida Sans Unicode",fontcolor="#444444",labeldistance=20];
 
-  receive -> pass;
-  receive -> lookup;
+  receive -> pass[label="uncacheable request",color=grey];
+  receive -> lookup[label="cacheable request"];
 
-  pass -> finish;
+  pass -> deliver[label="",color=grey];
 
-  lookup -> hit;
-  lookup -> validate;
-  lookup -> miss;
+  lookup -> hit[label="fresh"];
+  lookup -> fetch[label="stale (needs validation)"];
+  lookup -> miss[label="uncached"];
 
-  hit -> deliver;
-  hit -> pass;
+  hit -> deliver[label="sizzling"];
+  hit -> pass[label="bailing...",color=grey];
 
-  miss -> fetch;
-  miss -> pass;
+  miss -> fetch[label=""];
+  miss -> pass[color=grey];
 
-  validate -> fetch;
-  validate -> deliver;
+  fetch -> store[label="cacheable"];
+  fetch -> deliver[label="not cacheable",color=grey];
 
-  fetch -> store;
-  fetch -> deliver;
-
-  store -> persist;
-  store -> deliver;
-
-  persist -> deliver;
-
-  deliver -> finish;
+  store -> deliver[label="KTHX"];
 }

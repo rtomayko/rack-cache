@@ -8,11 +8,11 @@
 body {
 	font-size:112.5%;   /* 18px (probably) */
 	line-height:1.3888; /* 25px */
-	letter-spacing:-0.05em;
+	letter-spacing:-0.02em;
 	margin:0 10px;
 	font-family: 'lucida sans unicode', 'lucida grande',
 		helvetica, 'bitstream vera sans', sans-serif;
-	color:#223;
+	color:#556;
 	background-color:#fff;
 }
 
@@ -22,7 +22,7 @@ body {
 }
 
 h1, h2, h3 {
-	font-family:georgia, 'bitstream vera sans serif', 'lucida grande'
+	font-family:georgia, 'bitstream vera sans serif', 'lucida grande',
 		helvetica, verdana, sans-serif;
 	font-weight:normal;
 	letter-spacing:-0.05em;
@@ -32,7 +32,7 @@ i, em {
 	font-style:italic;
 }
 b, strong {
-	font-weight:bold;
+	font-weight:normal;
 	color:#000;
 }
 blockquote {
@@ -134,7 +134,8 @@ h3 {
 	margin:1em 0;
 }
 h3 code{
-	font-size:1em;
+	font-size:0.95em;
+	color:#000;
 }
 h4 {
 	font-size:1em;
@@ -267,6 +268,9 @@ ul.clean, ol.clean {
 }
 .right{
 	float:right;
+}
+.center{
+	text-align:center;
 }
 .intro {
 	font-size:0.833333em;  /* 15px */
