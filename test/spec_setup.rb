@@ -21,6 +21,9 @@ def have_memcached?(server=ENV['MEMCACHED'])
   $memcached = Memcached.new(server)
   $memcached.set('ping', '')
   true
+rescue LoadError => boom
+  $memcached = nil
+  false
 rescue => boom
   $memcached = nil
   false

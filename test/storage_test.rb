@@ -82,7 +82,7 @@ describe 'Rack::Cache::Storage' do
     end
   end
 
-  if ENV['MEMCACHED']
+  if have_memcached?
 
     describe 'MemCache Store URIs' do
       %w[memcache: memcached:].each do |scheme|
