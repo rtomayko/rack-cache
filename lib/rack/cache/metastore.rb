@@ -4,7 +4,7 @@ require 'digest/sha1'
 
 module Rack::Cache
 
-  # The meta store is responsible for storing meta information about a
+  # The MetaStore is responsible for storing meta information about a
   # request/response pair keyed by the request's URL.
   #
   # The meta store keeps a list of request/response pairs for each canonical
@@ -34,8 +34,8 @@ module Rack::Cache
     ])
 
     # Locate a cached response for the request provided. Returns a
-    # Rack::Cache::Response object if the cache hit or nil if no cached
-    # object was found.
+    # Rack::Cache::Response object if the cache hits or nil if no cache entry
+    # was found.
     def lookup(request, entity_store)
       entries = read(request.fullpath)
 
@@ -145,7 +145,9 @@ module Rack::Cache
       raise NotImplemented
     end
 
-    # Generate a SHA-1 hex digest for the specified string. This is a
+  private
+
+    # Generate a SHA1 hex digest for the specified string. This is a
     # simple utility method for meta store implementations.
     def hexdigest(data)
       Digest::SHA1.hexdigest(data)
@@ -177,7 +179,6 @@ module Rack::Cache
         @hash
       end
 
-      # heap:/
       def self.resolve(uri)
         new
       end
@@ -231,14 +232,6 @@ module Rack::Cache
       end
 
     public
-
-      # Create a Disk store from the given URI. The following variations
-      # may be used to root the path at different locations:
-      #
-      #   * Absolute: file:/var/cache/entity
-      #   * Relative: file:path/from/
-      #   * Home: file:~/path/from/home
-      #   * Other Home: file:~user/path/from/home
       def self.resolve(uri)
         path = File.expand_path(uri.opaque || uri.path)
         new path
@@ -251,10 +244,11 @@ module Rack::Cache
 
     # Stores request/response pairs in memcached. Keys are not stored
     # directly since memcached has a 250-byte limit on key names. Instead,
-    # the SHA-1 hexdigest of the key is used.
+    # the SHA1 hexdigest of the key is used.
     class MemCache < MetaStore
 
-      # A Memcached instance.
+      # The Memcached instance used to communicated with the memcached
+      # daemon.
       attr_reader :cache
 
       def initialize(server="localhost:11211", options={})
@@ -311,12 +305,10 @@ module Rack::Cache
         options[:namespace] = uri.path.sub(/^\//, '')
         new server, options
       end
-
     end
 
     MEMCACHE = MemCache
     MEMCACHED = MemCache
-
   end
 
 end

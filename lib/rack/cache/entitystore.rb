@@ -32,7 +32,7 @@ module Rack::Cache
         @hash = hash
       end
 
-      # Determine whether the response body with the specified key (SHA)
+      # Determine whether the response body with the specified key (SHA1)
       # exists in the store.
       def exist?(key)
         @hash.include?(key)
@@ -50,7 +50,7 @@ module Rack::Cache
         (body = @hash[key]) && body.join
       end
 
-      # Write the Rack response body immediately and return the SHA key.
+      # Write the Rack response body immediately and return the SHA1 key.
       def write(body)
         buf = []
         key, size = slurp(body) { |part| buf << part }
@@ -90,11 +90,11 @@ module Rack::Cache
       end
 
       # Open the entity body and return an IO object. The IO object's
-      # each method is overridden to read 4K blocks instead of lines.
+      # each method is overridden to read 8K chunks instead of lines.
       def open(key)
         io = File.open(body_path(key), 'rb')
         def io.each
-          while part = read(4096)
+          while part = read(8192)
             yield part
           end
         end
@@ -148,9 +148,8 @@ module Rack::Cache
     # Stores entity bodies in memcached.
     class MemCache < EntityStore
 
-      # Path where entities should be stored. This directory is
-      # created the first time the store is instansiated if it does not
-      # already exist.
+      # The underlying Memcached instance used to communicate with the
+      # memcahced daemon.
       attr_reader :cache
 
       def initialize(server="localhost:11211", options={})

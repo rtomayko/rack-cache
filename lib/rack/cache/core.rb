@@ -23,7 +23,7 @@ module Rack::Cache
   #   but may be modified or replaced entirely.
   # * +original_response+ - The response exactly as specified by the
   #   downstream application; +nil+ on cache hit.
-  # * +object+ - The response loaded from cache or stored to cache. This
+  # * +entry+ - The response loaded from cache or stored to cache. This
   #   object becomes +response+ if the cached response is valid.
   # * +response+ - The response that will be delivered upstream after
   #   processing is complete. This object may be modified as necessary.
@@ -49,9 +49,10 @@ module Rack::Cache
     # access the response to be sent back upstream.
     attr_reader :original_response
 
-    # A response object retrieved from cache, or nil if no cached response was
-    # found. The object is an instance of the Rack::Cache::Response class.
-    attr_reader :object
+    # A response object retrieved from cache, or the response that is to be
+    # saved to cache, or nil if no cached response was found. The object is
+    # an instance of the Rack::Cache::Response class.
+    attr_reader :entry
 
     # The request that will be made downstream on the application. This
     # defaults to the request exactly as received (#original_request). The
@@ -62,7 +63,7 @@ module Rack::Cache
 
     # The response that will be sent upstream. Defaults to the response
     # received from the downstream application (#original_response) but
-    # is set to the cached #object when valid. In any case, the object
+    # is set to the cached #entry when valid. In any case, the object
     # is an instance of the Rack::Cache::Response class, which includes a
     # variety of utility methods for inspecting and modifying the HTTP
     # response.
@@ -114,7 +115,7 @@ module Rack::Cache
     def perform_pass
       trace 'passing'
       fetch_from_backend
-      transition(from=:pass, to=[:pass, :finish, :lookup, :error]) do |event|
+      transition(from=:pass, to=[:pass, :finish, :error]) do |event|
         if event == :pass
           :finish
         else
@@ -132,15 +133,15 @@ module Rack::Cache
     end
 
     def perform_lookup
-      if @object = metastore.lookup(original_request, entitystore)
-        if @object.fresh?
-          trace 'cache hit (ttl: %ds)', @object.ttl
+      if @entry = metastore.lookup(original_request, entitystore)
+        if @entry.fresh?
+          trace 'cache hit (ttl: %ds)', @entry.ttl
           transition(from=:hit, to=[:deliver, :pass, :error]) do |event|
-            @response = @object if event == :deliver
+            @response = @entry if event == :deliver
             event
           end
         else
-          trace 'cache stale (ttl: %ds), validating...', @object.ttl
+          trace 'cache stale (ttl: %ds), validating...', @entry.ttl
           perform_validate
         end
       else
@@ -151,13 +152,13 @@ module Rack::Cache
 
     def perform_validate
       # add our cached validators to the backend request
-      request.headers['If-Modified-Since'] = object.last_modified
-      request.headers['If-None-Match'] = object.etag
+      request.headers['If-Modified-Since'] = entry.last_modified
+      request.headers['If-None-Match'] = entry.etag
       fetch_from_backend
 
       if original_response.status == 304
-        trace "cached object valid"
-        @response = object.dup
+        trace "cache entry valid"
+        @response = entry.dup
         @response.headers.delete('Age')
         @response.headers['X-Origin-Status'] = '304'
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
@@ -166,8 +167,8 @@ module Rack::Cache
         end
         @response.activate!
       else
-        trace "cached object invalid"
-        @object = nil
+        trace "cache entry invalid"
+        @entry = nil
       end
       transition(from=:fetch, to=[:store, :deliver, :error])
     end
@@ -181,12 +182,12 @@ module Rack::Cache
     end
 
     def perform_store
-      @object = @response
+      @entry = @response
       transition(from=:store, to=[:persist, :deliver, :error]) do |event|
         if event == :persist
           trace "writing response to cache"
-          metastore.store(original_request, @object, entitystore)
-          @response = @object
+          metastore.store(original_request, @entry, entitystore)
+          @response = @entry
           :deliver
         else
           event
@@ -245,7 +246,7 @@ module Rack::Cache
       @response = nil
       @original_request = nil
       @original_response = nil
-      @object = nil
+      @entry = nil
     end
 
     # Process a request. This method is compatible with Rack's #call

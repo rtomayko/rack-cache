@@ -1,5 +1,5 @@
-# Called at the beginning of a request, after the complete request
-# has been received and parsed. Its purpose is to decide whether or
+# Called at the beginning of request processing, after the complete
+# request has been fully received. Its purpose is to decide whether or
 # not to serve the request and how to do it.
 #
 # The request should not be modified.
@@ -9,9 +9,9 @@
 #   * pass! - pass the request to the backend the response upstream,
 #     bypassing all caching features.
 #
-#   * lookup! - attempt to locate the object in the cache. Control will
-#     pass to the +lookup+ event where the result of cache lookup can
-#     be inspected.
+#   * lookup! - attempt to locate the entry in the cache. Control will
+#     pass to the +hit+, +miss+, or +fetch+ event based on the result of
+#     the cache lookup.
 #
 #   * error! - return the error code specified, abandoning the request.
 #
@@ -21,11 +21,10 @@ on :receive do
   lookup!
 end
 
-# Called upon entering pass mode. The request is passed on to the
-# backend, and the backend's response is passed on to the client,
-# but is not entered into the cache. The event is triggered immediately
-# after the response is received from the backend but before the it has
-# been sent upstream.
+# Called upon entering pass mode. The request is sent to the backend,
+# and the backend's response is sent to the client, but is not entered
+# into the cache. The event is triggered immediately after the response
+# is received from the backend but before the it has been sent upstream.
 #
 # Possible transitions from pass:
 #
@@ -37,9 +36,9 @@ on :pass do
   finish!
 end
 
-# Called after a cache lookup when the requested document is not found
-# in the cache. Its purpose is to decide whether or not to attempt to
-# retrieve the document from the backend, and in what manner.
+# Called after a cache lookup when no matching entry is found in the
+# cache. Its purpose is to decide whether or not to attempt to retrieve
+# the response from the backend and in what manner.
 #
 # Possible transitions from miss:
 #
@@ -64,7 +63,7 @@ end
 #   * deliver! - transfer control to the deliver event, sending the cached
 #     response upstream.
 #
-#   * pass! - abandon the cached object and transfer to pass mode. The
+#   * pass! - abandon the cache entry and transfer to pass mode. The
 #     original request is sent to the backend and the response sent
 #     upstream, bypassing all caching features.
 #
@@ -74,12 +73,12 @@ on :hit do
   deliver!
 end
 
-# Called after a document has been successfully retrieved from the
-# backend or after a cached object was validated with the backend. During
-# validation, the original request is used as a template for a validation
-# request with the backend. The +original_response+ object contains the
-# response as received from the backend and +object+ will be set to the
-# cached response that triggered validation.
+# Called after a document is successfully retrieved from the backend
+# application or after a cache entry is validated with the backend.
+# During validation, the original request is used as a template for a
+# conditional GET request with the backend. The +original_response+
+# object contains the response as received from the backend and +entry+
+# is set to the cached response that triggered validation.
 #
 # Possible transitions from fetch:
 #
@@ -96,7 +95,8 @@ on :fetch do
   deliver!
 end
 
-# Called immediately before +object+ is entered into cache.
+# Called immediately before an entry is written to the underlying
+# cache. The +entry+ object may be modified.
 #
 # Possible transitions from store:
 #
@@ -109,14 +109,14 @@ end
 #   * error! - return the error code specified and abandon request.
 #
 on :store do
-  object.ttl = default_ttl if object.ttl.nil?
-  trace 'store backend response in cache (ttl: %ds)', object.ttl
+  entry.ttl = default_ttl if entry.ttl.nil?
+  trace 'store backend response in cache (ttl: %ds)', entry.ttl
   persist!
 end
 
 # Called immediately before +response+ is delivered upstream. +response+
 # may be modified at this point but the changes will not effect the
-# cache since the cached object has already been persisted.
+# cache since the entry has already been persisted.
 #
 #   * finish! - complete processing and send the response upstream
 #

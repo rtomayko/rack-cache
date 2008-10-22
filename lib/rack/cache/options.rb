@@ -45,7 +45,7 @@ module Rack::Cache
     # recommended.
     attr_accessor :entitystore
 
-    # The number of seconds that a cached object should be considered
+    # The number of seconds that a cache entry should be considered
     # "fresh" when no explicit freshness information is provided in
     # a response. Explicit Cache-Control or Expires headers
     # override this value.

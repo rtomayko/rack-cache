@@ -16,7 +16,7 @@ module Rack::Cache
     include Rack::Cache::Config
     include Rack::Cache::Core
 
-    # The Rack compatible object immediately downstream.
+    # The Rack application object immediately downstream.
     attr_reader :backend
 
     def initialize(backend, options={}, &block)
@@ -28,15 +28,15 @@ module Rack::Cache
       initialize_config(&block)
     end
 
-    # The Rack call interface. The receiver acts as a
-    # prototype and runs each request in a duplicate object,
-    # unless the +rack.run_once+ variable is set in the environment.
+    # The Rack call interface. The receiver acts as a prototype and runs each
+    # request in a duplicate object, unless the +rack.run_once+ variable is set
+    # in the environment.
     def call(env)
       if env['rack.run_once']
         call! env
       else
-        # NOTE we can't use #dup here because we need methods defined
-        # on the metaclass copied.
+        # NOTE we can't use #dup here because we need the methods defined
+        # on the object's metaclass to be copied.
         clone.call! env
       end
     end
@@ -57,14 +57,14 @@ module Rack::Cache
     end
 
     # The configured MetaStore instance. Changing the rack-cache.metastore
-    # environment variable effects this object.
+    # environment variable effects the result of this method immediately.
     def metastore
       uri = options['rack-cache.metastore']
       storage.meta_store[uri]
     end
 
     # The configured EntityStore instance. Changing the rack-cache.entitystore
-    # environment variable effects this object.
+    # environment variable effects the result of this method immediately.
     def entitystore
       uri = options['rack-cache.entitystore']
       storage.entity_store[uri]
