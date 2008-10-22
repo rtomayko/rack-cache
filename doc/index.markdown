@@ -106,4 +106,4 @@ License
 
 __Rack::Cache__ is Copyright &copy; 2008
 by [Ryan Tomayko](http://tomayko.com/about)
-and is provided under [the MIT license](./license.html)
+and is provided under [the MIT license](./license)

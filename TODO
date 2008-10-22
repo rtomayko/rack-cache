@@ -27,6 +27,7 @@
 
   - BUG: meta store hits but entity misses
   - BUG: HEAD request on invalid entry caches zero-length response
+  - BUG: Response body written to cache each time validation succeeds
   - Are we doing HEAD properly?
   - liberal, conservative, sane caching configs
   - Sample app
@@ -36,7 +37,7 @@
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
   - Support server-specific X-Sendfile (or similar) for delivering cached
-    bodies.
+    bodies (file entity stores only).
   - Sqlite3 (meta store)
   - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.

@@ -152,8 +152,13 @@ When an event is triggered, the blocks associated with the event are executed in
 reverse/FILO order (i.e., the block declared last runs first) until a
 _transitioning statement_ is encountered. Transitioning statements are suffixed
 with a bang character (e.g, `pass!`, `store!`, `error!`) and cause the current
-event to halt and the machine to transition to the subsequent event; control
-is not returned to the original event.
+event to halt and the machine to transition to the subsequent event; control is
+not returned to the original event. The [default configuration](#default)
+includes documentation on available transitions for each event.
+
+The `next` statement can be used to exit an event block without transitioning
+to another event. Subsequent event blocks are executed until a transitioning
+statement is encountered:
 
     on :fetch do
       next if response.freshness_information?
@@ -163,7 +168,6 @@ is not returned to the original event.
         response.ttl = 15 * 60
       end
     end
-
 
 <a id='import'></a>
 
