@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
 
   s.name = 'rack-cache'
   s.version = '0.2'
-  s.date = '2008-10-19'
+  s.date = '2008-10-21'
 
   s.description = "Caching middleware for Rack"
   s.summary     = "Caching middleware for Rack"
@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
     doc/storage.markdown
     lib/rack/cache.rb
     lib/rack/cache/config.rb
-    lib/rack/cache/config/breakers.rb
+    lib/rack/cache/config/busters.rb
     lib/rack/cache/config/default.rb
     lib/rack/cache/config/no-cache.rb
     lib/rack/cache/context.rb

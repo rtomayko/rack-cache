@@ -30,7 +30,7 @@
   - Are we doing HEAD properly?
   - liberal, conservative, sane caching configs
   - Sample app
-  - breakers.rb doc and tests
+  - busters.rb doc and tests
   - no-cache.rb doc and tests
   - Canonicalized URL for cache key:
     - sorts params by key, then value

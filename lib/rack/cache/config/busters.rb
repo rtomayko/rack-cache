@@ -10,7 +10,7 @@
 on :fetch do
   next if response.freshness_information?
   if request.url =~ /\?\d+$/
-    debug 'adding huge max-age to response for cache breaking URL'
+    trace 'adding huge max-age to response for cache busting URL'
     response.ttl = 100000000000000
   end
 end

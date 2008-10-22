@@ -31,17 +31,24 @@ end
 
 # DOC =======================================================================
 desc 'Build all documentation'
-task :doc => %w[doc:api doc:graphs doc:source doc:markdown]
+task :doc => %w[doc:api doc:graphs doc:markdown]
 
 # requires the hanna gem:
 #   gem install mislav-hanna --source=http://gems.github.com
 desc 'Build API documentation (doc/api)'
 task 'doc:api' => 'doc/api/index.html' 
 file 'doc/api/index.html' => FileList['lib/**/*.rb'] do |f|
-  sh <<-SH
-  hanna --charset utf8 --fmt html --inline-source --line-numbers \
-    --main Rack::Cache --op doc/api \
-    --title 'Rack::Cache API Documentation' \
+  rm_rf 'doc/api'
+  sh((<<-SH).gsub(/[\s\n]+/, ' ').strip)
+  hanna
+    --op doc/api
+    --promiscuous
+    --charset utf8
+    --fmt html
+    --inline-source
+    --line-numbers
+    --main Rack::Cache
+    --title 'Rack::Cache API Documentation'
     #{f.prerequisites.join(' ')}
   SH
 end
@@ -60,24 +67,12 @@ task 'doc:graphs'
   end
 end
 
-desc 'Build default config documentation'
-task 'doc:source'
-FileList['lib/rack/cache/config/*.rb'].each do |source|
-  basename = File.basename(source)
-  dest = "doc/config/#{basename}.html"
-  file dest => source do |f|
-    mkdir_p "doc/config"
-    sh "source-highlight -s ruby -f html -i #{source} -o #{dest}"
-  end
-  task 'doc:source' => dest
-  CLEAN.include dest
-end
-
 desc 'Build markdown documentation files'
 task 'doc:markdown'
 FileList['doc/*.markdown'].each do |source|
   dest = "doc/#{File.basename(source, '.markdown')}.html"
   file dest => source do |f|
+    puts "markdown: #{source} -> #{dest}" if verbose
     require 'erb'
     require 'rdiscount'
     template = File.read(source)
@@ -90,7 +85,6 @@ FileList['doc/*.markdown'].each do |source|
   task 'doc:markdown' => dest
   CLEAN.include dest
 end
-file 'doc/configuration.html' => 'doc/config/default.rb.html'
 
 task 'doc:publish' => :doc do
   sh 'rsync -avz doc/ gus@tomayko.com:/src/rack-cache'

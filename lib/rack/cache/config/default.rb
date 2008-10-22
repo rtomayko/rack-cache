@@ -132,5 +132,3 @@ end
 on :error do
   finish!
 end
-
-# vim: tw=72

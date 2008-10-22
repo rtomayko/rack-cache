@@ -174,7 +174,7 @@ Since caching logic can be layered, it's possible to separate various bits of
 cache policy into files for organization and reuse.
 
     use Rack::Cache do
-      import 'rack/cache/config/breakers'
+      import 'rack/cache/config/busters'
       import 'mycacheconfig'
 
       # more stuff here
@@ -186,13 +186,11 @@ files (i.e., they have a `.rb` extension) situated on the `$LOAD_PATH` - the
 files are evaluated in the context of the configuration machinery, as if
 specified directly in the configuration block.
 
-The `rack/cache/config/breakers.rb` file makes a good example. It hooks into the
+The `rack/cache/config/busters.rb` file makes a good example. It hooks into the
 `fetch` event and adds an impractically long expiration lifetime to any response
 that includes a cache busting query string:
 
-<div>
-<%= File.read('doc/config/breakers.rb.html') %>
-</div>
+<%= File.read('lib/rack/cache/config/busters.rb').gsub(/^/, '    ') %>
 
 
 <a id='default'></a>
@@ -205,9 +203,7 @@ object is instantiated and before any custom configuration code is executed.
 It's useful to understand this configuration because it drives the default
 transitioning logic.
 
-<div>
-<%= File.read('doc/config/default.rb.html') %>
-</div>
+<%= File.read('lib/rack/cache/config/default.rb').gsub(/^/, '    ') %>
 
 <a id='notes'></a>
 
