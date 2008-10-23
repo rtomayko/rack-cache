@@ -6,11 +6,10 @@ require 'rack/cache/response'
 require 'rack/cache/storage'
 
 module Rack::Cache
+  # Implements Rack's middleware interface and provides the context for all
+  # cache logic. This class includes the Options, Config, and Core modules
+  # to provide much of its core functionality.
 
-  # The context of an individual request.
-  #
-  #   Rack::Adapter -> Rack::Cache -> RackApplication
-  #
   class Context
     include Rack::Cache::Options
     include Rack::Cache::Config
@@ -35,15 +34,14 @@ module Rack::Cache
       if env['rack.run_once']
         call! env
       else
-        # NOTE we can't use #dup here because we need the methods defined
-        # on the object's metaclass to be copied.
         clone.call! env
       end
     end
 
+  private
     alias_method :call!, :process_request
-    protected :call!
 
+  public
     # IO-like object that receives log, warning, and error messages;
     # defaults to the rack.errors environment variable.
     def errors
@@ -60,22 +58,21 @@ module Rack::Cache
     # environment variable effects the result of this method immediately.
     def metastore
       uri = options['rack-cache.metastore']
-      storage.meta_store[uri]
+      storage.resolve_metastore_uri(uri)
     end
 
     # The configured EntityStore instance. Changing the rack-cache.entitystore
     # environment variable effects the result of this method immediately.
     def entitystore
       uri = options['rack-cache.entitystore']
-      storage.entity_store[uri]
+      storage.resolve_entitystore_uri(uri)
     end
 
   protected
-
     # Write a log message to the errors stream. +level+ is a symbol
     # such as :error, :warn, :info, or :trace.
-    def log(level, message=nil, *interpolators)
-      errors.write("[cache] #{level}: #{message}\n" % interpolators)
+    def log(level, message=nil, *params)
+      errors.write("[cache] #{level}: #{message}\n" % params)
       errors.flush
     end
 
@@ -91,9 +88,6 @@ module Rack::Cache
       return unless verbose?
       log :trace, *message, &bk
     end
-
-    alias_method :debug, :trace
-
   end
 
 end

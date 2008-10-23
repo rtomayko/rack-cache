@@ -2,19 +2,19 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 
 class MockResponse < Rack::MockResponse
   include Rack::Cache::Headers
+  include Rack::Cache::ResponseHeaders
+  public :now
 end
 
 describe 'Rack::Cache::Headers' do
-
-  before(:each) {
+  before :each do
     @now = Time.now
     @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
-  }
-
-  after(:each) {
+  end
+  after :each do
     @now, @res, @one_hour_ago = nil
-  }
+  end
 
   describe '#cache_control' do
     it 'handles single name=value pair' do
@@ -47,23 +47,18 @@ describe 'Rack::Cache::Headers' do
       @res.headers.should.not.include 'Cache-Control'
     end
   end
-
 end
 
-
 describe 'Rack::Cache::ResponseHeaders' do
-
-  before(:each) {
+  before :each do
     @now = Time.now
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
     @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
     @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
-    @res.extend Rack::Cache::ResponseHeaders
-  }
-
-  after(:each) {
+  end
+  after :each do
     @now, @res, @one_hour_ago = nil
-  }
+  end
 
   describe '#validateable?' do
     it 'is true when Last-Modified header present' do

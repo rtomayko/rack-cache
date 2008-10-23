@@ -47,6 +47,7 @@ file 'doc/api/index.html' => FileList['lib/**/*.rb'] do |f|
     --fmt html
     --inline-source
     --line-numbers
+    --accessor option_accessor=RW
     --main Rack::Cache
     --title 'Rack::Cache API Documentation'
     #{f.prerequisites.join(' ')}

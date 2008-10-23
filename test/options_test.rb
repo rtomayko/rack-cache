@@ -2,7 +2,7 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/options'
 
 module Rack::Cache::Options
-  attr_accessor :foo
+  option_accessor :foo
 end
 
 class MockOptions

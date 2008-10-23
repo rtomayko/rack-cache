@@ -2,7 +2,6 @@ require 'rack/cache/request'
 require 'rack/cache/response'
 
 module Rack::Cache
-
   # Raised when an attempt is made to transition to an event that can
   # not be transitioned from the current event.
   class IllegalTransition < Exception
@@ -75,18 +74,30 @@ module Rack::Cache
       @triggered.include?(event)
     end
 
-  protected
+  private
     # Event handlers.
     attr_reader :events
 
-    # Attach rules to an event.
+  public
+    # Attach custom logic to one or more events.
     def on(*events, &block)
-      events.each do |event|
-        @events[event].unshift block if block_given?
-        next if respond_to? "#{event}!"
-        meta_def("#{event}!") { |*args| throw(:transition, [event, *args]) }
-        nil
-      end
+      events.each { |event| @events[event].unshift(block) }
+      nil
+    end
+
+  private
+    # Transitioning statements
+
+    def pass!      ; throw(:transition, [:pass])    ; end
+    def lookup!    ; throw(:transition, [:lookup])  ; end
+    def store!     ; throw(:transition, [:store])   ; end
+    def fetch!     ; throw(:transition, [:fetch])   ; end
+    def persist!   ; throw(:transition, [:persist]) ; end
+    def deliver!   ; throw(:transition, [:deliver]) ; end
+    def finish!    ; throw(:transition, [:finish])  ; end
+
+    def error!(code=500, headers={}, body=nil)
+      throw(:transition, [:error, code, headers, body])
     end
 
   private
@@ -218,7 +229,9 @@ module Rack::Cache
       send "perform_#{ev}", *args
     end
 
-    # Trigger processing of the event specified.
+    # Trigger processing of the event specified and return an array containing
+    # the name of the next transition and any arguments provided to the
+    # transitioning statement.
     def trigger(event)
       if @events.include? event
         @triggered << event
@@ -237,11 +250,9 @@ module Rack::Cache
     def initialize_core
       @triggered = []
       @events = Hash.new { |h,k| h[k.to_sym] = [] }
-      on :receive, :pass, :miss, :hit, :fetch, :lookup, :store,
-        :persist, :deliver, :finish, :error
 
-      # initialize some instance variables; we won't use
-      # them until we dup to process a request.
+      # initialize some instance variables; we won't use them until we dup to
+      # process a request.
       @request = nil
       @response = nil
       @original_request = nil
@@ -256,14 +267,5 @@ module Rack::Cache
       @env = @default_options.merge(env)
       perform_receive
     end
-
-  public
-    def metaclass #:nodoc:
-      (class << self ; self ; end)
-    end
-    def meta_def(name, *args, &blk) #:nodoc:
-      metaclass.send :define_method, name, *args, &blk
-    end
-
   end
 end

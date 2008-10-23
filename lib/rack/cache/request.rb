@@ -3,8 +3,15 @@ require 'rack/cache/headers'
 require 'rack/utils/environment_headers'
 
 module Rack::Cache
+  # Provides access to the HTTP request. The +request+ and +original_request+
+  # objects exposed by the Core caching engine are instances of this class.
+  #
+  # Request objects respond to a variety of convenience methods, including
+  # everything defined by Rack::Request as well as the Headers and
+  # RequestHeaders modules.
 
   class Request < Rack::Request
+    include Rack::Cache::Headers
     include Rack::Cache::RequestHeaders
 
     # Determine if the request's method matches any of the values
@@ -13,11 +20,10 @@ module Rack::Cache
     #     ...
     #   end
     def request_method?(*methods)
-      methods.any? { |method| method.to_s.upcase == request_method }
+      method = request_method
+      methods.any? { |test| test.to_s.upcase == method }
     end
 
     alias_method :method?, :request_method?
-
   end
-
 end
