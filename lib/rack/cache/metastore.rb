@@ -43,25 +43,20 @@ module Rack::Cache
       return nil if entries.empty?
 
       # find a cached entry that matches the request.
-      match =
-        entries.detect do |req,res|
-          vary = res['Vary']
-          vary.nil? || (vary == '') || requests_match?(vary, request.env, req)
-        end
+      env = request.env
+      match = entries.detect{ |req,res| requests_match?(res['Vary'], env, req)}
+      if match
+        # TODO what if body doesn't exist in entity store?
+        # reconstruct response object
+        req, res = match
+        status = res['X-Status']
+        body = entity_store.open(res['X-Content-Digest'])
+        response = Rack::Cache::Response.new(status.to_i, res, body)
+        response.activate!
 
-      # bail out if nothing matched
-      return nil if match.nil?
-
-      # reconstruct response object
-      # TODO what if body doesn't exist in entity store?
-      req, res = match
-      status = res['X-Status']
-      body = entity_store.open(res['X-Content-Digest'])
-      response = Rack::Cache::Response.new(status.to_i, res, body)
-      response.activate!
-
-      # Return the cached response
-      response
+        # Return the cached response
+        response
+      end
     end
 
     # Write a cache entry to the store under the given key. Existing
@@ -71,26 +66,26 @@ module Rack::Cache
     # TODO canonicalize URL key
     def store(request, response, entity_store)
       key = request.fullpath
-      req = persist_request(request)
-      res = persist_response(response)
+      stored_env = persist_request(request)
+      stored_response = persist_response(response)
 
       # write the response body to the entity store if this is the
       # original response.
-      if res['X-Content-Digest'].nil?
+      if stored_response['X-Content-Digest'].nil?
         digest, size = entity_store.write(response.body)
-        res['X-Content-Digest'] = digest
-        res['Content-Length'] = size.to_s
+        stored_response['X-Content-Digest'] = digest
+        stored_response['Content-Length'] = size.to_s
         response.body = entity_store.open(digest)
       end
 
       # read existing cache entries, remove non-varying, and add this one to
       # the list
-      vary = res['Vary']
+      vary = stored_response['Vary']
       entries =
-        read(key).reject do |ereq,eres|
-          (vary == eres['Vary']) && requests_match?(vary, ereq, req)
+        read(key).reject do |env,res|
+          (vary == res['Vary']) && requests_match?(vary, env, stored_env)
         end
-      entries.unshift [req, res]
+      entries.unshift [stored_env, stored_response]
       write key, entries
     end
 
@@ -117,7 +112,7 @@ module Rack::Cache
     # the vary response header value provided.
     def requests_match?(vary, env1, env2)
       return true if vary.nil? || vary == ''
-      vary.split(/\s+/).all? do |header|
+      vary.split(/[\s,]+/).all? do |header|
         key = "HTTP_#{header.upcase.tr('-', '_')}"
         env1[key] == env2[key]
       end

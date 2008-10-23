@@ -198,27 +198,23 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
-  describe '#requests_vary?' do
-    it 'always returns false when no Vary header is present in the response' do
-      @res.requests_vary?({}, {}).should.be false
+  describe '#vary_header_names' do
+    it 'returns an empty Array when no Vary header is present' do
+      @res.vary_header_names.should.be.empty
     end
-    it 'always returns true when the vary header is "*"' do
-      @res.headers['Vary'] = '*'
-      @res.requests_vary?({}, {}).should.be true
+    it 'parses a single header name value' do
+      @res.headers['Vary'] = 'Accept-Language'
+      @res.vary_header_names.should.be == ['Accept-Language']
     end
-    it 'returns true when at least one Vary header is different' do
-      @res.headers['Vary'] = 'User-Agent Accept-Language'
-      @res.requests_vary?(
-        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' },
-        {'HTTP_USER_AGENT' => 'iPhone',  'HTTP_ACCEPT_LANGUAGE' => 'en' }
-      ).should.be true
+    it 'parses multiple header name values separated by spaces' do
+      @res.headers['Vary'] = 'Accept-Language User-Agent    X-Foo'
+      @res.vary_header_names.should.be ==
+        ['Accept-Language', 'User-Agent', 'X-Foo']
     end
-    it 'returns false when all Vary headers are equal' do
-      @res.headers['Vary'] = 'User-Agent Accept-Language'
-      @res.requests_vary?(
-        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' },
-        {'HTTP_USER_AGENT' => 'Firefox', 'HTTP_ACCEPT_LANGUAGE' => 'en' }
-      ).should.not.be true
+    it 'parses multiple header name values separated by commas' do
+      @res.headers['Vary'] = 'Accept-Language,User-Agent,    X-Foo'
+      @res.vary_header_names.should.be ==
+        ['Accept-Language', 'User-Agent', 'X-Foo']
     end
   end
 end
