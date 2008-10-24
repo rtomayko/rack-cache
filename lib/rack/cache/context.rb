@@ -27,6 +27,11 @@ module Rack::Cache
       initialize_config(&block)
     end
 
+    # The call! method is invoked on the duplicate context instance.
+    # process_request is defined in Core.
+    alias_method :call!, :process_request
+    protected :call!
+
     # The Rack call interface. The receiver acts as a prototype and runs each
     # request in a duplicate object, unless the +rack.run_once+ variable is set
     # in the environment.
@@ -37,9 +42,6 @@ module Rack::Cache
         clone.call! env
       end
     end
-
-  private
-    alias_method :call!, :process_request
 
   public
     # IO-like object that receives log, warning, and error messages;
