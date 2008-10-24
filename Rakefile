@@ -1,6 +1,6 @@
 require 'rake/clean'
 
-task :default => :spec
+task :default => :test
 
 CLEAN.include %w[coverage/ doc/api tags]
 CLOBBER.include %w[dist]
@@ -114,6 +114,14 @@ end
 
 file package('.tar.gz') => %w[dist/] + $spec.files do |f|
   sh "git archive --format=tar HEAD | gzip > #{f.name}"
+end
+
+desc 'Upload gem and tar.gz distributables to rubyforge'
+task :release => [package('.gem'), package('.tar.gz')] do |t|
+  sh <<-SH
+    rubyforge add_release wink rack-cache #{$spec.version} #{package('.gem')} &&
+    rubyforge add_file    wink rack-cache #{$spec.version} #{package('.tar.gz')}
+  SH
 end
 
 # GEMSPEC ===================================================================

@@ -1,17 +1,20 @@
 Rack::Cache
 ===========
 
+Rack::Cache is suitable as a quick drop-in component to enable HTTP caching for
+Rack-based applications that produce freshness (Expires, Cache-Control) and/or
+validation (Last-Modified, ETag) information.
+
 We strive to implement those portions of RFC 2616 Section 13 relevant to gateway
 (i.e., "reverse proxy") cache scenarios with a system for specifying cache
-policy. Rack::Cache is suitable as a quick, drop-in component to enable HTTP
-caching for Rack-enabled applications that produce freshness (Expires,
-Cache-Control) and/or validation (Last-Modified, ETag) information.
+policy:
 
-  * Standards-based (RFC 2616 compliance)
-  * Freshness/expiration based caching and validation
-  * Supports HTTP Vary
+  * Standards-based (RFC 2616)
+  * Freshness/expiration based caching
+  * Validation
+  * Vary support
   * Portable: 100% Ruby / works with any Rack-enabled framework
-  * VCL-like configuration language for advanced caching policies
+  * Configuration language for advanced caching policies
   * Disk, memcached, and heap memory storage backends
 
 For more information about Rack::Cache features and usage, see:
@@ -21,8 +24,8 @@ http://tomayko.com/src/rack-cache/
 Rack::Cache is not overly optimized for performance. The main goal of the
 project is to provide a portable, easy-to-configure, and standards-based
 caching solution for small to medium sized deployments. More sophisticated /
-performant caching systems (e.g., Varnish, Squid, httpd/mod-cache) may be
-more appropriate for large deployments with crazy throughput requirements.
+high-performance caching systems (e.g., Varnish, Squid, httpd/mod-cache) may be
+more appropriate for large deployments with significant throughput requirements.
 
 Status
 ------
@@ -53,11 +56,12 @@ or uses Rack::Builder to construct the application pipeline, simply require
 and use as follows:
 
     require 'rack/cache'
-    use Rack::Cache do
-      set :metastore, 'file:/var/cache/rack/meta'
-      set :entitystore, 'file:/var/cache/rack/body'
-      set :verbose, true
-    end
+
+    use Rack::Cache,
+      :metastore   => 'file:/var/cache/rack/meta',
+      :entitystore => 'file:/var/cache/rack/body',
+      :verbose     => true
+
     run app
 
 Assuming you've designed your backend application to take advantage of HTTP's
@@ -66,9 +70,6 @@ caching.
 
 Documentation
 -------------
-
-The "doc/" directory includes documentation on Rack::Cache configuration and
-use; also available on the web:
 
 http://tomayko.com/src/rack-cache/
 

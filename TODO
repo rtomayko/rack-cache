@@ -1,28 +1,3 @@
-## 0.1 / 2008-07-21 / Unreleased
-
-  * Proof of concept
-  * Store everything in memory
-
-## 0.2
-
-  * Baseline caching logic moved out of config, into Rack::Cache::Core
-  * Document events and transitions in rack/cache/config/default.rb
-  * Basic logging support (trace, debug, warn, info from within Context)
-  * EntityStore: store entity bodies keyed by SHA
-  * MetaStore: store response headers keyed by URL
-  * Add support for Vary
-  * ETag validation
-  * Implement error! transition
-  * memcached meta and entity store implementations
-  * Get rid of default_entity_store
-  * URL based storage configuration
-  * Read options from Rack env if present (rack-cache.XXX keys)
-  * Rename `object` to `entry`.
-  * Documentation Framework and Website
-  * Document storage areas and implementations
-  * Document configuration/events
-  - Document request, response, cached object
-
 ## 0.3
 
   - BUG: meta store hits but entity misses

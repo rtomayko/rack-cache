@@ -1,10 +1,27 @@
-## 0.1 (Sunday, August 3, 2008)
+## 0.2.0 / 2008-10-24 / Initial Release
+
+  * Document events and transitions in `rack/cache/config/default.rb`
+  * Basic logging support (`trace`, `warn`, `info`, `error` from within Context)
+  * EntityStore: store entity bodies keyed by SHA
+  * MetaStore: store response headers keyed by URL
+  * Last-Modified/ETag validation
+  * Vary support
+  * Implement error! transition
+  * New Rack::Cache::Core
+  * memcached meta and entity store implementations
+  * URI based storage configuration
+  * Read options from Rack env if present (rack-cache.XXX keys)
+  * `object` is now `entry`
+  * Documentation framework and website
+  * Document storage areas and implementations
+  * Document configuration/events
+
+## 0.1.0 / 2008-07-21 / Proof of concept (unreleased)
 
   * Basic core with event support
-  * An #import method for bringing in config files
-  * Implement freshness based expiration
-  * Implement RFC 2616 If-Modified-Since based validation
-  * A not horribly shitty storage back-end (Hash in mem if we have to)
-  * Don't cache headers: Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization
-    TE, Trailers, Transfer-Encoding, Upgrade
-
+  * `#import` method for bringing in config files
+  * Freshness based expiration
+  * RFC 2616 If-Modified-Since based validation
+  * A horribly shitty storage back-end (Hash in mem)
+  * Don't cache hop-by-hop headers: Connection, Keep-Alive, Proxy-Authenticate,
+    Proxy-Authorization, TE, Trailers, Transfer-Encoding, Upgrade

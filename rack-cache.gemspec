@@ -3,11 +3,11 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
 
   s.name = 'rack-cache'
-  s.version = '0.2'
-  s.date = '2008-10-21'
+  s.version = '0.2.0'
+  s.date = '2008-10-24'
 
-  s.description = "Caching middleware for Rack"
-  s.summary     = "Caching middleware for Rack"
+  s.description = "HTTP Caching for Rack"
+  s.summary     = "HTTP Caching for Rack"
 
   s.authors = ["Ryan Tomayko"]
   s.email = "r@tomayko.com"
@@ -63,7 +63,7 @@ Gem::Specification.new do |s|
   s.test_files = s.files.select {|path| path =~ /^test\/.*_test.rb/}
 
   s.extra_rdoc_files = %w[COPYING]
-  s.add_dependency 'rack', '>= 0.4.0'
+  s.add_dependency 'rack', '~> 0.4'
 
   s.has_rdoc = true
   s.homepage = "http://github.com/rtomayko/rack-cache"
