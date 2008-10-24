@@ -14,6 +14,14 @@ module Rack::Cache
     include Rack::Cache::Headers
     include Rack::Cache::RequestHeaders
 
+    # The HTTP request method. This is the standard implementation of this
+    # method but is respecified here due to libraries that attempt to modify
+    # the behavior to respect POST tunnel method specifiers. We always want
+    # the real request method.
+    def request_method
+      @env['REQUEST_METHOD']
+    end
+
     # Determine if the request's method matches any of the values
     # provided:
     #   if request.request_method?('GET', 'POST')
