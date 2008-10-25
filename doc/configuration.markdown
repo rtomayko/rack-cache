@@ -184,7 +184,7 @@ cache policy into files for organization and reuse.
       # more stuff here
     end
 
-The `breakers` and `mycacheconfig` configuration files are normal Ruby source
+The `busters` and `mycacheconfig` configuration files are normal Ruby source
 files (i.e., they have a `.rb` extension) situated on the `$LOAD_PATH` - the
 `import` statement works like Ruby's `require` statement but the contents of the
 files are evaluated in the context of the configuration machinery, as if
