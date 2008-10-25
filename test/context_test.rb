@@ -35,6 +35,46 @@ describe 'Rack::Cache::Context' do
     response.headers.should.not.include 'Age'
   end
 
+  it 'responds with 304 when If-Modified-Since matches Last-Modified' do
+    timestamp = Time.now.httpdate
+    respond_with do |req,res|
+      res.status = 200
+      res['Last-Modified'] = timestamp
+      res['Content-Type'] = 'text/plain'
+      res.body = ['Hello World']
+    end
+
+    get '/',
+      'HTTP_IF_MODIFIED_SINCE' => timestamp
+    app.should.be.called
+    response.status.should.be == 304
+    response.headers.should.not.include 'Content-Length'
+    response.headers.should.not.include 'Content-Type'
+    response.body.should.empty
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+  end
+
+  it 'responds with 304 when If-None-Match matches ETag' do
+    respond_with do |req,res|
+      res.status = 200
+      res['Etag'] = '12345'
+      res['Content-Type'] = 'text/plain'
+      res.body = ['Hello World']
+    end
+
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '12345'
+    app.should.be.called
+    response.status.should.be == 304
+    response.headers.should.not.include 'Content-Length'
+    response.headers.should.not.include 'Content-Type'
+    response.headers.should.include 'Etag'
+    response.body.should.empty
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+  end
+
   it 'caches requests when Cache-Control request header set to no-cache' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
     get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'

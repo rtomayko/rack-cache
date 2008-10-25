@@ -79,9 +79,19 @@ module Rack::Cache
   module ResponseHeaders
     include Rack::Cache::Headers
 
-    # Set of HTTP response codes of messages that can be cached, per
-    # RFC 2616.
-    CACHEABLE_RESPONSE_CODES = Set.new([200, 203, 300, 301, 302, 404, 410])
+    # Status codes of responses that MAY be stored by a cache or used in reply
+    # to a subsequent request.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-13.4
+    CACHEABLE_RESPONSE_CODES = [
+      200, # OK
+      203, # Non-Authoritative Information
+      300, # Multiple Choices
+      301, # Moved Permanently
+      302, # Found
+      404, # Not Found
+      410  # Gone
+    ].to_set
 
     # Determine if the response is "fresh". Fresh responses may be served from
     # cache without any interaction with the origin. A response is considered
@@ -210,6 +220,37 @@ module Rack::Cache
       time_value && last_modified == time_value
     end
 
+    # Determine if response's ETag matches the etag value provided. Return
+    # false when either value is nil.
+    def etag_matches?(etag)
+      etag && self.etag == etag
+    end
+
+    # Headers that MUST NOT be included with 304 Not Modified responses.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-10.3.5
+    NOT_MODIFIED_OMIT_HEADERS = %w[
+      Allow
+      Content-Encoding
+      Content-Language
+      Content-Length
+      Content-Md5
+      Content-Type
+      Last-Modified
+    ].to_set
+
+    # Modify the response so that it conforms to the rules defined for
+    # '304 Not Modified'. This sets the status, removes the body, and
+    # discards any headers that MUST NOT be included in 304 responses.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-10.3.5
+    def not_modified!
+      self.status = 304
+      self.body = []
+      NOT_MODIFIED_OMIT_HEADERS.each { |name| headers.delete(name) }
+      nil
+    end
+
     # The literal value of the Vary header, or nil when no Vary header is
     # present.
     def vary
@@ -226,6 +267,33 @@ module Rack::Cache
     def vary_header_names
       return [] unless vary = headers['Vary']
       vary.split(/[\s,]+/)
+    end
+
+    # Headers that MUST NOT be stored by caches or passed through by
+    # intermediaries.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-13.5.1
+    HOP_BY_HOP_HEADERS = %w[
+      Connection
+      Keep-Alive
+      Proxy-Authenticate
+      Proxy-Authorization
+      TE
+      Trailers
+      Transfer-Encoding
+      Upgrade
+    ].to_set
+
+    # Remove all hop-by-hop headers from the response.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-13.5.1
+    #--
+    # NOTE The concept of hop-by-hop headers is largely irrelevant to
+    # Rack::Cache since its not used as a network intermediary. Hop-by-hop
+    # headers control details of network transfer.
+    def remove_hop_by_hop_headers!
+      HOP_BY_HOP_HEADERS.each { |name| headers.delete(name) }
+      nil
     end
 
   private

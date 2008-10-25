@@ -1,8 +1,5 @@
 ## 0.3
 
-  - BUG: 304 responses should not include entity headers (especially
-    Content-Length). This is causing Safari/WebKit weirdness on 304
-    responses.
   - BUG: HEAD request on invalid entry caches zero-length response
   - BUG: meta store hits but entity misses
   - BUG: Response body written to cache each time validation succeeds

@@ -21,18 +21,6 @@ module Rack::Cache
   # methods dumb and straight-forward to implement.
   class MetaStore
 
-    # Headers that should not be stored in cache (from RFC 2616).
-    HEADER_BLACKLIST = Set.new(%w[
-      Connection
-      Keep-Alive
-      Proxy-Authenticate
-      Proxy-Authorization
-      TE
-      Trailers
-      Transfer-Encoding
-      Upgrade
-    ])
-
     # Locate a cached response for the request provided. Returns a
     # Rack::Cache::Response object if the cache hits or nil if no cache entry
     # was found.
@@ -103,7 +91,8 @@ module Rack::Cache
     # necessary modifications in preparation for persistence. The Hash
     # returned must be marshalable.
     def persist_response(response)
-      headers = response.headers.reject { |k,v| HEADER_BLACKLIST.include?(k) }
+      response.remove_hop_by_hop_headers!
+      headers = response.headers.dup
       headers['X-Status'] = response.status.to_s
       headers
     end

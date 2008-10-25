@@ -101,10 +101,11 @@ module Rack::Cache
     end
 
   private
-    # Determine if the response's Last-Modified date matches the
-    # If-Modified-Since value provided in the original request.
+    # Determine if the #response validators (ETag, Last-Modified) matches
+    # a conditional value specified in #original_request.
     def not_modified?
-      response.last_modified_at?(original_request.if_modified_since)
+      response.etag_matches?(original_request.if_none_match) ||
+        response.last_modified_at?(original_request.if_modified_since)
     end
 
     # Delegate the request to the backend and create the response.
@@ -208,10 +209,7 @@ module Rack::Cache
 
     def perform_deliver
       trace "delivering response ..."
-      if not_modified?
-        response.status = 304
-        response.body = []
-      end
+      response.not_modified! if not_modified?
       transition(from=:deliver, to=[:finish, :error])
     end
 

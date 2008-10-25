@@ -1,3 +1,11 @@
+## 0.3.0 / ...
+
+  * BUG: 304 responses should not include entity headers (especially
+    Content-Length). This is causing Safari/WebKit weirdness on 304
+    responses.
+  * BUG: The If-None-Match header was being ignored, causing the cache
+    to send 200 responses to matching conditional GET requests.
+
 ## 0.2.0 / 2008-10-24 / Initial Release
 
   * Document events and transitions in `rack/cache/config/default.rb`
