@@ -77,7 +77,7 @@ FileList['doc/*.markdown'].each do |source|
     require 'erb'
     require 'rdiscount'
     template = File.read(source)
-    content = Markdown.new(ERB.new(template, 0, "%<>").result(binding)).to_html
+    content = Markdown.new(ERB.new(template, 0, "%<>").result(binding), :smart).to_html
     title = content.match("<h1>(.*)</h1>")[1] rescue ''
     layout = ERB.new(File.read("doc/layout.html.erb"), 0, "%<>")
     output = layout.result(binding)
