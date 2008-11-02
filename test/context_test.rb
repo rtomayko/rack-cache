@@ -81,7 +81,7 @@ describe 'Rack::Cache::Context' do
 
     response.should.be.ok
     cache.should.a.performed :store
-    response.headers.should.not.include 'Age'
+    response.headers.should.include 'Age'
   end
 
   it 'fetches response from backend when cache misses' do
@@ -91,7 +91,7 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     cache.should.a.performed :miss
     cache.should.a.performed :fetch
-    response.headers.should.not.include 'Age'
+    response.headers.should.include 'Age'
   end
 
   [(201..202),(204..206),(303..305),(400..403),(405..409),(411..417),(500..505)].each do |range|
@@ -134,7 +134,7 @@ describe 'Rack::Cache::Context' do
 
     response.should.be.ok
     cache.should.a.performed :store
-    response.headers.should.not.include 'Age'
+    response.headers.should.include 'Age'
   end
 
   it 'caches responses with an Expiration header' do
@@ -144,8 +144,8 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.body.should.be == 'Hello World'
     response.headers.should.include 'Date'
-    response['Age'].should.be.nil
-    response['X-Content-Digest'].should.be.nil
+    response['Age'].should.not.be.nil
+    response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
     cache.metastore.to_hash.keys.length.should.be == 1
@@ -158,8 +158,8 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.body.should.be == 'Hello World'
     response.headers.should.include 'Date'
-    response['Age'].should.be.nil
-    response['X-Content-Digest'].should.be.nil
+    response['Age'].should.not.be.nil
+    response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
     cache.metastore.to_hash.keys.length.should.be == 1
@@ -241,8 +241,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Date'
-    response.headers.should.not.include 'X-Content-Digest'
-    response['Age'].should.be.nil
+    response.headers.should.include 'X-Content-Digest'
+    response.headers.should.include 'Age'
     cache.should.a.performed :miss
     cache.should.a.performed :store
     response.body.should.be == 'Hello World'
@@ -256,7 +256,7 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response['Age'].to_i.should.be == 0
-    response['X-Content-Digest'].should.be.nil
+    response.headers.should.include 'X-Content-Digest'
     cache.should.a.not.performed :hit
     cache.should.a.not.performed :miss
     cache.should.a.performed :fetch
@@ -279,7 +279,7 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Last-Modified'
-    response.headers.should.not.include 'X-Content-Digest'
+    response.headers.should.include 'X-Content-Digest'
     response.body.should.be == 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store
@@ -313,7 +313,7 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Etag'
-    response.headers.should.not.include 'X-Content-Digest'
+    response.headers.should.include 'X-Content-Digest'
     response.body.should.be == 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store

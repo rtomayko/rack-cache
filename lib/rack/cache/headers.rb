@@ -268,33 +268,6 @@ module Rack::Cache
       vary.split(/[\s,]+/)
     end
 
-    # Headers that MUST NOT be stored by caches or passed through by
-    # intermediaries.
-    #
-    # http://tools.ietf.org/html/rfc2616#section-13.5.1
-    HOP_BY_HOP_HEADERS = %w[
-      Connection
-      Keep-Alive
-      Proxy-Authenticate
-      Proxy-Authorization
-      TE
-      Trailers
-      Transfer-Encoding
-      Upgrade
-    ].to_set
-
-    # Remove all hop-by-hop headers from the response.
-    #
-    # http://tools.ietf.org/html/rfc2616#section-13.5.1
-    #--
-    # NOTE The concept of hop-by-hop headers is largely irrelevant to
-    # Rack::Cache since its not used as a network intermediary. Hop-by-hop
-    # headers control details of network transfer.
-    def remove_hop_by_hop_headers!
-      HOP_BY_HOP_HEADERS.each { |name| headers.delete(name) }
-      nil
-    end
-
   private
     def now
       @now ||= Time.now

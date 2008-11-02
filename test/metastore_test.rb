@@ -92,7 +92,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'restores response headers properly with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, @entity_store)
-    response.headers.reject{|k,v| k =~ /^X-/}.
+    response.headers.
       should.be == @response.headers.merge('Age' => '0', 'Content-Length' => '4')
   end
 

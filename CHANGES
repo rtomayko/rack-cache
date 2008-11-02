@@ -1,5 +1,13 @@
 ## 0.3.0 / ...
 
+  * Cache responses that have a Transfer-Encoding. The current implementation
+    caches the encoded value and reproduces the message with the same
+    Transfer-Encoding header on subsequent cache hits. This goes against
+    RFC 2616, which says that intermediaries must fully decode responses with
+    a Transfer-Encoding header before passing them on (though they may re-encode
+    or apply a different encoding). This seems less relevant to Rack::Cache,
+    however, since we're not a true "hop". We'll see how it goes and act
+    accordingly.
   * BUG: The Age response header was not being set properly when a stale
     entry was validated. This would result in Age values that exceeded
     the freshness lifetime in responses.

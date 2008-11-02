@@ -55,25 +55,27 @@ module Rack::Cache
     def store(request, response, entity_store)
       key = request.fullpath
       stored_env = persist_request(request)
-      stored_response = persist_response(response)
 
       # write the response body to the entity store if this is the
       # original response.
-      if stored_response['X-Content-Digest'].nil?
+      response['X-Status'] = response.status.to_s
+      if response['X-Content-Digest'].nil?
         digest, size = entity_store.write(response.body)
-        stored_response['X-Content-Digest'] = digest
-        stored_response['Content-Length'] = size.to_s
+        response['X-Content-Digest'] = digest
+        response['Content-Length'] = size.to_s unless response['Transfer-Encoding']
         response.body = entity_store.open(digest)
+        response.activate!
       end
 
       # read existing cache entries, remove non-varying, and add this one to
       # the list
-      vary = stored_response['Vary']
+      vary = response.vary
       entries =
         read(key).reject do |env,res|
-          (vary == res['Vary']) && requests_match?(vary, env, stored_env)
+          (vary == res['Vary']) &&
+            requests_match?(vary, env, stored_env)
         end
-      entries.unshift [stored_env, stored_response]
+      entries.unshift [stored_env, response.headers.dup]
       write key, entries
     end
 
@@ -85,16 +87,6 @@ module Rack::Cache
       env = request.env.dup
       env.reject! { |key,val| key =~ /[^0-9A-Z_]/ }
       env
-    end
-
-    # Extract the headers Hash from +response+ while making any
-    # necessary modifications in preparation for persistence. The Hash
-    # returned must be marshalable.
-    def persist_response(response)
-      response.remove_hop_by_hop_headers!
-      headers = response.headers.dup
-      headers['X-Status'] = response.status.to_s
-      headers
     end
 
     # Determine whether the two environment hashes are non-varying based on
