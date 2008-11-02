@@ -1,5 +1,8 @@
 ## 0.3.0 / ...
 
+  * BUG: The Age response header was not being set properly when a stale
+    entry was validated. This would result in Age values that exceeded
+    the freshness lifetime in responses.
   * BUG: A cached entry in a heap meta store could be unintentionally
     modified by request processing since the cached objects were being
     returned directly. The result was typically missing/incorrect header

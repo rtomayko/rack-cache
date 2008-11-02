@@ -8,7 +8,7 @@ end
 
 describe 'Rack::Cache::Headers' do
   before :each do
-    @now = Time.now
+    @now = Time.httpdate(Time.now.httpdate)
     @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
   end
@@ -51,7 +51,7 @@ end
 
 describe 'Rack::Cache::ResponseHeaders' do
   before :each do
-    @now = Time.now
+    @now = Time.httpdate(Time.now.httpdate)
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
     @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
     @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
@@ -88,6 +88,13 @@ describe 'Rack::Cache::ResponseHeaders' do
       @res = MockResponse.new(200, {}, '')
       @res.extend Rack::Cache::ResponseHeaders
       @res.date.should.be.close Time.now, 1
+    end
+    it 'returns the correct date when the header is modified directly' do
+      @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')
+      @res.extend Rack::Cache::ResponseHeaders
+      @res.date.should.be == @one_hour_ago
+      @res.headers['Date'] = @now.httpdate
+      @res.date.should.be == @now
     end
   end
 

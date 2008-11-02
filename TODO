@@ -5,7 +5,6 @@
   - BUG: Response body written to cache each time validation succeeds
     (actually, I'm not positive whether this is happening or not but
     it looks like it is).
-  - BUG: Age should always be 0 when a request is validated.
   - Are we doing HEAD properly?
   - liberal, conservative, sane caching configs
   - Sample app

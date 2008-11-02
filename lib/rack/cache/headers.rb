@@ -148,13 +148,12 @@ module Rack::Cache
     # The date, as specified by the Date header. When no Date header is present,
     # set the Date header to Time.now and return.
     def date
-      @date ||=
-        if date = headers['Date']
-          Time.httpdate(date)
-        else
-          headers['Date'] = now.httpdate unless headers.frozen?
-          now
-        end
+      if date = headers['Date']
+        Time.httpdate(date)
+      else
+        headers['Date'] = now.httpdate unless headers.frozen?
+        now
+      end
     end
 
     # The age of the response.

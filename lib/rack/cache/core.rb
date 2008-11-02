@@ -172,6 +172,7 @@ module Rack::Cache
         trace "cache entry valid"
         @response = entry.dup
         @response.headers.delete('Age')
+        @response.headers.delete('Date')
         @response.headers['X-Origin-Status'] = '304'
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
           next unless value = original_response.headers[name]
