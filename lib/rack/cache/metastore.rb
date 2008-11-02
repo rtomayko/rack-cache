@@ -147,7 +147,9 @@ module Rack::Cache
       end
 
       def read(key)
-        @hash.fetch(key, [])
+        @hash.fetch(key, []).collect do |req,res|
+          [req.dup, res.dup]
+        end
       end
 
       def write(key, entries)

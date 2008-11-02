@@ -1,5 +1,9 @@
 ## 0.3.0 / ...
 
+  * BUG: A cached entry in a heap meta store could be unintentionally
+    modified by request processing since the cached objects were being
+    returned directly. The result was typically missing/incorrect header
+    values (e.g., missing Content-Type header). [dkubb]
   * BUG: 304 responses should not include entity headers (especially
     Content-Length). This is causing Safari/WebKit weirdness on 304
     responses.
