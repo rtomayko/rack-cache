@@ -215,6 +215,7 @@ module Rack::Cache
     end
 
     def perform_finish
+      response.headers.delete 'X-Status'
       response.to_a
     end
 
