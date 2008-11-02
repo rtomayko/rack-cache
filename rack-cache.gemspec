@@ -62,11 +62,11 @@ Gem::Specification.new do |s|
 
   s.test_files = s.files.select {|path| path =~ /^test\/.*_test.rb/}
 
-  s.extra_rdoc_files = %w[COPYING]
+  s.extra_rdoc_files = %w[README COPYING TODO CHANGES]
   s.add_dependency 'rack', '~> 0.4'
 
   s.has_rdoc = true
-  s.homepage = "http://github.com/rtomayko/rack-cache"
+  s.homepage = "http://tomayko.com/src/rack-cache/"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
   s.require_paths = %w[lib]
   s.rubyforge_project = 'wink'
