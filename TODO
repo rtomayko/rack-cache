@@ -2,9 +2,6 @@
 
   - BUG: HEAD request on invalid entry caches zero-length response
   - BUG: meta store hits but entity misses
-  - BUG: Response body written to cache each time validation succeeds
-    (actually, I'm not positive whether this is happening or not but
-    it looks like it is).
   - Are we doing HEAD properly?
   - liberal, conservative, sane caching configs
   - Sample app
@@ -22,6 +19,9 @@
 
 ## Backlog
 
+  - Rails example
+  - Sinatra example
+  - Merb example
   - Purge/invalidate specific cache entries
   - Purge/invalidate everything
   - Maximum size of cached entity
