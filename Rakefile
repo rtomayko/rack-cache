@@ -72,10 +72,10 @@ desc 'Build markdown documentation files'
 task 'doc:markdown'
 FileList['doc/*.markdown'].each do |source|
   dest = "doc/#{File.basename(source, '.markdown')}.html"
-  file dest => source do |f|
+  file dest => [source, 'doc/layout.html.erb'] do |f|
     puts "markdown: #{source} -> #{dest}" if verbose
-    require 'erb'
-    require 'rdiscount'
+    require 'erb' unless defined? ERB
+    require 'rdiscount' unless defined? RDiscount
     template = File.read(source)
     content = Markdown.new(ERB.new(template, 0, "%<>").result(binding), :smart).to_html
     title = content.match("<h1>(.*)</h1>")[1] rescue ''
