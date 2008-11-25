@@ -47,8 +47,7 @@ simply `require` and `use` as follows:
 
 Assuming you've designed your backend application to take advantage of HTTP's
 caching features, no further code or configuration is required for basic
-caching. More sophisticated stuff is possible with [Rack::Cache's Configuration
-Language][config].
+caching.
 
 Advanced Usage
 --------------
@@ -60,6 +59,9 @@ Advanced Usage
     storage implementations available in __Rack::Cache__ and how to choose the one
     that's best for your application.
 
+  * [Things Caches Do][things] - An illustrated guide to how HTTP gateway
+    caches work with pointers to other useful resources on HTTP caching.
+
   * [FAQ](./faq) - Frequently Asked Questions about __Rack::Cache__.
 
   * [GitHub Repository](http://github.com/rtomayko/rack-cache/) - Get your
@@ -69,6 +71,7 @@ Advanced Usage
     __Rack::Cache__ in your application but mildly insightful if you'd like to
     get a feel for how the system has been put together; I recommend
     [reading the source](http://github.com/rtomayko/rack-cache/master/lib/rack/cache).
+
 
 See Also
 --------
@@ -99,6 +102,7 @@ and is provided under [the MIT license](./license)
 
 [config]:  ./configuration "Rack::Cache Configuration Language Documentation"
 [storage]: ./storage       "Rack::Cache Storage Documentation"
+[things]:  http://tomayko.com/writings/things-caches-do
 
 [rfc]: http://tools.ietf.org/html/rfc2616
   "RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1 [ietf.org]"
