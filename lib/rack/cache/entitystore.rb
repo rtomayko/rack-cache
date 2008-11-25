@@ -58,6 +58,12 @@ module Rack::Cache
         [key, size]
       end
 
+      # Remove the body corresponding to key; return nil.
+      def purge(key)
+        @hash.delete(key)
+        nil
+      end
+
       def self.resolve(uri)
         new
       end
@@ -119,6 +125,13 @@ module Rack::Cache
           FileUtils.mv temp_file, path
         end
         [key, size]
+      end
+
+      def purge(key)
+        File.unlink body_path(key)
+        nil
+      rescue Errno::ENOENT
+        nil
       end
 
     protected
@@ -188,6 +201,13 @@ module Rack::Cache
         key, size = slurp(body){|part| buf.write(part) }
         cache.set(key, buf.string, 0, false)
         [key, size]
+      end
+
+      def purge(key)
+        cache.delete(key)
+        nil
+      rescue Memcached::NotFound
+        nil
       end
 
       extend Rack::Utils

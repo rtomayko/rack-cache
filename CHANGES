@@ -1,5 +1,8 @@
 ## 0.3.0 / ...
 
+  * Implement low level #purge method on all concrete entity store
+    classes -- removes the entity body corresponding to the SHA1 key
+    provided and returns nil.
   * Basically sane handling of HEAD requests. A HEAD request is never passed
     through to the backend except when transitioning with pass!. This means
     that the cache responds to HEAD requests without invoking the backend at

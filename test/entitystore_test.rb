@@ -75,6 +75,11 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     data.hash.should.be == pony.hash
   end
 
+  it 'deletes stored entries with #purge' do
+    key, size = @store.write('My wild love went riding,')
+    @store.purge(key).should.be.nil
+    @store.read(key).should.be.nil
+  end
 end
 
 describe 'Rack::Cache::EntityStore' do
