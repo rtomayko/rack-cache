@@ -1,5 +1,7 @@
 ## 0.3.0 / ...
 
+  * BUG: MetaStore hits but EntityStore misses. This would 500 previously; now
+    we detect it and act as if the MetaStore missed as well.
   * Implement low level #purge method on all concrete entity store
     classes -- removes the entity body corresponding to the SHA1 key
     provided and returns nil.

@@ -32,18 +32,18 @@ module Rack::Cache
 
       # find a cached entry that matches the request.
       env = request.env
-      match = entries.detect{ |req,res| requests_match?(res['Vary'], env, req)}
-      if match
-        # TODO what if body doesn't exist in entity store?
-        # reconstruct response object
-        req, res = match
-        status = res['X-Status']
-        body = entity_store.open(res['X-Content-Digest'])
-        response = Rack::Cache::Response.new(status.to_i, res, body)
-        response.activate!
+      match = entries.detect{|req,res| requests_match?(res['Vary'], env, req)}
+      return nil if match.nil?
 
-        # Return the cached response
+      req, res = match
+      if body = entity_store.open(res['X-Content-Digest'])
+        response = Rack::Cache::Response.new(res['X-Status'].to_i, res, body)
+        response.activate!
         response
+      else
+        # TODO the metastore referenced an entity that doesn't exist in
+        # the entitystore. we definitely want to return nil but we should
+        # also purge the entry from the meta-store when this is detected.
       end
     end
 

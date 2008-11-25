@@ -2,7 +2,6 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/metastore'
 
 describe_shared 'A Rack::Cache::MetaStore Implementation' do
-
   before do
     @request = mock_request('/', {})
     @response = mock_response(200, {}, ['hello world'])
@@ -89,6 +88,18 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     response.should.be.kind_of Rack::Cache::Response
   end
 
+  it 'does not find an entry with #lookup when none exists' do
+    req = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
+    @store.lookup(req, @entity_store).should.be.nil
+  end
+
+  it 'does not find an entry with #lookup when the body does not exist' do
+    store_simple_entry
+    @response['X-Content-Digest'].should.not.be.nil
+    @entity_store.purge(@response['X-Content-Digest'])
+    @store.lookup(@request, @entity_store).should.be.nil
+  end
+
   it 'restores response headers properly with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, @entity_store)
@@ -171,7 +182,6 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     body.each {|part| buf << part }
     buf
   end
-
 end
 
 
