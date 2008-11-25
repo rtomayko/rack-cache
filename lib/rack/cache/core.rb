@@ -119,6 +119,7 @@ module Rack::Cache
   private
     def perform_receive
       @original_request = Request.new(@env.dup.freeze)
+      @env['REQUEST_METHOD'] = 'GET' if @original_request.head?
       @request = Request.new(@env)
       info "%s %s", @original_request.request_method, @original_request.fullpath
       transition(from=:receive, to=[:pass, :lookup, :error])
@@ -126,6 +127,7 @@ module Rack::Cache
 
     def perform_pass
       trace 'passing'
+      request.env['REQUEST_METHOD'] = @original_request.request_method
       fetch_from_backend
       transition(from=:pass, to=[:pass, :finish, :error]) do |event|
         if event == :pass
@@ -211,6 +213,7 @@ module Rack::Cache
     def perform_deliver
       trace "delivering response ..."
       response.not_modified! if not_modified?
+      response.body = [] if @original_request.head?
       transition(from=:deliver, to=[:finish, :error])
     end
 

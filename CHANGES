@@ -1,5 +1,12 @@
 ## 0.3.0 / ...
 
+  * Basically sane handling of HEAD requests. A HEAD request is never passed
+    through to the backend except when transitioning with pass!. This means
+    that the cache responds to HEAD requests without invoking the backend at
+    all when the cached entry is fresh. When no cache entry exists, or the
+    cached entry is stale and can be validated, the backend is invoked with
+    a GET request and the HEAD handling is handled right before the response
+    is delivered upstream.
   * Cache responses that have a Transfer-Encoding. The current implementation
     caches the encoded value and reproduces the message with the same
     Transfer-Encoding header on subsequent cache hits. This goes against

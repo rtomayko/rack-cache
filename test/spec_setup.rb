@@ -125,7 +125,7 @@ module CacheContextHelpers
     @caches << @cache
     @request = Rack::MockRequest.new(@cache)
     yield @cache if block_given?
-    @response = @request.send(method, uri, opts)
+    @response = @request.request(method.to_s.upcase, uri, opts)
     @responses << @response
     @response
   end
@@ -134,10 +134,13 @@ module CacheContextHelpers
     request(:get, stem, env, &b)
   end
 
+  def head(stem, env={}, &b)
+    request(:head, stem, env, &b)
+  end
+
   def post(*args, &b)
     request(:post, *args, &b)
   end
-
 end
 
 

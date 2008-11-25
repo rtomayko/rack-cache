@@ -364,6 +364,42 @@ describe 'Rack::Cache::Context' do
     count.should.be == 3
   end
 
+  it 'passes HEAD requests through directly on pass' do
+    respond_with do |req,res|
+      res.status = 200
+      res.body = []
+      req.request_method.should.be == 'HEAD'
+    end
+
+    cache_config do
+      on(:receive) { pass! }
+    end
+
+    head '/'
+    app.should.be.called
+    response.body.should.be == ''
+  end
+
+  it 'uses cache to respond to HEAD requests when fresh' do
+    respond_with do |req,res|
+      res['Cache-Control'] = 'max-age=10'
+      res.body = ['Hello World']
+      req.request_method.should.not.be == 'HEAD'
+    end
+
+    get '/'
+    app.should.be.called
+    response.status.should.be == 200
+    response.body.should.be == 'Hello World'
+
+    head '/'
+    app.should.not.be.called
+    response.status.should.be == 200
+    response.body.should.be == ''
+    response['Content-Length'].should.be == 'Hello World'.length.to_s
+  end
+
+
   describe 'with responses that include a Vary header' do
     before(:each) do
       count = 0
