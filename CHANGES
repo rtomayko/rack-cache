@@ -1,5 +1,9 @@
 ## 0.3.0 / ...
 
+  * Enable support for X-Sendfile middleware by responding to #to_file on
+    bodies served from disk storage. Adding the Rack::Sendfile component
+    upstream from Rack::Cache will result in cached bodies being served
+    directly by the web server (instead of being read in Ruby).
   * BUG: MetaStore hits but EntityStore misses. This would 500 previously; now
     we detect it and act as if the MetaStore missed as well.
   * Implement low level #purge method on all concrete entity store

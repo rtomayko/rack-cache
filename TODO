@@ -7,8 +7,6 @@
   - Canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
-  - Support server-specific X-Sendfile (or similar) for delivering cached
-    bodies (file entity stores only).
   - Sqlite3 (meta store)
   - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.

@@ -95,16 +95,21 @@ module Rack::Cache
         nil
       end
 
-      # Open the entity body and return an IO object. The IO object's
-      # each method is overridden to read 8K chunks instead of lines.
-      def open(key)
-        io = File.open(body_path(key), 'rb')
-        def io.each
+      class Body < ::File #:nodoc:
+        def each
           while part = read(8192)
             yield part
           end
         end
-        io
+        def to_file
+          path
+        end
+      end
+
+      # Open the entity body and return an IO object. The IO object's
+      # each method is overridden to read 8K chunks instead of lines.
+      def open(key)
+        Body.open(body_path(key), 'rb')
       rescue Errno::ENOENT
         nil
       end

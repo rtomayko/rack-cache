@@ -111,6 +111,13 @@ describe 'Rack::Cache::EntityStore' do
       @store = Rack::Cache::EntityStore::Disk.new(path)
       File.should.be.a.directory path
     end
+    it 'produces a body that responds to #to_file' do
+      key, size = @store.write('Some shells for her hair.')
+      body = @store.open(key)
+      body.should.respond_to :to_file
+      path = "#{@temp_dir}/#{key[0..1]}/#{key[2..-1]}"
+      body.to_file.should.equal path
+    end
     it 'spreads data over a 36² hash radius' do
       (<<-PROSE).each { |line| @store.write(line).first.should.be.sha_like }
         My wild love went riding,
