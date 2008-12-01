@@ -19,13 +19,13 @@ describe 'Rack::Cache::Headers' do
   describe '#cache_control' do
     it 'handles single name=value pair' do
       @res.headers['Cache-Control'] = 'max-age=600'
-      @res.cache_control['max-age'].should.be == '600'
+      @res.cache_control['max-age'].should.equal '600'
     end
     it 'handles multiple name=value pairs' do
       @res.headers['Cache-Control'] = 'max-age=600, max-stale=300, min-fresh=570'
-      @res.cache_control['max-age'].should.be == '600'
-      @res.cache_control['max-stale'].should.be == '300'
-      @res.cache_control['min-fresh'].should.be == '570'
+      @res.cache_control['max-age'].should.equal '600'
+      @res.cache_control['max-stale'].should.equal '300'
+      @res.cache_control['min-fresh'].should.equal '570'
     end
     it 'handles a single flag value' do
       @res.headers['Cache-Control'] = 'no-cache'
@@ -34,15 +34,15 @@ describe 'Rack::Cache::Headers' do
     end
     it 'handles a bunch of all kinds of stuff' do
       @res.headers['Cache-Control'] = 'max-age=600,must-revalidate,min-fresh=3000,foo=bar,baz'
-      @res.cache_control['max-age'].should.be == '600'
+      @res.cache_control['max-age'].should.equal '600'
       @res.cache_control['must-revalidate'].should.be true
-      @res.cache_control['min-fresh'].should.be == '3000'
-      @res.cache_control['foo'].should.be == 'bar'
+      @res.cache_control['min-fresh'].should.equal '3000'
+      @res.cache_control['foo'].should.equal 'bar'
       @res.cache_control['baz'].should.be true
     end
     it 'removes the header when given an empty hash' do
       @res.headers['Cache-Control'] = 'max-age=600, must-revalidate'
-      @res.cache_control['max-age'].should.be == '600'
+      @res.cache_control['max-age'].should.equal '600'
       @res.cache_control = {}
       @res.headers.should.not.include 'Cache-Control'
     end
@@ -82,7 +82,7 @@ describe 'Rack::Cache::ResponseHeaders' do
     it 'uses the Date header if present' do
       @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')
       @res.extend Rack::Cache::ResponseHeaders
-      @res.date.should.be == @one_hour_ago
+      @res.date.should.equal @one_hour_ago
     end
     it 'uses the current time when no Date header present' do
       @res = MockResponse.new(200, {}, '')
@@ -92,20 +92,20 @@ describe 'Rack::Cache::ResponseHeaders' do
     it 'returns the correct date when the header is modified directly' do
       @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')
       @res.extend Rack::Cache::ResponseHeaders
-      @res.date.should.be == @one_hour_ago
+      @res.date.should.equal @one_hour_ago
       @res.headers['Date'] = @now.httpdate
-      @res.date.should.be == @now
+      @res.date.should.equal @now
     end
   end
 
   describe '#expires_at' do
     it 'returns #date + #max_age when Cache-Control/max-age is present' do
       @res.headers['Cache-Control'] = 'max-age=500'
-      @res.expires_at.should.be == @res.date + 500
+      @res.expires_at.should.equal @res.date + 500
     end
     it 'uses the Expires header when present and no Cache-Control/max-age' do
       @res.headers['Expires'] = @one_hour_ago.httpdate
-      @res.expires_at.should.be == @one_hour_ago
+      @res.expires_at.should.equal @one_hour_ago
     end
     it 'returns nil when no Expires or Cache-Control provided' do
       @res.expires_at.should.be nil
@@ -115,12 +115,12 @@ describe 'Rack::Cache::ResponseHeaders' do
   describe '#max_age' do
     it 'uses Cache-Control to calculate #max_age when present' do
       @res.headers['Cache-Control'] = 'max-age=600'
-      @res.max_age.should.be == 600
+      @res.max_age.should.equal 600
     end
     it 'uses Expires for #max_age if no Cache-Control max-age present' do
       @res.headers['Cache-Control'] = 'must-revalidate'
       @res.headers['Expires'] = @one_hour_later.httpdate
-      @res.max_age.should.be == 60 ** 2
+      @res.max_age.should.equal 60 ** 2
     end
     it 'gives a #max_age of nil when no freshness information available' do
       @res.max_age.should.be.nil
@@ -190,7 +190,7 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
     it 'returns the literal value of the Vary header' do
       @res.headers['Vary'] = 'Foo Bar Baz'
-      @res.vary.should.be == 'Foo Bar Baz'
+      @res.vary.should.equal 'Foo Bar Baz'
     end
     it 'can be checked for existence using the #vary? method' do
       @res.should.respond_to :vary?
@@ -206,16 +206,16 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
     it 'parses a single header name value' do
       @res.headers['Vary'] = 'Accept-Language'
-      @res.vary_header_names.should.be == ['Accept-Language']
+      @res.vary_header_names.should.equal ['Accept-Language']
     end
     it 'parses multiple header name values separated by spaces' do
       @res.headers['Vary'] = 'Accept-Language User-Agent    X-Foo'
-      @res.vary_header_names.should.be ==
+      @res.vary_header_names.should.equal \
         ['Accept-Language', 'User-Agent', 'X-Foo']
     end
     it 'parses multiple header name values separated by commas' do
       @res.headers['Vary'] = 'Accept-Language,User-Agent,    X-Foo'
-      @res.vary_header_names.should.be ==
+      @res.vary_header_names.should.equal \
         ['Accept-Language', 'User-Agent', 'X-Foo']
     end
   end

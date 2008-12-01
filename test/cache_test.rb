@@ -18,8 +18,8 @@ describe 'Rack::Cache::new' do
   end
   it 'sets options provided in the options Hash' do
     object = Rack::Cache.new(@app, :foo => 'bar', 'foo.bar' => 'bling')
-    object.options['foo.bar'].should.be == 'bling'
-    object.options['rack-cache.foo'].should.be == 'bar'
+    object.options['foo.bar'].should.equal 'bling'
+    object.options['rack-cache.foo'].should.equal 'bar'
   end
   it 'takes a block; executes it during initialization' do
     state, block_scope = 'not invoked', nil
@@ -29,7 +29,7 @@ describe 'Rack::Cache::new' do
         state = 'invoked'
         should.respond_to :on
       end
-    state.should.be == 'invoked'
+    state.should.equal 'invoked'
     object.should.be block_scope
   end
 end

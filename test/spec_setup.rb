@@ -16,18 +16,22 @@ ENV['MEMCACHED'] ||= 'localhost:11215'
 $memcached = nil
 
 def have_memcached?(server=ENV['MEMCACHED'])
-  return true if $memcached
+  return $memcached unless $memcached.nil?
+  v, $VERBOSE = $VERBOSE, nil # silence warnings from memcached
   require 'memcached'
+  $VERBOSE = v
   $memcached = Memcached.new(server)
   $memcached.set('ping', '')
   true
 rescue LoadError => boom
-  $memcached = nil
+  $memcached = false
   false
 rescue => boom
-  $memcached = nil
+  $memcached = false
   false
 end
+
+have_memcached?
 
 def need_memcached(forwhat)
   if have_memcached?
@@ -189,4 +193,3 @@ class Object
     class_eval { define_method name, &blk }
   end
 end
-

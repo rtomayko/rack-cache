@@ -74,9 +74,9 @@ module Rack::Cache
       @triggered.include?(event)
     end
 
-  private
     # Event handlers.
     attr_reader :events
+    private :events
 
   public
     # Attach custom logic to one or more events.

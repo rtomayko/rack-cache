@@ -21,7 +21,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'reads a list of negotation tuples with #read' do
     @store.write('/test', [[{},{}],[{},{}]])
     tuples = @store.read('/test')
-    tuples.should.be == [ [{},{}], [{},{}] ]
+    tuples.should.equal [ [{},{}], [{},{}] ]
   end
 
   it 'reads an empty list with #read when nothing cached at key' do
@@ -44,20 +44,20 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'returns nil from #purge' do
     @store.write('/test', [[{},{}]])
     @store.purge('/test').should.be nil
-    @store.read('/test').should.be == []
+    @store.read('/test').should.equal []
   end
 
   %w[/test http://example.com:8080/ /test?x=y /test?x=y&p=q].each do |key|
     it "can read and write key: '#{key}'" do
       lambda { @store.write(key, [[{},{}]]) }.should.not.raise
-      @store.read(key).should.be == [[{},{}]]
+      @store.read(key).should.equal [[{},{}]]
     end
   end
 
   it "can read and write fairly large keys" do
     key = "b" * 4096
     lambda { @store.write(key, [[{},{}]]) }.should.not.raise
-    @store.read(key).should.be == [[{},{}]]
+    @store.read(key).should.equal [[{},{}]]
   end
 
   # Abstract methods ===========================================================
@@ -78,7 +78,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'sets the X-Content-Digest response header before storing' do
     store_simple_entry
     req, res = @store.read('/test').first
-    res['X-Content-Digest'].should.be == 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
+    res['X-Content-Digest'].should.equal 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
   end
 
   it 'finds a stored entry with #lookup' do
@@ -104,14 +104,14 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     store_simple_entry
     response = @store.lookup(@request, @entity_store)
     response.headers.
-      should.be == @response.headers.merge('Age' => '0', 'Content-Length' => '4')
+      should.equal @response.headers.merge('Age' => '0', 'Content-Length' => '4')
   end
 
   it 'restores response body from entity store with #lookup' do
     store_simple_entry
     response = @store.lookup(@request, @entity_store)
     body = '' ; response.body.each {|p| body << p}
-    body.should.be == 'test'
+    body.should.equal 'test'
   end
 
   # Vary =======================================================================
@@ -138,30 +138,30 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
     @store.store(req3, res3, @entity_store)
 
-    slurp(@store.lookup(req3, @entity_store).body).should.be == 'test 3'
-    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 1'
-    slurp(@store.lookup(req2, @entity_store).body).should.be == 'test 2'
+    slurp(@store.lookup(req3, @entity_store).body).should.equal 'test 3'
+    slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 1'
+    slurp(@store.lookup(req2, @entity_store).body).should.equal 'test 2'
 
-    @store.read('/test').length.should.be == 3
+    @store.read('/test').length.should.equal 3
   end
 
   it 'overwrites non-varying responses with #store' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
     @store.store(req1, res1, @entity_store)
-    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 1'
+    slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 1'
 
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
     res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
     @store.store(req2, res2, @entity_store)
-    slurp(@store.lookup(req2, @entity_store).body).should.be == 'test 2'
+    slurp(@store.lookup(req2, @entity_store).body).should.equal 'test 2'
 
     req3 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
     @store.store(req3, res3, @entity_store)
-    slurp(@store.lookup(req1, @entity_store).body).should.be == 'test 3'
+    slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 3'
 
-    @store.read('/test').length.should.be == 2
+    @store.read('/test').length.should.equal 2
   end
 
   # Helper Methods =============================================================

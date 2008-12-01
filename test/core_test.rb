@@ -24,15 +24,15 @@ describe 'Rack::Cache::Core' do
   it 'executes multiple handlers in LIFO order' do
     x = 'nothing executed'
     @core.on :foo do
-      x.should.be == 'bottom executed'
+      x.should.equal 'bottom executed'
       x = 'top executed'
     end
     @core.on :foo do
-      x.should.be == 'nothing executed'
+      x.should.equal 'nothing executed'
       x = 'bottom executed'
     end
     @core.trigger :foo
-    x.should.be == 'top executed'
+    x.should.equal 'top executed'
   end
   it 'records event execution history' do
     @core.on(:foo) {}
@@ -59,8 +59,8 @@ describe 'Rack::Cache::Core' do
     @core.on(:bar) {}
     @core.on(:foo) { throw(:transition, [:bar, 1, 2, 3]) }
     result = @core.transition(from=:foo, to=[:bar])
-    passed.should.be == [1,2,3]
-    result.should.be == 'hi'
+    passed.should.equal [1,2,3]
+    result.should.equal 'hi'
   end
   it 'fully transitions out of handlers when the next event is invoked' do
     x = []
@@ -70,15 +70,15 @@ describe 'Rack::Cache::Core' do
       x << 'in foo, after transitioning to bar'
     }
     @core.on(:bar) { x << 'in bar' }
-    @core.trigger(:foo).should.be == [:bar]
+    @core.trigger(:foo).should.equal [:bar]
     @core.trigger(:bar).should.be.nil
-    x.should.be == [
+    x.should.equal [
       'in foo, before transitioning to bar',
       'in bar'
     ]
   end
   it 'returns the transition event name' do
     @core.on(:foo) { throw(:transition, [:bar]) }
-    @core.trigger(:foo).should.be == [:bar]
+    @core.trigger(:foo).should.equal [:bar]
   end
 end

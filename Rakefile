@@ -21,7 +21,7 @@ end
 desc 'Run specs with unit test style output'
 task :test => FileList['test/*_test.rb'] do |t|
   suite = t.prerequisites
-  sh "testrb -Ilib:test #{suite.join(' ')}", :verbose => false
+  sh "specrb -Ilib:test #{suite.join(' ')}", :verbose => false
 end
 
 desc 'Generate test coverage report'

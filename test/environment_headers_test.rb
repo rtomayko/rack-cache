@@ -21,27 +21,27 @@ describe 'Rack::Utils::EnvironmentHeaders' do
 
   it 'retrieves headers with #[]' do
     @h.should.respond_to :[]
-    @h['X-Foo'].should.be == 'BAR'
-    @h['If-Modified-Since'].should.be == @now
+    @h['X-Foo'].should.equal 'BAR'
+    @h['If-Modified-Since'].should.equal @now
   end
 
   it 'sets headers with #[]=' do
     @h.should.respond_to :[]=
     @h['X-Foo'] = 'BAZZLE'
-    @h['X-Foo'].should.be == 'BAZZLE'
+    @h['X-Foo'].should.equal 'BAZZLE'
   end
 
   it 'sets values on the underlying environment hash' do
     @h['X-Something-Else'] = 'FOO'
-    @env['HTTP_X_SOMETHING_ELSE'].should.be == 'FOO'
+    @env['HTTP_X_SOMETHING_ELSE'].should.equal 'FOO'
   end
 
   it 'handles Content-Type special case' do
-    @h['Content-Type'].should.be == 'text/plain'
+    @h['Content-Type'].should.equal 'text/plain'
   end
 
   it 'handles Content-Length special case' do
-    @h['Content-Length'].should.be == '0x1A4'
+    @h['Content-Length'].should.equal '0x1A4'
   end
 
   it 'implements #include? with RFC 2616 header name' do
@@ -60,12 +60,10 @@ describe 'Rack::Utils::EnvironmentHeaders' do
   it 'iterates over all headers with #each' do
     hash = {}
     @h.each { |name,value| hash[name] = value }
-    hash.should.be == {
-      'Content-Type'           => 'text/plain',
-      'Content-Length'         => '0x1A4',
-      'X-Foo'                  => 'BAR',
-      'If-Modified-Since'      => @now
-    }
+    hash.should.equal 'Content-Type' => 'text/plain',
+      'Content-Length' => '0x1A4',
+      'X-Foo' => 'BAR',
+      'If-Modified-Since' => @now
   end
 
 end

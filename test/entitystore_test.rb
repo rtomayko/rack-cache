@@ -21,7 +21,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     key.should.be.sha_like
 
     data = @store.read(key)
-    data.should.be == 'My wild love went riding,'
+    data.should.equal 'My wild love went riding,'
   end
 
   it 'correctly determines whether cached body exists for key with #exist?' do
@@ -33,20 +33,20 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   it 'can read data written with #write' do
     key, size = @store.write('And asked him to pay.')
     data = @store.read(key)
-    data.should.be == 'And asked him to pay.'
+    data.should.equal 'And asked him to pay.'
   end
 
   it 'gives a 40 character SHA1 hex digest from #write' do
     key, size = @store.write('she rode to the sea;')
     key.should.not.be.nil
-    key.length.should.be == 40
+    key.length.should.equal 40
     key.should.be =~ /^[0-9a-z]+$/
-    key.should.be == '90a4c84d51a277f3dafc34693ca264531b9f51b6'
+    key.should.equal '90a4c84d51a277f3dafc34693ca264531b9f51b6'
   end
 
   it 'returns the entire body as a String from #read' do
     key, size = @store.write('She gathered together')
-    @store.read(key).should.be == 'She gathered together'
+    @store.read(key).should.equal 'She gathered together'
   end
 
   it 'returns nil from #read when key does not exist' do
@@ -59,7 +59,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     body.should.respond_to :each
     buf = ''
     body.each { |part| buf << part }
-    buf.should.be == 'Some shells for her hair.'
+    buf.should.equal 'Some shells for her hair.'
   end
 
   it 'returns nil from #open when key does not exist' do
@@ -69,10 +69,10 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   it 'can store largish bodies with binary data' do
     pony = File.read(File.dirname(__FILE__) + '/pony.jpg')
     key, size = @store.write(pony)
-    key.should.be == 'd0f30d8659b4d268c5c64385d9790024c2d78deb'
+    key.should.equal 'd0f30d8659b4d268c5c64385d9790024c2d78deb'
     data = @store.read(key)
-    data.length.should.be == pony.length
-    data.hash.should.be == pony.hash
+    data.length.should.equal pony.length
+    data.hash.should.equal pony.hash
   end
 
   it 'deletes stored entries with #purge' do
@@ -89,7 +89,7 @@ describe 'Rack::Cache::EntityStore' do
     before { @store = Rack::Cache::EntityStore::Heap.new }
     it 'takes a Hash to ::new' do
       @store = Rack::Cache::EntityStore::Heap.new('foo' => ['bar'])
-      @store.read('foo').should.be == 'bar'
+      @store.read('foo').should.equal 'bar'
     end
     it 'uses its own Hash with no args to ::new' do
       @store.read('foo').should.be.nil
@@ -163,7 +163,7 @@ describe 'Rack::Cache::EntityStore' do
         end
         files.length.should.be > 0
       end
-      subdirs.length.should.be == 28
+      subdirs.length.should.equal 28
     end
   end
 

@@ -47,7 +47,7 @@ describe 'Rack::Cache::Context' do
     get '/',
       'HTTP_IF_MODIFIED_SINCE' => timestamp
     app.should.be.called
-    response.status.should.be == 304
+    response.status.should.equal 304
     response.headers.should.not.include 'Content-Length'
     response.headers.should.not.include 'Content-Type'
     response.body.should.empty
@@ -66,7 +66,7 @@ describe 'Rack::Cache::Context' do
     get '/',
       'HTTP_IF_NONE_MATCH' => '12345'
     app.should.be.called
-    response.status.should.be == 304
+    response.status.should.equal 304
     response.headers.should.not.include 'Content-Length'
     response.headers.should.not.include 'Content-Type'
     response.headers.should.include 'Etag'
@@ -101,7 +101,7 @@ describe 'Rack::Cache::Context' do
         get '/'
 
         cache.should.a.not.performed :store
-        response.status.should.be == response_code
+        response.status.should.equal response_code
         response.headers.should.not.include 'Age'
       end
     end
@@ -142,13 +142,13 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     response.headers.should.include 'Date'
     response['Age'].should.not.be.nil
     response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    cache.metastore.to_hash.keys.length.should.be == 1
+    cache.metastore.to_hash.keys.length.should.equal 1
   end
 
   it 'caches responses with a max-age directive' do
@@ -156,13 +156,13 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     response.headers.should.include 'Date'
     response['Age'].should.not.be.nil
     response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    cache.metastore.to_hash.keys.length.should.be == 1
+    cache.metastore.to_hash.keys.length.should.equal 1
   end
 
   it 'caches responses with a Last-Modified validator but no freshness information' do
@@ -170,7 +170,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store
   end
@@ -180,7 +180,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store
   end
@@ -196,17 +196,17 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
 
     get '/'
     response.should.be.ok
     app.should.not.be.called
-    response['Date'].should.be == responses.first['Date']
-    response['Age'].to_i.should.be > 0
+    response['Date'].should.equal responses.first['Date']
+    response['Age'].to_i.should.satisfy { |age| age > 0 }
     response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :hit
     cache.should.a.not.performed :fetch
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
   end
 
   it 'hits cached response with max-age directive' do
@@ -220,17 +220,17 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
 
     get '/'
     response.should.be.ok
     app.should.not.be.called
-    response['Date'].should.be == responses.first['Date']
-    response['Age'].to_i.should.be > 0
+    response['Date'].should.equal responses.first['Date']
+    response['Age'].to_i.should.satisfy { |age| age > 0 }
     response['X-Content-Digest'].should.not.be.nil
     cache.should.a.performed :hit
     cache.should.a.not.performed :fetch
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
   end
 
   it 'fetches full response when cache stale and no validators present' do
@@ -245,23 +245,23 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Age'
     cache.should.a.performed :miss
     cache.should.a.performed :store
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
 
     # go in and play around with the cached metadata directly ...
-    cache.metastore.to_hash.values.length.should.be == 1
+    cache.metastore.to_hash.values.length.should.equal 1
     cache.metastore.to_hash.values.first.first[1]['Expires'] = Time.now.httpdate
 
     # build subsequent request; should be found but miss due to freshness
     get '/'
     app.should.be.called
     response.should.be.ok
-    response['Age'].to_i.should.be == 0
+    response['Age'].to_i.should.equal 0
     response.headers.should.include 'X-Content-Digest'
     cache.should.a.not.performed :hit
     cache.should.a.not.performed :miss
     cache.should.a.performed :fetch
     cache.should.a.performed :store
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
   end
 
   it 'validates cached responses with Last-Modified and no freshness information' do
@@ -280,7 +280,7 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.headers.should.include 'Last-Modified'
     response.headers.should.include 'X-Content-Digest'
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store
 
@@ -290,9 +290,9 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.headers.should.include 'Last-Modified'
     response.headers.should.include 'X-Content-Digest'
-    response['Age'].to_i.should.be == 0
-    response['X-Origin-Status'].should.be == '304'
-    response.body.should.be == 'Hello World'
+    response['Age'].to_i.should.equal 0
+    response['X-Origin-Status'].should.equal '304'
+    response.body.should.equal 'Hello World'
     cache.should.a.not.performed :miss
     cache.should.a.performed :fetch
     cache.should.a.performed :store
@@ -314,7 +314,7 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.headers.should.include 'Etag'
     response.headers.should.include 'X-Content-Digest'
-    response.body.should.be == 'Hello World'
+    response.body.should.equal 'Hello World'
     cache.should.a.performed :miss
     cache.should.a.performed :store
 
@@ -324,9 +324,9 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.headers.should.include 'Etag'
     response.headers.should.include 'X-Content-Digest'
-    response['Age'].to_i.should.be == 0
-    response['X-Origin-Status'].should.be == '304'
-    response.body.should.be == 'Hello World'
+    response['Age'].to_i.should.equal 0
+    response['X-Origin-Status'].should.equal '304'
+    response.body.should.equal 'Hello World'
     cache.should.a.not.performed :miss
     cache.should.a.performed :fetch
     cache.should.a.performed :store
@@ -348,27 +348,27 @@ describe 'Rack::Cache::Context' do
 
     # first request should fetch from backend and store in cache
     get '/'
-    response.status.should.be == 200
-    response.body.should.be == 'first response'
+    response.status.should.equal 200
+    response.body.should.equal 'first response'
 
     # second request is validated, is invalid, and replaces cached entry
     get '/'
-    response.status.should.be == 200
-    response.body.should.be == 'second response'
+    response.status.should.equal 200
+    response.body.should.equal 'second response'
 
     # third respone is validated, valid, and returns cached entry
     get '/'
-    response.status.should.be == 200
-    response.body.should.be == 'second response'
+    response.status.should.equal 200
+    response.body.should.equal 'second response'
 
-    count.should.be == 3
+    count.should.equal 3
   end
 
   it 'passes HEAD requests through directly on pass' do
     respond_with do |req,res|
       res.status = 200
       res.body = []
-      req.request_method.should.be == 'HEAD'
+      req.request_method.should.equal 'HEAD'
     end
 
     cache_config do
@@ -377,26 +377,26 @@ describe 'Rack::Cache::Context' do
 
     head '/'
     app.should.be.called
-    response.body.should.be == ''
+    response.body.should.equal ''
   end
 
   it 'uses cache to respond to HEAD requests when fresh' do
     respond_with do |req,res|
       res['Cache-Control'] = 'max-age=10'
       res.body = ['Hello World']
-      req.request_method.should.not.be == 'HEAD'
+      req.request_method.should.not.equal 'HEAD'
     end
 
     get '/'
     app.should.be.called
-    response.status.should.be == 200
-    response.body.should.be == 'Hello World'
+    response.status.should.equal 200
+    response.body.should.equal 'Hello World'
 
     head '/'
     app.should.not.be.called
-    response.status.should.be == 200
-    response.body.should.be == ''
-    response['Content-Length'].should.be == 'Hello World'.length.to_s
+    response.status.should.equal 200
+    response.body.should.equal ''
+    response['Content-Length'].should.equal 'Hello World'.length.to_s
   end
 
 
@@ -416,7 +416,7 @@ describe 'Rack::Cache::Context' do
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
       response.should.be.ok
-      response.body.should.be == 'Bob/1.0'
+      response.body.should.equal 'Bob/1.0'
       cache.should.a.performed :miss
       cache.should.a.performed :store
 
@@ -424,7 +424,7 @@ describe 'Rack::Cache::Context' do
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
       response.should.be.ok
-      response.body.should.be == 'Bob/1.0'
+      response.body.should.equal 'Bob/1.0'
       cache.should.a.performed :hit
       cache.should.a.not.performed :fetch
       response.headers.should.include 'X-Content-Digest'
@@ -435,36 +435,36 @@ describe 'Rack::Cache::Context' do
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
       response.should.be.ok
-      response.body.should.be == 'Bob/1.0'
-      response['X-Response-Count'].should.be == '1'
+      response.body.should.equal 'Bob/1.0'
+      response['X-Response-Count'].should.equal '1'
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/2.0'
       cache.should.a.performed :miss
       cache.should.a.performed :store
-      response.body.should.be == 'Bob/2.0'
-      response['X-Response-Count'].should.be == '2'
+      response.body.should.equal 'Bob/2.0'
+      response['X-Response-Count'].should.equal '2'
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
       cache.should.a.performed :hit
-      response.body.should.be == 'Bob/1.0'
-      response['X-Response-Count'].should.be == '1'
+      response.body.should.equal 'Bob/1.0'
+      response['X-Response-Count'].should.equal '1'
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/2.0'
       cache.should.a.performed :hit
-      response.body.should.be == 'Bob/2.0'
-      response['X-Response-Count'].should.be == '2'
+      response.body.should.equal 'Bob/2.0'
+      response['X-Response-Count'].should.equal '2'
 
       get '/',
         'HTTP_USER_AGENT' => 'Bob/2.0'
       cache.should.a.performed :miss
-      response.body.should.be == 'Bob/2.0'
-      response['X-Response-Count'].should.be == '3'
+      response.body.should.equal 'Bob/2.0'
+      response['X-Response-Count'].should.equal '3'
     end
   end
 
@@ -477,7 +477,7 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! }
       end
       get '/'
-      response.status.should.be == 500
+      response.status.should.equal 500
       response.body.should.be.empty
       cache.should.a.performed :error
     end
@@ -487,7 +487,7 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! 505 }
       end
       get '/'
-      response.status.should.be == 505
+      response.status.should.equal 505
     end
 
     it 'sets the status and headers with args: status, Hash' do
@@ -495,8 +495,8 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! 504, 'Content-Type' => 'application/x-foo' }
       end
       get '/'
-      response.status.should.be == 504
-      response['Content-Type'].should.be == 'application/x-foo'
+      response.status.should.equal 504
+      response['Content-Type'].should.equal 'application/x-foo'
       response.body.should.be.empty
     end
 
@@ -505,8 +505,8 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! 503, 'foo bar baz' }
       end
       get '/'
-      response.status.should.be == 503
-      response.body.should.be == 'foo bar baz'
+      response.status.should.equal 503
+      response.body.should.equal 'foo bar baz'
     end
 
     it 'sets the status and body with args: status, Array' do
@@ -514,8 +514,8 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! 503, ['foo bar baz'] }
       end
       get '/'
-      response.status.should.be == 503
-      response.body.should.be == 'foo bar baz'
+      response.status.should.equal 503
+      response.body.should.equal 'foo bar baz'
     end
 
     it 'fires the error event before finishing' do
@@ -524,16 +524,16 @@ describe 'Rack::Cache::Context' do
         on(:receive) { error! }
         on(:error) {
           fired = true
-          response.status.should.be == 500
+          response.status.should.equal 500
           response['Content-Type'] = 'application/x-foo'
           response.body = ['overridden response body']
         }
       end
       get '/'
       fired.should.be true
-      response.status.should.be == 500
-      response.body.should.be == 'overridden response body'
-      response['Content-Type'].should.be == 'application/x-foo'
+      response.status.should.equal 500
+      response.body.should.equal 'overridden response body'
+      response['Content-Type'].should.equal 'application/x-foo'
     end
 
   end
