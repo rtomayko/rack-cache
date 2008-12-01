@@ -152,7 +152,7 @@ module TestHelpers
 
   def create_temp_directory
     @@temp_dir_count += 1
-    path = F.join(Dir.tmpdir, "rcl-#{$$}-#{@@temp_dir_count}")
+    path = F.join(Dir.tmpdir, "rack-cache-#{$$}-#{@@temp_dir_count}")
     mkdir_p path
     if block_given?
       yield path
