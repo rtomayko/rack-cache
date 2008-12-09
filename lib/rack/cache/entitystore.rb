@@ -101,9 +101,7 @@ module Rack::Cache
             yield part
           end
         end
-        def to_file
-          path
-        end
+        alias_method :to_path, :path
       end
 
       # Open the entity body and return an IO object. The IO object's
