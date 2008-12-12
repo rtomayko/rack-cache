@@ -75,7 +75,7 @@ module Rack::Cache
           (vary == res['Vary']) &&
             requests_match?(vary, env, stored_env)
         end
-      entries.unshift [stored_env, response.headers.dup]
+      entries.unshift [stored_env, {}.update(response.headers)]
       write key, entries
     end
 

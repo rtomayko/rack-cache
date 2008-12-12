@@ -34,7 +34,7 @@ module Rack::Cache
     # and body.
     def initialize(status, headers, body)
       @status = status
-      @headers = headers
+      @headers = Rack::Utils::HeaderHash.new(headers)
       @body = body
       @now = Time.now
       @headers['Date'] ||= now.httpdate
@@ -62,7 +62,7 @@ module Rack::Cache
 
     # Return the status, headers, and body in a three-tuple.
     def to_a
-      [status, headers, body]
+      [status, headers.to_hash, body]
     end
 
     # Freezes
