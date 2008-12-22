@@ -271,6 +271,38 @@ describe 'Rack::Cache::Context' do
     response.body.should.equal 'Hello World'
   end
 
+  it 'assigns default_ttl when response has no freshness information' do
+    respond_with 200
+
+    get '/', 'rack-cache.default_ttl' => 10
+    app.should.be.called
+    response.should.be.ok
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+    response.body.should.equal 'Hello World'
+    response['Cache-Control'].should.include 's-maxage=10'
+
+    get '/', 'rack-cache.default_ttl' => 10
+    response.should.be.ok
+    app.should.not.be.called
+    cache.should.a.performed :hit
+    cache.should.a.not.performed :fetch
+    response.body.should.equal 'Hello World'
+  end
+
+  it 'does not assign default_ttl when response has must-revalidate directive' do
+    respond_with 200,
+      'Cache-Control' => 'must-revalidate'
+
+    get '/', 'rack-cache.default_ttl' => 10
+    app.should.be.called
+    response.should.be.ok
+    cache.should.a.performed :miss
+    cache.should.a.not.performed :store
+    response['Cache-Control'].should.not.include 's-maxage'
+    response.body.should.equal 'Hello World'
+  end
+
   it 'fetches full response when cache stale and no validators present' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
 

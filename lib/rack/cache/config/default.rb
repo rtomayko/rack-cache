@@ -109,7 +109,6 @@ end
 #   * error! - return the error code specified and abandon request.
 #
 on :store do
-  entry.ttl = default_ttl if entry.ttl.nil?
   trace 'store backend response in cache (ttl: %ds)', entry.ttl
   persist!
 end

@@ -138,12 +138,21 @@ module Rack::Cache
     # revalidating with the origin. Note that this does not necessary imply that
     # a caching agent ought not store the response in its cache.
     def no_cache?
-      !cache_control['no-cache'].nil?
+      cache_control['no-cache']
     end
 
     # Indicates that the response should not be stored under any circumstances.
     def no_store?
       cache_control['no-store']
+    end
+
+    # Indicates that the cache must not serve a stale response in any
+    # circumstance without first revalidating with the origin. When present,
+    # the TTL of the response should not be overriden to be greater than the
+    # value provided by the origin.
+    def must_revalidate?
+      cache_control['must-revalidate'] ||
+      cache_control['proxy-revalidate']
     end
 
     # The date, as specified by the Date header. When no Date header is present,

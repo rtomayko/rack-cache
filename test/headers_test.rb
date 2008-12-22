@@ -152,10 +152,24 @@ describe 'Rack::Cache::ResponseHeaders' do
   describe '#no_cache?' do
     it 'is true when a Cache-Control no-cache directive is present' do
       @res.headers['Cache-Control'] = 'no-cache'
-      @res.no_cache?.should.be true
+      assert @res.no_cache?
     end
     it 'is false otherwise' do
-      @res.no_cache?.should.be false
+      assert !@res.no_cache?
+    end
+  end
+
+  describe '#must_revalidate?' do
+    it 'is true when a Cache-Control must-revalidate directive is present' do
+      @res.headers['Cache-Control'] = 'private, must-revalidate'
+      assert @res.must_revalidate?
+    end
+    it 'is true when a Cache-Control proxy-revalidate directive is present' do
+      @res.headers['Cache-Control'] = 'public, proxy-revalidate'
+      assert @res.must_revalidate?
+    end
+    it 'is false otherwise' do
+      assert !@res.must_revalidate?
     end
   end
 

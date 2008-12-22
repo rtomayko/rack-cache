@@ -193,6 +193,14 @@ module Rack::Cache
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend
+
+      # assign a default TTL for the cache entry if none was specified in
+      # the response; the must-revalidate cache control directive disables
+      # default ttl assigment.
+      if default_ttl > 0 && @response.ttl.nil? && !@response.must_revalidate?
+        @response.ttl = default_ttl
+      end
+
       transition(from=:fetch, to=[:store, :deliver, :error])
     end
 

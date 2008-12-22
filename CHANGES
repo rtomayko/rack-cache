@@ -1,5 +1,9 @@
 ## 0.3.0 / December 2008
 
+  * Adhere to must-revalidate/proxy-revalidate cache control directives by
+    not assigning the default_ttl to responses that don't include freshness
+    information. This should let us begin using default_ttl more liberally
+    since we can control it using the must-revalidate/proxy-revalidate directives.
   * Use the s-maxage Cache-Control value in preference to max-age when
     present. The ttl= method now sets the s-maxage value instead of max-age.
     Code that used ttl= to control freshness at the client needs to change
