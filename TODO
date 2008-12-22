@@ -1,37 +1,38 @@
-## 0.3
+## 0.3 (December 2008)
+
+  - Implement "Cache-Control: public"; allow public responses to be served
+    from cache even when the request includes an Authorization (or Cookie?)
+    header. Remove hard no cookie rule from default config.
+
+## 0.4
 
   - liberal, conservative, sane caching configs
-  - Sample app
-  - busters.rb doc and tests
-  - no-cache.rb doc and tests
+  - Sample apps: Rack, Rails, Sinatra, Merb, etc.
+  - busters.rb and no-cache.rb doc and tests
   - Canonicalized URL for cache key:
     - sorts params by key, then value
     - urlencodes /[^ A-Za-z0-9_.-]/ host, path, and param key/value
-  - Sqlite3 (meta store)
+  - Custom cache keys
   - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
 
 ## Backlog
 
-  - Rails example
-  - Sinatra example
-  - Merb example
+  - Add missing Expires header if we have a max-age.
   - Purge/invalidate specific cache entries
   - Purge/invalidate everything
   - Maximum size of cached entity
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
     header have a TTL assigned based on the last modified age of the response:
     TTL = (Age * Factor), or, 1h  = (10h * 0.1)
-  - I wonder if it would be possible to run in threaded mode but with an
-    option to lock before making requests to the backend. The idea is to be
-    able to serve requests from cache in separate threads. This should
+  - Run under multiple-threads with an option to lock before making requests
+    to the backend. The idea is to be able to serve requests from cache in
+    separate threads. This should probably be implemented as a separate
+    middleware component.
+  - Consider implementing ESI (http://www.w3.org/TR/esi-lang). This should
     probably be implemented as a separate middleware component.
+  - Sqlite3 (meta store)
   - stale-while-revalidate
   - Serve cached copies when down (see: stale-if-error) - e.g., database
     connection drops and the cache takes over what it can. 
-  - When a cache misses due to Vary, try to validate using the best match. Note
-    that you can't do this with a weak validator, so only strong etags can be
-    used.
-  - Consider implementing ESI (http://www.w3.org/TR/esi-lang). This should
-    probably be implemented as a separate middleware component.
