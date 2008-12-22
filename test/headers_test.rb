@@ -113,11 +113,15 @@ describe 'Rack::Cache::ResponseHeaders' do
   end
 
   describe '#max_age' do
-    it 'uses Cache-Control to calculate #max_age when present' do
+    it 'uses s-maxage cache control directive when present' do
+      @res.headers['Cache-Control'] = 's-maxage=600, max-age=0'
+      @res.max_age.should.equal 600
+    end
+    it 'falls back to max-age when no s-maxage directive present' do
       @res.headers['Cache-Control'] = 'max-age=600'
       @res.max_age.should.equal 600
     end
-    it 'uses Expires for #max_age if no Cache-Control max-age present' do
+    it 'falls back to Expires when no max-age or s-maxage directive present' do
       @res.headers['Cache-Control'] = 'must-revalidate'
       @res.headers['Expires'] = @one_hour_later.httpdate
       @res.max_age.should.equal 60 ** 2
@@ -134,6 +138,10 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
     it 'is true when a Cache-Control max-age directive is present' do
       @res.headers['Cache-Control'] = 'max-age=500'
+      @res.freshness_information?.should.be true
+    end
+    it 'is true when a Cache-Control s-maxage directive is present' do
+      @res.headers['Cache-Control'] = 's-maxage=500'
       @res.freshness_information?.should.be true
     end
     it 'is not true otherwise' do

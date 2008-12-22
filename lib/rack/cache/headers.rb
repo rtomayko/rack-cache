@@ -124,7 +124,8 @@ module Rack::Cache
     # a +Cache-Control+ header with +max-age+ value is present or when the
     # +Expires+ header is set.
     def freshness_information?
-      header?('Expires') || !cache_control['max-age'].nil?
+      header?('Expires') ||
+        !!(cache_control['s-maxage'] || cache_control['max-age'])
     end
 
     # Determine if the response includes headers that can be used to validate
@@ -163,20 +164,27 @@ module Rack::Cache
 
     # The number of seconds after the time specified in the response's Date
     # header when the the response should no longer be considered fresh. First
-    # check for a Cache-Control max-age value, and fall back on an expires
-    # header; return nil when no maximum age can be established.
+    # check for a s-maxage directive, then a max-age directive, and then fall
+    # back on an expires header; return nil when no maximum age can be
+    # established.
     def max_age
-      if age = cache_control['max-age']
+      if age = (cache_control['s-maxage'] || cache_control['max-age'])
         age.to_i
       elsif headers['Expires']
         Time.httpdate(headers['Expires']) - date
       end
     end
 
-    # Sets the number of seconds after which the response should no longer
-    # be considered fresh. This sets the Cache-Control max-age value.
+    # The number of seconds after which the response should no longer
+    # be considered fresh. Sets the Cache-Control max-age directive.
     def max_age=(value)
       self.cache_control = cache_control.merge('max-age' => value.to_s)
+    end
+
+    # Like #max_age= but sets the s-maxage directive, which applies only
+    # to shared caches.
+    def shared_max_age=(value)
+      self.cache_control = cache_control.merge('s-maxage' => value.to_s)
     end
 
     # The Time when the response should be considered stale. With a
@@ -185,7 +193,7 @@ module Rack::Cache
     # the time specified in the Expires header or returns nil if neither is
     # present.
     def expires_at
-      if max_age = cache_control['max-age']
+      if max_age = (cache_control['s-maxage'] || cache_control['max-age'])
         date + max_age.to_i
       elsif time = headers['Expires']
         Time.httpdate(time)
@@ -200,9 +208,15 @@ module Rack::Cache
       max_age - age if max_age
     end
 
-    # Set the response's time-to-live to the specified number of seconds. This
-    # adjusts the Cache-Control/max-age value.
+    # Set the response's time-to-live for shared caches to the specified number
+    # of seconds. This adjusts the Cache-Control/s-maxage directive.
     def ttl=(seconds)
+      self.shared_max_age = age + seconds
+    end
+
+    # Set the response's time-to-live for private/client caches. This adjusts
+    # the Cache-Control/max-age directive.
+    def client_ttl=(seconds)
       self.max_age = age + seconds
     end
 
@@ -250,8 +264,7 @@ module Rack::Cache
       nil
     end
 
-    # The literal value of the Vary header, or nil when no Vary header is
-    # present.
+    # The literal value of the Vary header, or nil when no header is present.
     def vary
       headers['Vary']
     end

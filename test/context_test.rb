@@ -165,6 +165,20 @@ describe 'Rack::Cache::Context' do
     cache.metastore.to_hash.keys.length.should.equal 1
   end
 
+  it 'caches responses with a s-maxage directive' do
+    respond_with 200, 'Cache-Control' => 's-maxage=5'
+    get '/'
+
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    response.headers.should.include 'Date'
+    response['Age'].should.not.be.nil
+    response['X-Content-Digest'].should.not.be.nil
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+    cache.metastore.to_hash.keys.length.should.equal 1
+  end
+
   it 'caches responses with a Last-Modified validator but no freshness information' do
     respond_with 200, 'Last-Modified' => Time.now.httpdate
     get '/'
@@ -213,6 +227,30 @@ describe 'Rack::Cache::Context' do
     respond_with 200,
       'Date' => (Time.now - 5).httpdate,
       'Cache-Control' => 'max-age=10'
+
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.headers.should.include 'Date'
+    cache.should.a.performed :miss
+    cache.should.a.performed :store
+    response.body.should.equal 'Hello World'
+
+    get '/'
+    response.should.be.ok
+    app.should.not.be.called
+    response['Date'].should.equal responses.first['Date']
+    response['Age'].to_i.should.satisfy { |age| age > 0 }
+    response['X-Content-Digest'].should.not.be.nil
+    cache.should.a.performed :hit
+    cache.should.a.not.performed :fetch
+    response.body.should.equal 'Hello World'
+  end
+
+  it 'hits cached response with s-maxage directive' do
+    respond_with 200,
+      'Date' => (Time.now - 5).httpdate,
+      'Cache-Control' => 's-maxage=10, max-age=0'
 
     get '/'
     app.should.be.called

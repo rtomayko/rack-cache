@@ -1,6 +1,10 @@
-## 0.3.0 / ...
+## 0.3.0 / December 2008
 
-  * Enable support for X-Sendfile middleware by responding to #to_file on
+  * Use the s-maxage Cache-Control value in preference to max-age when
+    present. The ttl= method now sets the s-maxage value instead of max-age.
+    Code that used ttl= to control freshness at the client needs to change
+    to set the max-age directive explicitly.
+  * Enable support for X-Sendfile middleware by responding to #to_path on
     bodies served from disk storage. Adding the Rack::Sendfile component
     upstream from Rack::Cache will result in cached bodies being served
     directly by the web server (instead of being read in Ruby).
@@ -14,16 +18,8 @@
     that the cache responds to HEAD requests without invoking the backend at
     all when the cached entry is fresh. When no cache entry exists, or the
     cached entry is stale and can be validated, the backend is invoked with
-    a GET request and the HEAD handling is handled right before the response
+    a GET request and the HEAD is handled right before the response
     is delivered upstream.
-  * Cache responses that have a Transfer-Encoding. The current implementation
-    caches the encoded value and reproduces the message with the same
-    Transfer-Encoding header on subsequent cache hits. This goes against
-    RFC 2616, which says that intermediaries must fully decode responses with
-    a Transfer-Encoding header before passing them on (though they may re-encode
-    or apply a different encoding). This seems less relevant to Rack::Cache,
-    however, since we're not a true "hop". We'll see how it goes and act
-    accordingly.
   * BUG: The Age response header was not being set properly when a stale
     entry was validated. This would result in Age values that exceeded
     the freshness lifetime in responses.
