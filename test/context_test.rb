@@ -15,24 +15,58 @@ describe 'Rack::Cache::Context' do
     response.headers.should.not.include 'Age'
   end
 
-  it 'passes on requests with Authorization' do
-    respond_with 200
+  it 'does not cache with Authorization request header and non public response' do
+    respond_with 200, 'Etag' => '"FOO"'
     get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
 
     app.should.be.called
     response.should.be.ok
-    cache.should.a.performed :pass
+    response.headers['Cache-Control'].should.equal 'private'
+    cache.should.a.performed :miss
+    cache.should.a.performed :fetch
+    cache.should.a.not.performed :store
+    cache.should.a.performed :deliver
     response.headers.should.not.include 'Age'
   end
 
-  it 'passes on requests with a Cookie' do
+  it 'does cache with Authorization request header and public response' do
+    respond_with 200, 'Cache-Control' => 'public', 'ETag' => '"FOO"'
+    get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
+
+    app.should.be.called
+    response.should.be.ok
+    cache.should.a.performed :miss
+    cache.should.a.performed :fetch
+    cache.should.a.performed :store
+    response.headers.should.include 'Age'
+    response.headers['Cache-Control'].should.equal 'public'
+  end
+
+  it 'does not cache with Cookie header and non public response' do
+    respond_with 200, 'Etag' => '"FOO"'
+    get '/', 'HTTP_COOKIE' => 'foo=bar'
+
+    app.should.be.called
+    response.should.be.ok
+    response.headers['Cache-Control'].should.equal 'private'
+    cache.should.a.performed :miss
+    cache.should.a.performed :fetch
+    cache.should.a.not.performed :store
+    cache.should.a.performed :deliver
+    response.headers.should.not.include 'Age'
+  end
+
+  it 'does not cache requests with a Cookie header' do
     respond_with 200
     get '/', 'HTTP_COOKIE' => 'foo=bar'
 
     response.should.be.ok
     app.should.be.called
-    cache.should.a.performed :pass
+    cache.should.a.performed :miss
+    cache.should.a.performed :fetch
+    cache.should.a.performed :deliver
     response.headers.should.not.include 'Age'
+    response.headers['Cache-Control'].should.equal 'private'
   end
 
   it 'responds with 304 when If-Modified-Since matches Last-Modified' do

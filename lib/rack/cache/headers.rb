@@ -21,7 +21,7 @@ module Rack::Cache
     # header is present.
     def cache_control
       @cache_control ||=
-        (headers['Cache-Control'] || '').split(/\s*,\s*/).inject({}) {|hash,token|
+        headers['Cache-Control'].to_s.split(/\s*[,;]\s*/).inject({}) {|hash,token|
           name, value = token.split(/\s*=\s*/, 2)
           hash[name.downcase] = (value || true) unless name.empty?
           hash
@@ -107,16 +107,15 @@ module Rack::Cache
       !fresh?
     end
 
-    # Determine if the response is worth caching under any circumstance. An
-    # object that is cacheable may not necessary be served from cache without
-    # first validating the response with the origin.
+    # Determine if the response is worth caching under any circumstance. Responses
+    # marked "private" with an explicit Cache-Control directive are considered
+    # uncacheable
     #
-    # An object that includes no freshness lifetime (Expires, max-age) and that
-    # does not include a validator (Last-Modified, Etag) serves no purpose in a
-    # cache that only serves fresh or valid objects.
+    # Responses with neither a freshness lifetime (Expires, max-age) nor cache
+    # validator (Last-Modified, Etag) are considered uncacheable.
     def cacheable?
       return false unless CACHEABLE_RESPONSE_CODES.include?(status)
-      return false if no_store?
+      return false if no_store? || private?
       validateable? || fresh?
     end
 
@@ -144,6 +143,33 @@ module Rack::Cache
     # Indicates that the response should not be stored under any circumstances.
     def no_store?
       cache_control['no-store']
+    end
+
+    # True when the response has been explicitly marked "public".
+    def public?
+      cache_control['public']
+    end
+
+    # Mark the response "public", making it eligible for other clients. Note
+    # that responses are considered "public" by default unless the request
+    # includes private headers (Authorization, Cookie).
+    def public=(value)
+      value = value ? true : nil
+      self.cache_control = cache_control.
+        merge('public' => value, 'private' => !value)
+    end
+
+    # True when the response has been marked "private" explicitly.
+    def private?
+      cache_control['private']
+    end
+
+    # Mark the response "private", making it ineligible for serving other
+    # clients.
+    def private=(value)
+      value = value ? true : nil
+      self.cache_control = cache_control.
+        merge('public' => !value, 'private' => value)
     end
 
     # Indicates that the cache must not serve a stale response in any

@@ -101,6 +101,13 @@ module Rack::Cache
     end
 
   private
+    # Does the request include authorization or other sensitive information
+    # that should cause the response to be considered private by default?
+    # Private responses are not stored in the cache.
+    def private_request?
+      request.header?(*private_headers)
+    end
+
     # Determine if the #response validators (ETag, Last-Modified) matches
     # a conditional value specified in #original_request.
     def not_modified?
@@ -194,13 +201,19 @@ module Rack::Cache
       request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend
 
-      # assign a default TTL for the cache entry if none was specified in
-      # the response; the must-revalidate cache control directive disables
-      # default ttl assigment.
-      if default_ttl > 0 && @response.ttl.nil? && !@response.must_revalidate?
-        @response.ttl = default_ttl
+      # mark the response as explicitly private if any of the private
+      # request headers are present and the response was not explicitly
+      # declared public.
+      if private_request? && !@response.public?
+        @response.private = true
+      else
+        # assign a default TTL for the cache entry if none was specified in
+        # the response; the must-revalidate cache control directive disables
+        # default ttl assigment.
+        if default_ttl > 0 && @response.ttl.nil? && !@response.must_revalidate?
+          @response.ttl = default_ttl
+        end
       end
-
       transition(from=:fetch, to=[:store, :deliver, :error])
     end
 
@@ -208,7 +221,11 @@ module Rack::Cache
       @entry = @response
       transition(from=:store, to=[:persist, :deliver, :error]) do |event|
         if event == :persist
-          trace "writing response to cache"
+          if @response.private?
+            warn 'forced to store response marked as private.'
+          else
+            trace "storing response in cache"
+          end
           metastore.store(original_request, @entry, entitystore)
           @response = @entry
           :deliver

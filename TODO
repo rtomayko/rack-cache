@@ -1,9 +1,3 @@
-## 0.3 (December 2008)
-
-  - Implement "Cache-Control: public"; allow public responses to be served
-    from cache even when the request includes an Authorization (or Cookie?)
-    header. Remove hard no cookie rule from default config.
-
 ## 0.4
 
   - liberal, conservative, sane caching configs

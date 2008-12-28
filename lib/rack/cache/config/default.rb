@@ -17,7 +17,7 @@
 #
 on :receive do
   pass! unless request.method? 'GET', 'HEAD'
-  pass! if request.header? 'Cookie', 'Authorization', 'Expect'
+  pass! if request.header? 'Expect'
   lookup!
 end
 

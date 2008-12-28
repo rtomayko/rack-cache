@@ -61,6 +61,15 @@ module Rack::Cache
     # Default: 0
     option_accessor :default_ttl
 
+    # Set of request headers that trigger "private" cache-control behavior
+    # on responses that don't explicitly state whether the response is
+    # public or private via a Cache-Control directive. Applications that use
+    # cookies for authorization may need to add the 'Cookie' header to this
+    # list.
+    #
+    # Default: ['Authorization', 'Cookie']
+    option_accessor :private_headers
+
     # The underlying options Hash. During initialization (or outside of a
     # request), this is a default values Hash. During a request, this is the
     # Rack environment Hash. The default values Hash is merged in underneath
@@ -111,7 +120,8 @@ module Rack::Cache
         'rack-cache.storage'     => Rack::Cache::Storage.instance,
         'rack-cache.metastore'   => 'heap:/',
         'rack-cache.entitystore' => 'heap:/',
-        'rack-cache.default_ttl' => 0
+        'rack-cache.default_ttl' => 0,
+        'rack-cache.private_headers' => ['Authorization', 'Cookie']
       }
       self.options = options
     end

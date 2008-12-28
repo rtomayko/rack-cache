@@ -115,6 +115,14 @@ If no entitystore is specified, the `heap:/` store is assumed. This
 implementation has significant draw-backs so explicit configuration is
 recommended.
 
+### `private_headers`
+
+An array of request header names that cause the response to be treated with
+private cache control semantics. The default value is `['Authorization', 'Cookie']`.
+If any of these headers are present in the request, the response is considered
+private and will not be cached _unless_ the response is explicitly marked public
+(e.g., `Cache-Control: public`).
+
 <a id='machinery'></a>
 
 Configuration Machinery - Events and Transitions

@@ -149,6 +149,60 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
+  describe '#public=' do
+    it 'adds the public Cache-Control directive when set true' do
+      @res.headers['Cache-Control'] = 'max-age=100'
+      @res.public = true
+      @res.headers['Cache-Control'].should.equal 'public, max-age=100'
+    end
+    it 'removes the private Cache-Control directive' do
+      @res.headers['Cache-Control'] = 'private, max-age=100'
+      @res.public = true
+      @res.headers['Cache-Control'].should.equal 'public, max-age=100'
+    end
+  end
+
+  describe '#public?' do
+    it 'is true when the public directive is present' do
+      @res.headers['Cache-Control'] = 'public'
+      @res.should.be.public
+    end
+    it 'is false when only the private directive is present' do
+      @res.headers['Cache-Control'] = 'private'
+      @res.should.not.be.public
+    end
+    it 'is false when no Cache-Control header is present' do
+      @res.should.not.be.public
+    end
+  end
+
+  describe '#private=' do
+    it 'adds the private Cache-Control directive when set true' do
+      @res.headers['Cache-Control'] = 'max-age=100'
+      @res.private = true
+      @res.headers['Cache-Control'].should.equal 'private, max-age=100'
+    end
+    it 'removes the public Cache-Control directive' do
+      @res.headers['Cache-Control'] = 'public, max-age=100'
+      @res.private = true
+      @res.headers['Cache-Control'].should.equal 'private, max-age=100'
+    end
+  end
+
+  describe '#private?' do
+    it 'is true when the private directive is present' do
+      @res.headers['Cache-Control'] = 'private'
+      @res.should.be.private
+    end
+    it 'is false when the private directive is not present' do
+      @res.headers['Cache-Control'] = 'public'
+      @res.should.not.be.private
+    end
+    it 'is false when no Cache-Control header is present' do
+      @res.should.not.be.private
+    end
+  end
+
   describe '#no_cache?' do
     it 'is true when a Cache-Control no-cache directive is present' do
       @res.headers['Cache-Control'] = 'no-cache'
