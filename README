@@ -7,8 +7,10 @@ validation (Last-Modified, ETag) information:
 
   * Standards-based (RFC 2616)
   * Freshness/expiration based caching
-  * Validation
+  * Validation (If-Modified-Since / If-None-Match)
   * Vary support
+  * Cache-Control: public, private, max-age, s-maxage, must-revalidate,
+    and proxy-revalidate.
   * Portable: 100% Ruby / works with any Rack-enabled framework
   * Configuration language for advanced caching policies
   * Disk, memcached, and heap memory storage backends
@@ -64,10 +66,17 @@ Assuming you've designed your backend application to take advantage of HTTP's
 caching features, no further code or configuration is required for basic
 caching.
 
-Documentation
--------------
+Links
+-----
 
-http://tomayko.com/src/rack-cache/
+Documentation:
+    http://tomayko.com/src/rack-cache/
+
+Mailing List:
+    http://groups.google.com/group/rack-cache
+
+GitHub:
+    http://github.com/rtomayko/rack-cache/
 
 License
 -------

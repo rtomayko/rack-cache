@@ -2,10 +2,10 @@ __Rack::Cache__ is suitable as a quick drop-in component to enable HTTP caching
 for [Rack][]-based applications that produce freshness (`Expires`,
 `Cache-Control`) and/or validation (`Last-Modified`, `ETag`) information.
 
-  * Standards-based ([RFC 2616][rfc] / [Section 13][s13]).
+  * Standards-based (see [RFC 2616][rfc] / [Section 13][s13]).
   * Freshness/expiration based caching
   * Validation
-  * Vary Support
+  * Vary support
   * Portable: 100% Ruby / works with any [Rack][]-enabled framework.
   * [Configuration language][config] for advanced caching policies.
   * Disk, memcached, and heap memory [storage backends][storage].
@@ -49,23 +49,26 @@ Assuming you've designed your backend application to take advantage of HTTP's
 caching features, no further code or configuration is required for basic
 caching.
 
-Advanced Usage
---------------
+More
+----
 
-  * [Configuration Language Documentation][config] - How to customize cache
+  * [Configuration Language Documentation][config] - how to customize cache
     policy using the simple event-based configuration system.
 
-  * [Cache Storage Documentation][storage] - Detailed information on the various
+  * [Cache Storage Documentation][storage] - detailed information on the various
     storage implementations available in __Rack::Cache__ and how to choose the one
     that's best for your application.
 
-  * [Things Caches Do][things] - An illustrated guide to how HTTP gateway
+  * [Things Caches Do][things] - an illustrated guide to how HTTP gateway
     caches work with pointers to other useful resources on HTTP caching.
 
-  * [FAQ](./faq) - Frequently Asked Questions about __Rack::Cache__.
-
-  * [GitHub Repository](http://github.com/rtomayko/rack-cache/) - Get your
+  * [GitHub Repository](http://github.com/rtomayko/rack-cache/) - get your
     fork on.
+
+  * [Mailing List](http://groups.google.com/group/rack-cache) - for hackers
+    and users (`rack-cache@groups.google.com`).
+
+  * [FAQ](./faq) - Frequently Asked Questions about __Rack::Cache__.
 
   * [RDoc API Documentation](./api/) - Mostly worthless if you just want to use
     __Rack::Cache__ in your application but mildly insightful if you'd like to

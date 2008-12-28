@@ -3,8 +3,8 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
 
   s.name = 'rack-cache'
-  s.version = '0.2.0'
-  s.date = '2008-10-24'
+  s.version = '0.3.0'
+  s.date = '2008-12-28'
 
   s.description = "HTTP Caching for Rack"
   s.summary     = "HTTP Caching for Rack"
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     doc/layout.html.erb
     doc/license.markdown
     doc/rack-cache.css
+    doc/server.ru
     doc/storage.markdown
     lib/rack/cache.rb
     lib/rack/cache/config.rb
