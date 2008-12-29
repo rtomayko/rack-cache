@@ -21,7 +21,7 @@ module Rack::Cache
     # header is present.
     def cache_control
       @cache_control ||=
-        headers['Cache-Control'].to_s.delete(' ').split(/[,;]/).inject({}) {|hash,token|
+        headers['Cache-Control'].to_s.delete(' ').split(',').inject({}) {|hash,token|
           name, value = token.split('=', 2)
           hash[name.downcase] = (value || true) unless name.empty?
           hash
