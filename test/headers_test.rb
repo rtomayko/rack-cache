@@ -46,6 +46,10 @@ describe 'Rack::Cache::Headers' do
       @res.cache_control = {}
       @res.headers.should.not.include 'Cache-Control'
     end
+    it 'strips leading and trailing spaces from header value' do
+      @res.headers['Cache-Control'] = ' public '
+      @res.cache_control.should.include 'public'
+    end
   end
 end
 
