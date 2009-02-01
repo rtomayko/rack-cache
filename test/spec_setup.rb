@@ -27,6 +27,7 @@ rescue LoadError => boom
   $memcached = false
   false
 rescue => boom
+  STDERR.puts "memcached not working. related tests will be skipped."
   $memcached = false
   false
 end
