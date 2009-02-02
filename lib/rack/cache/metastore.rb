@@ -25,7 +25,8 @@ module Rack::Cache
     # Rack::Cache::Response object if the cache hits or nil if no cache entry
     # was found.
     def lookup(request, entity_store)
-      entries = read(request.fullpath)
+      key = cache_key(request)
+      entries = read(key)
 
       # bail out if we have nothing cached
       return nil if entries.empty?
@@ -53,7 +54,7 @@ module Rack::Cache
     #--
     # TODO canonicalize URL key
     def store(request, response, entity_store)
-      key = request.fullpath
+      key = cache_key(request)
       stored_env = persist_request(request)
 
       # write the response body to the entity store if this is the
@@ -77,9 +78,17 @@ module Rack::Cache
         end
       entries.unshift [stored_env, {}.update(response.headers)]
       write key, entries
+      key
+    end
+
+    # Generate a cache key for the request, then URI encode it to make it
+    # safe for use with different different implementations (like Memecached).
+    def cache_key(request)
+      Rack::Utils.escape(Key.call(request))
     end
 
   private
+
     # Extract the environment Hash from +request+ while making any
     # necessary modifications in preparation for persistence. The Hash
     # returned must be marshalable.

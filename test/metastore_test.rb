@@ -60,24 +60,33 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.read(key).should.equal [[{},{}]]
   end
 
+  it "URI encodes cache_key" do
+    request = mock_request('/test', {'HTTP_HOST' => 'example.org'})
+    @store.cache_key(request).should.equal 'example.org%2Ftest'
+  end
+
   # Abstract methods ===========================================================
 
-  define_method :store_simple_entry do
-    @request = mock_request('/test', {})
+  # Stores an entry for the given request args, returns a url encoded cache key
+  # for the request.
+  define_method :store_simple_entry do |*request_args|
+    path, headers = request_args
+    @request = mock_request(path || '/test', headers || {})
     @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
     body = @response.body
-    @store.store(@request, @response, @entity_store)
+    cache_key = @store.store(@request, @response, @entity_store)
     @response.body.should.not.be body
+    cache_key
   end
 
   it 'stores a cache entry' do
-    store_simple_entry
-    @store.read('/test').should.not.be.empty
+    cache_key = store_simple_entry
+    @store.read(cache_key).should.not.be.empty
   end
 
   it 'sets the X-Content-Digest response header before storing' do
-    store_simple_entry
-    req, res = @store.read('/test').first
+    cache_key = store_simple_entry
+    req, res = @store.read(cache_key).first
     res['X-Content-Digest'].should.equal 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
   end
 
@@ -91,6 +100,16 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'does not find an entry with #lookup when none exists' do
     req = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
     @store.lookup(req, @entity_store).should.be.nil
+  end
+
+  it "canonizes urls for cache keys" do
+    store_simple_entry(path='/test?x=y&p=q')
+
+    hits_req = mock_request(path, {})
+    miss_req = mock_request('/test?p=x', {})
+
+    @store.lookup(hits_req, @entity_store).should.not.be.nil
+    @store.lookup(miss_req, @entity_store).should.be.nil
   end
 
   it 'does not find an entry with #lookup when the body does not exist' do
@@ -128,7 +147,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   it 'stores multiple responses for each Vary combination' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-    @store.store(req1, res1, @entity_store)
+    key = @store.store(req1, res1, @entity_store)
 
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
     res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
@@ -142,13 +161,13 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 1'
     slurp(@store.lookup(req2, @entity_store).body).should.equal 'test 2'
 
-    @store.read('/test').length.should.equal 3
+    @store.read(key).length.should.equal 3
   end
 
   it 'overwrites non-varying responses with #store' do
     req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
     res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-    @store.store(req1, res1, @entity_store)
+    key = @store.store(req1, res1, @entity_store)
     slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 1'
 
     req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
@@ -161,7 +180,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.store(req3, res3, @entity_store)
     slurp(@store.lookup(req1, @entity_store).body).should.equal 'test 3'
 
-    @store.read('/test').length.should.equal 2
+    @store.read(key).length.should.equal 2
   end
 
   # Helper Methods =============================================================

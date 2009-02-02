@@ -34,6 +34,7 @@ end
 #   run app
 #
 module Rack::Cache
+  require 'rack/cache/key'
   require 'rack/cache/request'
   require 'rack/cache/response'
   require 'rack/cache/context'
