@@ -1,4 +1,5 @@
 require 'rack'
+require 'rack/cache/key'
 require 'rack/cache/storage'
 
 module Rack::Cache
@@ -44,6 +45,19 @@ module Rack::Cache
     # recommended.
     option_accessor :metastore
 
+    # A custom cache key generator, which can be anything that responds to :call.
+    # By default, this is the Rack::Cache::Key class, but you can implement your
+    # own generator. A cache key generator gets passed a request and generates the
+    # appropriate cache key.
+    #
+    # In addition to setting the generator to an object, you can just pass a block
+    # instead, which will act as the cache key generator:
+    #
+    #   set :cache_key do |request|
+    #     request.fullpath.replace(/\//, '-')
+    #   end
+    option_accessor :cache_key
+
     # A URI specifying the entity-store implement that should be used to store
     # response bodies. See the metastore option for information on supported URI
     # schemes.
@@ -88,8 +102,10 @@ module Rack::Cache
     # exactly as specified. The +option+ argument may also be a Hash in
     # which case each key/value pair is merged into the environment as if
     # the #set method were called on each.
-    def set(option, value=self)
-      if value == self
+    def set(option, value=self, &block)
+      if block_given?
+        write_option option, block
+      elsif value == self
         self.options = option.to_hash
       else
         write_option option, value
@@ -116,6 +132,7 @@ module Rack::Cache
   private
     def initialize_options(options={})
       @default_options = {
+        'rack-cache.key_gen'     => Key,
         'rack-cache.verbose'     => true,
         'rack-cache.storage'     => Rack::Cache::Storage.instance,
         'rack-cache.metastore'   => 'heap:/',

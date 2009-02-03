@@ -2,24 +2,9 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/key'
 
 describe 'A Rack::Cache::Key' do
-  it "sorts params by keys first" do
+  it "sorts params" do
     request = mock_request('/test?z=last&a=first')
     new_key(request).should.include('a=first&z=last')
-  end
-
-  it 'preserves nested params' do
-    request = mock_request('/test?z[name]=last&a[name]=first')
-    new_key(request).should.include('a[name]=first&z[name]=last')
-  end
-
-  it "normalizes nested params" do
-    request = mock_request('/test?a[last]=last&a[first]=first')
-    new_key(request).should.include('a[first]=first&a[last]=last')
-  end
-
-  it "normalizes deeper nested params" do
-    request = mock_request('/test?a[z][z]=last&a[p][a]=first&a[z][p]=middle')
-    new_key(request).should.include('a[p][a]=first&a[z][p]=middle&a[z][z]=last')
   end
 
   it "includes host" do

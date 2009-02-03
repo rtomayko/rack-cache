@@ -1,3 +1,10 @@
+## 0.4.0 / Unreleased
+
+  * Add support for canonicalized cache keys, as well as custom cache key
+    generators, which are specified in the options as :cache_key as either
+    any object that has a call() or as a block. Cache key generators get
+    passed a request object and return a cache key string.
+
 ## 0.3.0 / December 2008
 
   * Add support for public and private cache control directives. Responses

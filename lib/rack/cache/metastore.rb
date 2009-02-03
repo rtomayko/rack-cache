@@ -51,8 +51,6 @@ module Rack::Cache
     # Write a cache entry to the store under the given key. Existing
     # entries are read and any that match the response are removed.
     # This method calls #write with the new list of cache entries.
-    #--
-    # TODO canonicalize URL key
     def store(request, response, entity_store)
       key = cache_key(request)
       stored_env = persist_request(request)
@@ -84,7 +82,8 @@ module Rack::Cache
     # Generate a cache key for the request, then URI encode it to make it
     # safe for use with different different implementations (like Memecached).
     def cache_key(request)
-      Rack::Utils.escape(Key.call(request))
+      keygen = request.env['rack-cache.cache_key'] || Key
+      Rack::Utils.escape(keygen.call(request))
     end
 
   private

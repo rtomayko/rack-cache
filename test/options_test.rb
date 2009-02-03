@@ -45,6 +45,17 @@ describe 'Rack::Cache::Options' do
     @options.options['rack-cache.bar'].should.equal 'baz'
   end
 
+  it "allows storing the value as a block" do
+    block = Proc.new { "bar block" }
+    @options.set(:foo, &block)
+    @options.options['rack-cache.foo'].should.equal block
+  end
+
+  it 'allows the cache key generator to be configured' do
+    @options.should.respond_to :cache_key
+    @options.should.respond_to :cache_key=
+  end
+
   it 'allows the meta store to be configured' do
     @options.should.respond_to :metastore
     @options.should.respond_to :metastore=

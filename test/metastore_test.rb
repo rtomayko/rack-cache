@@ -65,6 +65,20 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.cache_key(request).should.equal 'example.org%2Ftest'
   end
 
+  it "allows custom cache keys from block" do
+    request = mock_request('/test', {})
+    request.env['rack-cache.cache_key'] = lambda { |request| request.path_info.reverse }
+    @store.cache_key(request).should == 'tset%2F'
+  end
+
+  it "allows custom cache keys from class" do
+    request = mock_request('/test', {})
+    request.env['rack-cache.cache_key'] = Class.new do
+      def self.call(request); request.path_info.reverse end
+    end
+    @store.cache_key(request).should == 'tset%2F'
+  end
+
   # Abstract methods ===========================================================
 
   # Stores an entry for the given request args, returns a url encoded cache key

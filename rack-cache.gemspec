@@ -28,6 +28,8 @@ Gem::Specification.new do |s|
     doc/rack-cache.css
     doc/server.ru
     doc/storage.markdown
+    example/sinatra/app.rb
+    example/sinatra/views/index.erb
     lib/rack/cache.rb
     lib/rack/cache/config.rb
     lib/rack/cache/config/busters.rb
@@ -37,6 +39,7 @@ Gem::Specification.new do |s|
     lib/rack/cache/core.rb
     lib/rack/cache/entitystore.rb
     lib/rack/cache/headers.rb
+    lib/rack/cache/key.rb
     lib/rack/cache/metastore.rb
     lib/rack/cache/options.rb
     lib/rack/cache/request.rb
@@ -51,6 +54,7 @@ Gem::Specification.new do |s|
     test/entitystore_test.rb
     test/environment_headers_test.rb
     test/headers_test.rb
+    test/key_test.rb
     test/logging_test.rb
     test/metastore_test.rb
     test/options_test.rb
