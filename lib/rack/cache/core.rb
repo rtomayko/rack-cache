@@ -125,9 +125,13 @@ module Rack::Cache
 
   private
     def perform_receive
-      @original_request = Request.new(@env.dup)
+      # Store the request env exactly as we received it. Freeze the env to
+      # ensure no changes are made.
+      @original_request = Request.new(@env.dup.freeze)
+
       @env['REQUEST_METHOD'] = 'GET' if @original_request.head?
       @request = Request.new(@env)
+
       info "%s %s", @original_request.request_method, @original_request.fullpath
       transition(from=:receive, to=[:pass, :lookup, :error])
     end
