@@ -1,5 +1,7 @@
 module Rack::Cache
   class Key
+    include Rack::Utils
+
     # Implement .call, since it seems like the "Rack-y" thing to do. Plus, it
     # opens the door for cache key generators to just be blocks.
     def self.call(request)
@@ -13,32 +15,36 @@ module Rack::Cache
     # Generate a normalized cache key for the request.
     def generate
       parts = []
-      parts << host + path
-      parts << query_string
-      parts.compact.join('?')
+      parts << @request.scheme << "://"
+      parts << @request.host
+
+      if @request.scheme == "https" && @request.port != 443 ||
+          @request.scheme == "http" && @request.port != 80
+        parts << ":" << @request.port.to_s
+      end
+
+      parts << @request.script_name
+      parts << @request.path_info
+
+      if qs = query_string
+        parts << "?"
+        parts << qs
+      end
+
+      parts.join
     end
 
-    private
-
-    # Delegate host info to the request
-    def host
-      @request.host
-    end
-
-    # Delegate path info to the request
-    def path
-      @request.path_info
-    end
-
-    # This probably isn't good enough.
+  private
+    # Build a normalized query string by alphabetizing all keys/values
+    # and applying consistent escaping.
     def query_string
-      return nil if @request.params.empty?
-      build_query(@request.params.sort)
-    end
+      return nil if @request.query_string.nil?
 
-    # Convert params into a query string without escaping.
-    def build_query(params)
-      params.map { |tuple| tuple.join('=') }.join('&')
+      @request.query_string.split(/[&;] */n).
+        map { |p| unescape(p).split('=', 2) }.
+        sort.
+        map { |k,v| "#{escape(k)}=#{escape(v)}" }.
+        join('&')
     end
   end
 end
