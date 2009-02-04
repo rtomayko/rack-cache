@@ -79,11 +79,10 @@ module Rack::Cache
       key
     end
 
-    # Generate a cache key for the request, then URI encode it to make it
-    # safe for use with different different implementations (like Memecached).
+    # Generate a cache key for the request.
     def cache_key(request)
       keygen = request.env['rack-cache.cache_key'] || Key
-      Rack::Utils.escape(keygen.call(request))
+      keygen.call(request)
     end
 
   private

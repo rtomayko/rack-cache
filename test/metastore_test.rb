@@ -60,15 +60,11 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.read(key).should.equal [[{},{}]]
   end
 
-  it "URI encodes cache_key" do
-    request = mock_request('/test', {'HTTP_HOST' => 'example.org'})
-    @store.cache_key(request).should.equal 'example.org%2Ftest'
-  end
-
   it "allows custom cache keys from block" do
     request = mock_request('/test', {})
-    request.env['rack-cache.cache_key'] = lambda { |request| request.path_info.reverse }
-    @store.cache_key(request).should == 'tset%2F'
+    request.env['rack-cache.cache_key'] =
+      lambda { |request| request.path_info.reverse }
+    @store.cache_key(request).should == 'tset/'
   end
 
   it "allows custom cache keys from class" do
@@ -76,7 +72,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     request.env['rack-cache.cache_key'] = Class.new do
       def self.call(request); request.path_info.reverse end
     end
-    @store.cache_key(request).should == 'tset%2F'
+    @store.cache_key(request).should == 'tset/'
   end
 
   # Abstract methods ===========================================================
