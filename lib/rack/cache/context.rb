@@ -1,4 +1,3 @@
-require 'rack/cache/config'
 require 'rack/cache/options'
 require 'rack/cache/core'
 require 'rack/cache/request'
@@ -12,7 +11,6 @@ module Rack::Cache
 
   class Context
     include Rack::Cache::Options
-    include Rack::Cache::Config
     include Rack::Cache::Core
 
     # The Rack application object immediately downstream.
@@ -24,7 +22,7 @@ module Rack::Cache
       @backend = backend
       initialize_options options
       initialize_core
-      initialize_config(&block)
+      instance_eval(&block) if block_given?
     end
 
     # The call! method is invoked on the duplicate context instance.
@@ -78,17 +76,8 @@ module Rack::Cache
       errors.flush
     end
 
-    def info(*message, &bk)
-      log :info, *message, &bk
-    end
-
     def warn(*message, &bk)
       log :warn, *message, &bk
-    end
-
-    def trace(*message, &bk)
-      return unless verbose?
-      log :trace, *message, &bk
     end
   end
 

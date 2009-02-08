@@ -68,39 +68,42 @@ module Rack::Cache
     # response.
     attr_reader :response
 
+    # Array of Symbols
+    attr_reader :trace
+
+  private
+    # Setup the core prototype. The object's state after execution
+    # of this method will be duped and used for individual request.
+    def initialize_core
+      @trace = []
+
+      # initialize some instance variables; we won't use them until we dup to
+      # process a request.
+      @request = nil
+      @response = nil
+      @original_request = nil
+      @original_response = nil
+      @entry = nil
+    end
+
+    # Process a request. This method is compatible with Rack's #call
+    # interface.
+    def process_request(env)
+      @trace = []
+      @env = @default_options.merge(env)
+      dispatch
+    end
+
     # Has the given event been performed at any time during the
     # request life-cycle? Useful for testing.
     def performed?(event)
-      @triggered.include?(event)
+      @trace.include?(event)
     end
 
-    # Event handlers.
-    attr_reader :events
-    private :events
-
-  public
-    # Attach custom logic to one or more events.
-    def on(*events, &block)
-      events.each { |event| @events[event].unshift(block) }
-      nil
+    def record(event)
+      @trace << event
     end
 
-  private
-    # Transitioning statements
-
-    def pass!      ; throw(:transition, [:pass])    ; end
-    def lookup!    ; throw(:transition, [:lookup])  ; end
-    def store!     ; throw(:transition, [:store])   ; end
-    def fetch!     ; throw(:transition, [:fetch])   ; end
-    def persist!   ; throw(:transition, [:persist]) ; end
-    def deliver!   ; throw(:transition, [:deliver]) ; end
-    def finish!    ; throw(:transition, [:finish])  ; end
-
-    def error!(code=500, headers={}, body=nil)
-      throw(:transition, [:error, code, headers, body])
-    end
-
-  private
     # Does the request include authorization or other sensitive information
     # that should cause the response to be considered private by default?
     # Private responses are not stored in the cache.
@@ -123,8 +126,7 @@ module Rack::Cache
       @original_response = response.freeze
     end
 
-  private
-    def perform_receive
+    def dispatch
       # Store the request env exactly as we received it. Freeze the env to
       # ensure no changes are made.
       @original_request = Request.new(@env.dup.freeze)
@@ -132,56 +134,47 @@ module Rack::Cache
       @env['REQUEST_METHOD'] = 'GET' if @original_request.head?
       @request = Request.new(@env)
 
-      transition(from=:receive, to=[:pass, :lookup, :error])
+      if !request.method?('GET', 'HEAD') || request.header?('Expect')
+        pass
+      else
+        lookup
+      end
+
+      response.not_modified! if not_modified?
+      response.body = [] if @original_request.head?
+      response.headers.delete 'X-Status'
+      response.to_a
     end
 
-    def perform_pass
-      trace 'passing'
+    def pass
+      record :pass
       request.env['REQUEST_METHOD'] = @original_request.request_method
       fetch_from_backend
-      transition(from=:pass, to=[:pass, :finish, :error]) do |event|
-        if event == :pass
-          :finish
-        else
-          event
-        end
-      end
     end
 
-    def perform_error(code=500, headers={}, body=nil)
-      body, headers = headers, {} unless headers.is_a?(Hash)
-      headers = {} if headers.nil?
-      body = [] if body.nil? || body == ''
-      @response = Rack::Cache::Response.new(code, headers, body)
-      transition(from=:error, to=[:finish])
-    end
-
-    def perform_lookup
+    def lookup
       if @entry = metastore.lookup(original_request, entitystore)
         if @entry.fresh?
-          trace 'cache hit (ttl: %ds)', @entry.ttl
-          transition(from=:hit, to=[:deliver, :pass, :error]) do |event|
-            @response = @entry if event == :deliver
-            event
-          end
+          record :fresh
+          @response = @entry
         else
-          trace 'cache stale (ttl: %ds), validating...', @entry.ttl
-          perform_validate
+          validate
         end
       else
-        trace 'cache miss'
-        transition(from=:miss, to=[:fetch, :pass, :error])
+        miss
       end
     end
 
-    def perform_validate
+    def validate
+      record :stale
+
       # add our cached validators to the backend request
       request.headers['If-Modified-Since'] = entry.last_modified
       request.headers['If-None-Match'] = entry.etag
       fetch_from_backend
 
       if original_response.status == 304
-        trace "cache entry valid"
+        record :valid
         @response = entry.dup
         @response.headers.delete('Age')
         @response.headers.delete('Date')
@@ -192,14 +185,16 @@ module Rack::Cache
         end
         @response.activate!
       else
-        trace "cache entry invalid"
+        record :invalid
         @entry = nil
       end
-      transition(from=:fetch, to=[:store, :deliver, :error])
+
+      store
     end
 
-    def perform_fetch
-      trace "fetching response from backend"
+    def miss 
+      record :miss
+
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
       fetch_from_backend
@@ -217,86 +212,18 @@ module Rack::Cache
           @response.ttl = default_ttl
         end
       end
-      transition(from=:fetch, to=[:store, :deliver, :error])
+
+      store 
     end
 
-    def perform_store
+    def store
+      return unless response.cacheable?
+
+      record :store
+      warn 'forced to store response marked as private.' if @response.private?
+
       @entry = @response
-      transition(from=:store, to=[:persist, :deliver, :error]) do |event|
-        if event == :persist
-          if @response.private?
-            warn 'forced to store response marked as private.'
-          else
-            trace "storing response in cache"
-          end
-          metastore.store(original_request, @entry, entitystore)
-          @response = @entry
-          :deliver
-        else
-          event
-        end
-      end
-    end
-
-    def perform_deliver
-      trace "delivering response ..."
-      response.not_modified! if not_modified?
-      response.body = [] if @original_request.head?
-      transition(from=:deliver, to=[:finish, :error])
-    end
-
-    def perform_finish
-      response.headers.delete 'X-Status'
-      response.to_a
-    end
-
-  private
-    # Transition from the currently processing event to another event
-    # after triggering event handlers.
-    def transition(from, to)
-      ev, *args = trigger(from)
-      raise IllegalTransition, "No transition to :#{ev}" unless to.include?(ev)
-      ev = yield ev if block_given?
-      send "perform_#{ev}", *args
-    end
-
-    # Trigger processing of the event specified and return an array containing
-    # the name of the next transition and any arguments provided to the
-    # transitioning statement.
-    def trigger(event)
-      if @events.include? event
-        @triggered << event
-        catch(:transition) do
-          @events[event].each { |block| instance_eval(&block) }
-          nil
-        end
-      else
-        raise NameError, "No such event: #{event}"
-      end
-    end
-
-  private
-    # Setup the core prototype. The object's state after execution
-    # of this method will be duped and used for individual request.
-    def initialize_core
-      @triggered = []
-      @events = Hash.new { |h,k| h[k.to_sym] = [] }
-
-      # initialize some instance variables; we won't use them until we dup to
-      # process a request.
-      @request = nil
-      @response = nil
-      @original_request = nil
-      @original_response = nil
-      @entry = nil
-    end
-
-    # Process a request. This method is compatible with Rack's #call
-    # interface.
-    def process_request(env)
-      @triggered = []
-      @env = @default_options.merge(env)
-      perform_receive
+      metastore.store(original_request, @entry, entitystore)
     end
   end
 end

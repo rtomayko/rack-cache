@@ -12,7 +12,6 @@ validation (Last-Modified, ETag) information:
   * Cache-Control: public, private, max-age, s-maxage, must-revalidate,
     and proxy-revalidate.
   * Portable: 100% Ruby / works with any Rack-enabled framework
-  * Configuration language for advanced caching policies
   * Disk, memcached, and heap memory storage backends
 
 For more information about Rack::Cache features and usage, see:

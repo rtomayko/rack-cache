@@ -11,7 +11,7 @@ describe 'Rack::Cache::Context' do
 
     app.should.be.called
     response.should.be.ok
-    cache.should.a.performed :pass
+    cache.trace.should.include :pass
     response.headers.should.not.include 'Age'
   end
 
@@ -22,10 +22,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers['Cache-Control'].should.equal 'private'
-    cache.should.a.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.not.performed :store
-    cache.should.a.performed :deliver
+    cache.trace.should.include :miss
+    cache.trace.should.not.include :store
     response.headers.should.not.include 'Age'
   end
 
@@ -35,9 +33,8 @@ describe 'Rack::Cache::Context' do
 
     app.should.be.called
     response.should.be.ok
-    cache.should.a.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.headers.should.include 'Age'
     response.headers['Cache-Control'].should.equal 'public'
   end
@@ -49,10 +46,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers['Cache-Control'].should.equal 'private'
-    cache.should.a.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.not.performed :store
-    cache.should.a.performed :deliver
+    cache.trace.should.include :miss
+    cache.trace.should.not.include :store
     response.headers.should.not.include 'Age'
   end
 
@@ -62,9 +57,8 @@ describe 'Rack::Cache::Context' do
 
     response.should.be.ok
     app.should.be.called
-    cache.should.a.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.performed :deliver
+    cache.trace.should.include :miss
+    cache.trace.should.not.include :store
     response.headers.should.not.include 'Age'
     response.headers['Cache-Control'].should.equal 'private'
   end
@@ -85,8 +79,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.not.include 'Content-Length'
     response.headers.should.not.include 'Content-Type'
     response.body.should.empty
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
   end
 
   it 'responds with 304 when If-None-Match matches ETag' do
@@ -105,8 +99,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.not.include 'Content-Type'
     response.headers.should.include 'Etag'
     response.body.should.empty
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
   end
 
   it 'caches requests when Cache-Control request header set to no-cache' do
@@ -114,7 +108,7 @@ describe 'Rack::Cache::Context' do
     get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
 
     response.should.be.ok
-    cache.should.a.performed :store
+    cache.trace.should.include :store
     response.headers.should.include 'Age'
   end
 
@@ -123,8 +117,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    cache.should.a.performed :miss
-    cache.should.a.performed :fetch
+    cache.trace.should.include :miss
     response.headers.should.include 'Age'
   end
 
@@ -134,7 +127,7 @@ describe 'Rack::Cache::Context' do
         respond_with response_code, 'Expires' => (Time.now + 5).httpdate
         get '/'
 
-        cache.should.a.not.performed :store
+        cache.trace.should.not.include :store
         response.status.should.equal response_code
         response.headers.should.not.include 'Age'
       end
@@ -148,7 +141,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    cache.should.a.not.performed :store
+    cache.trace.should.not.include :store
     response.headers.should.not.include 'Age'
   end
 
@@ -157,7 +150,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    cache.should.a.not.performed :store
+    cache.trace.should.not.include :store
   end
 
   it "caches responses with explicit no-cache directive" do
@@ -167,7 +160,7 @@ describe 'Rack::Cache::Context' do
     get '/'
 
     response.should.be.ok
-    cache.should.a.performed :store
+    cache.trace.should.include :store
     response.headers.should.include 'Age'
   end
 
@@ -180,8 +173,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     response['Age'].should.not.be.nil
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     cache.metastore.to_hash.keys.length.should.equal 1
   end
 
@@ -194,8 +187,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     response['Age'].should.not.be.nil
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     cache.metastore.to_hash.keys.length.should.equal 1
   end
 
@@ -208,8 +201,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     response['Age'].should.not.be.nil
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     cache.metastore.to_hash.keys.length.should.equal 1
   end
 
@@ -219,8 +212,8 @@ describe 'Rack::Cache::Context' do
 
     response.should.be.ok
     response.body.should.equal 'Hello World'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
   end
 
   it 'caches responses with an ETag validator but no freshness information' do
@@ -229,8 +222,8 @@ describe 'Rack::Cache::Context' do
 
     response.should.be.ok
     response.body.should.equal 'Hello World'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
   end
 
   it 'hits cached response with Expires header' do
@@ -242,8 +235,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Date'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
 
     get '/'
@@ -252,8 +245,8 @@ describe 'Rack::Cache::Context' do
     response['Date'].should.equal responses.first['Date']
     response['Age'].to_i.should.satisfy { |age| age > 0 }
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :hit
-    cache.should.a.not.performed :fetch
+    cache.trace.should.include :fresh
+    cache.trace.should.not.include :store
     response.body.should.equal 'Hello World'
   end
 
@@ -266,8 +259,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Date'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
 
     get '/'
@@ -276,8 +269,8 @@ describe 'Rack::Cache::Context' do
     response['Date'].should.equal responses.first['Date']
     response['Age'].to_i.should.satisfy { |age| age > 0 }
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :hit
-    cache.should.a.not.performed :fetch
+    cache.trace.should.include :fresh
+    cache.trace.should.not.include :store
     response.body.should.equal 'Hello World'
   end
 
@@ -290,8 +283,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.headers.should.include 'Date'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
 
     get '/'
@@ -300,8 +293,8 @@ describe 'Rack::Cache::Context' do
     response['Date'].should.equal responses.first['Date']
     response['Age'].to_i.should.satisfy { |age| age > 0 }
     response['X-Content-Digest'].should.not.be.nil
-    cache.should.a.performed :hit
-    cache.should.a.not.performed :fetch
+    cache.trace.should.include :fresh
+    cache.trace.should.not.include :store
     response.body.should.equal 'Hello World'
   end
 
@@ -311,16 +304,16 @@ describe 'Rack::Cache::Context' do
     get '/', 'rack-cache.default_ttl' => 10
     app.should.be.called
     response.should.be.ok
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
     response['Cache-Control'].should.include 's-maxage=10'
 
     get '/', 'rack-cache.default_ttl' => 10
     response.should.be.ok
     app.should.not.be.called
-    cache.should.a.performed :hit
-    cache.should.a.not.performed :fetch
+    cache.trace.should.include :fresh
+    cache.trace.should.not.include :store
     response.body.should.equal 'Hello World'
   end
 
@@ -331,8 +324,8 @@ describe 'Rack::Cache::Context' do
     get '/', 'rack-cache.default_ttl' => 10
     app.should.be.called
     response.should.be.ok
-    cache.should.a.performed :miss
-    cache.should.a.not.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.not.include :store
     response['Cache-Control'].should.not.include 's-maxage'
     response.body.should.equal 'Hello World'
   end
@@ -347,8 +340,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Date'
     response.headers.should.include 'X-Content-Digest'
     response.headers.should.include 'Age'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
 
     # go in and play around with the cached metadata directly ...
@@ -361,10 +354,10 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response['Age'].to_i.should.equal 0
     response.headers.should.include 'X-Content-Digest'
-    cache.should.a.not.performed :hit
-    cache.should.a.not.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.performed :store
+    cache.trace.should.include :stale
+    cache.trace.should.not.include :fresh
+    cache.trace.should.not.include :miss
+    cache.trace.should.include :store
     response.body.should.equal 'Hello World'
   end
 
@@ -385,8 +378,9 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Last-Modified'
     response.headers.should.include 'X-Content-Digest'
     response.body.should.equal 'Hello World'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+    cache.trace.should.not.include :stale
 
     # build subsequent request; should be found but miss due to freshness
     get '/'
@@ -397,9 +391,10 @@ describe 'Rack::Cache::Context' do
     response['Age'].to_i.should.equal 0
     response['X-Origin-Status'].should.equal '304'
     response.body.should.equal 'Hello World'
-    cache.should.a.not.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.performed :store
+    cache.trace.should.include :stale
+    cache.trace.should.include :valid
+    cache.trace.should.include :store
+    cache.trace.should.not.include :miss
   end
 
   it 'validates cached responses with ETag and no freshness information' do
@@ -419,8 +414,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Etag'
     response.headers.should.include 'X-Content-Digest'
     response.body.should.equal 'Hello World'
-    cache.should.a.performed :miss
-    cache.should.a.performed :store
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
 
     # build subsequent request; should be found but miss due to freshness
     get '/'
@@ -431,9 +426,10 @@ describe 'Rack::Cache::Context' do
     response['Age'].to_i.should.equal 0
     response['X-Origin-Status'].should.equal '304'
     response.body.should.equal 'Hello World'
-    cache.should.a.not.performed :miss
-    cache.should.a.performed :fetch
-    cache.should.a.performed :store
+    cache.trace.should.include :stale
+    cache.trace.should.include :valid
+    cache.trace.should.include :store
+    cache.trace.should.not.include :miss
   end
 
   it 'replaces cached responses when validation results in non-304 response' do
@@ -475,11 +471,7 @@ describe 'Rack::Cache::Context' do
       req.request_method.should.equal 'HEAD'
     end
 
-    cache_config do
-      on(:receive) { pass! }
-    end
-
-    head '/'
+    head '/', 'HTTP_EXPECT' => 'something ...'
     app.should.be.called
     response.body.should.equal ''
   end
@@ -521,16 +513,16 @@ describe 'Rack::Cache::Context' do
         'HTTP_USER_AGENT' => 'Bob/1.0'
       response.should.be.ok
       response.body.should.equal 'Bob/1.0'
-      cache.should.a.performed :miss
-      cache.should.a.performed :store
+      cache.trace.should.include :miss
+      cache.trace.should.include :store
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
       response.should.be.ok
       response.body.should.equal 'Bob/1.0'
-      cache.should.a.performed :hit
-      cache.should.a.not.performed :fetch
+      cache.trace.should.include :fresh
+      cache.trace.should.not.include :store
       response.headers.should.include 'X-Content-Digest'
     end
 
@@ -545,101 +537,30 @@ describe 'Rack::Cache::Context' do
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/2.0'
-      cache.should.a.performed :miss
-      cache.should.a.performed :store
+      cache.trace.should.include :miss
+      cache.trace.should.include :store
       response.body.should.equal 'Bob/2.0'
       response['X-Response-Count'].should.equal '2'
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/1.0'
-      cache.should.a.performed :hit
+      cache.trace.should.include :fresh
       response.body.should.equal 'Bob/1.0'
       response['X-Response-Count'].should.equal '1'
 
       get '/',
         'HTTP_ACCEPT' => 'text/html',
         'HTTP_USER_AGENT' => 'Bob/2.0'
-      cache.should.a.performed :hit
+      cache.trace.should.include :fresh
       response.body.should.equal 'Bob/2.0'
       response['X-Response-Count'].should.equal '2'
 
       get '/',
         'HTTP_USER_AGENT' => 'Bob/2.0'
-      cache.should.a.performed :miss
+      cache.trace.should.include :miss
       response.body.should.equal 'Bob/2.0'
       response['X-Response-Count'].should.equal '3'
     end
   end
-
-  describe 'when transitioning to the error state' do
-
-    setup { respond_with(200) }
-
-    it 'creates a blank slate response object with 500 status with no args' do
-      cache_config do
-        on(:receive) { error! }
-      end
-      get '/'
-      response.status.should.equal 500
-      response.body.should.be.empty
-      cache.should.a.performed :error
-    end
-
-    it 'sets the status code with one arg' do
-      cache_config do
-        on(:receive) { error! 505 }
-      end
-      get '/'
-      response.status.should.equal 505
-    end
-
-    it 'sets the status and headers with args: status, Hash' do
-      cache_config do
-        on(:receive) { error! 504, 'Content-Type' => 'application/x-foo' }
-      end
-      get '/'
-      response.status.should.equal 504
-      response['Content-Type'].should.equal 'application/x-foo'
-      response.body.should.be.empty
-    end
-
-    it 'sets the status and body with args: status, String' do
-      cache_config do
-        on(:receive) { error! 503, 'foo bar baz' }
-      end
-      get '/'
-      response.status.should.equal 503
-      response.body.should.equal 'foo bar baz'
-    end
-
-    it 'sets the status and body with args: status, Array' do
-      cache_config do
-        on(:receive) { error! 503, ['foo bar baz'] }
-      end
-      get '/'
-      response.status.should.equal 503
-      response.body.should.equal 'foo bar baz'
-    end
-
-    it 'fires the error event before finishing' do
-      fired = false
-      cache_config do
-        on(:receive) { error! }
-        on(:error) {
-          fired = true
-          response.status.should.equal 500
-          response['Content-Type'] = 'application/x-foo'
-          response.body = ['overridden response body']
-        }
-      end
-      get '/'
-      fired.should.be true
-      response.status.should.equal 500
-      response.body.should.equal 'overridden response body'
-      response['Content-Type'].should.equal 'application/x-foo'
-    end
-
-  end
-
 end

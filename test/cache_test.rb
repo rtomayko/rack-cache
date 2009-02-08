@@ -27,7 +27,7 @@ describe 'Rack::Cache::new' do
       Rack::Cache.new @app do
         block_scope = self
         state = 'invoked'
-        should.respond_to :on
+        should.respond_to :set
       end
     state.should.equal 'invoked'
     object.should.be block_scope
