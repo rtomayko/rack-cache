@@ -1,5 +1,15 @@
 ## 0.4.0 / Unreleased
 
+  * Less crazy logging. When the verbose option is set, a single log entry
+    is written with a comma separated list of trace events. For example, if
+    the cache was stale but validated, the following log entry would be
+    written: "cache: stale, valid, store". When the verbose option is false,
+    no logging occurs.
+
+  * Added "X-Rack-Cache" response header with the same comma separated trace
+    value as described above. This gives some visibility into how the cache
+    processed the request.
+
   * Add support for canonicalized cache keys, as well as custom cache key
     generators, which are specified in the options as :cache_key as either
     any object that has a call() or as a block. Cache key generators get

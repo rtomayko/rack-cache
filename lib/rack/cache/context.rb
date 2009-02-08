@@ -81,13 +81,9 @@ module Rack::Cache
 
     # Write a log message to the errors stream. +level+ is a symbol
     # such as :error, :warn, :info, or :trace.
-    def log(level, message=nil, *params)
-      errors.write("[cache] #{level}: #{message}\n" % params)
+    def log(message=nil, *params)
+      errors.write("cache: #{message}\n" % params)
       errors.flush
-    end
-
-    def warn(*message, &bk)
-      log :warn, *message, &bk
     end
 
   private
@@ -105,11 +101,6 @@ module Rack::Cache
         response.last_modified_at?(original_request.if_modified_since)
     end
 
-    # Delegate the request to the backend and create the response.
-    def fetch_from_backend
-      Response.new(*backend.call(request.env))
-    end
-
     # Called at the beginning of request processing, after the complete
     # request has been fully received. Its purpose is to decide whether or
     # not to serve the request from cache and will transition to the either
@@ -123,16 +114,27 @@ module Rack::Cache
       @request = Request.new(@env)
 
       response =
-        if request.method?('GET', 'HEAD') && !request.header?('Expect')
+        if @request.method?('GET', 'HEAD') && !@request.header?('Expect')
           lookup
         else
           pass
         end
 
+      # log trace and set X-Rack-Cache tracing header
+      trace = @trace.join(', ')
+      log trace if verbose?
+      response['X-Rack-Cache'] = trace
+
+      # tidy up response a bit
       response.not_modified! if not_modified?(response)
       response.body = [] if @original_request.head?
       response.headers.delete 'X-Status'
       response.to_a
+    end
+
+    # Delegate the request to the backend and create the response.
+    def forward
+      Response.new(*backend.call(request.env))
     end
 
     # The request is sent to the backend, and the backend's response is sent
@@ -140,7 +142,7 @@ module Rack::Cache
     def pass
       record :pass
       @request.env['REQUEST_METHOD'] = @original_request.request_method
-      fetch_from_backend
+      forward
     end
 
     # Try to serve the response from cache. When a matching cache entry is
@@ -149,17 +151,20 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
-      if entry = metastore.lookup(original_request, entitystore)
-        if entry.fresh?
-          record :fresh
-          entry
-        else
-          response = validate(entry)
-          store(response) if response.cacheable?
-          response
-        end
+      entry = metastore.lookup(original_request, entitystore)
+      if entry && entry.fresh?
+        record :fresh
+        entry
       else
-        response = miss
+        response =
+          if entry
+            record :stale
+            validate(entry)
+          else
+            record :miss
+            miss
+          end
+
         store(response) if response.cacheable?
         response
       end
@@ -168,19 +173,16 @@ module Rack::Cache
     # Validate that the cache entry is fresh. The original request is used
     # as a template for a conditional GET request with the backend.
     def validate(entry)
-      record :stale
-
       # add our cached validators to the backend request
       request.headers['If-Modified-Since'] = entry.last_modified
       request.headers['If-None-Match'] = entry.etag
-      backend_response = fetch_from_backend
+      backend_response = forward
 
       if backend_response.status == 304
         record :valid
         response = entry.dup
         response.headers.delete('Age')
         response.headers.delete('Date')
-        response.headers['X-Origin-Status'] = '304'
         %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
           next unless value = backend_response.headers[name]
           response[name] = value
@@ -196,11 +198,9 @@ module Rack::Cache
     # The cache missed. Forward the request to the backend and determine
     # whether the response should be stored.
     def miss
-      record :miss
-
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
-      response = fetch_from_backend
+      response = forward
 
       # mark the response as explicitly private if any of the private
       # request headers are present and the response was not explicitly

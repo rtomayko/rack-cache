@@ -7,9 +7,6 @@
   - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
-  - Improve logging. Ideally, a single log entry will be written for each
-    request with enough detail to figure out whether it was a pass, hit, miss,
-    successful validation, failed validation, etc.
   - Sample apps: Rack, Rails, Sinatra, Merb, etc.
 
 ## Backlog

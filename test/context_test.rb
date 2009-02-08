@@ -389,7 +389,6 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Last-Modified'
     response.headers.should.include 'X-Content-Digest'
     response['Age'].to_i.should.equal 0
-    response['X-Origin-Status'].should.equal '304'
     response.body.should.equal 'Hello World'
     cache.trace.should.include :stale
     cache.trace.should.include :valid
@@ -424,7 +423,6 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Etag'
     response.headers.should.include 'X-Content-Digest'
     response['Age'].to_i.should.equal 0
-    response['X-Origin-Status'].should.equal '304'
     response.body.should.equal 'Hello World'
     cache.trace.should.include :stale
     cache.trace.should.include :valid
