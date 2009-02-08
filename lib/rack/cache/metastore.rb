@@ -129,7 +129,6 @@ module Rack::Cache
     end
 
   private
-
     # Generate a SHA1 hex digest for the specified string. This is a
     # simple utility method for meta store implementations.
     def hexdigest(data)
@@ -137,7 +136,6 @@ module Rack::Cache
     end
 
   public
-
     # Concrete MetaStore implementation that uses a simple Hash to store
     # request/response pairs on the heap.
     class Heap < MetaStore

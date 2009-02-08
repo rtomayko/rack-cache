@@ -1,4 +1,3 @@
-require 'fileutils'
 require 'time'
 require 'rack'
 
@@ -12,7 +11,6 @@ require 'rack'
 # * Freshness/expiration based caching and validation
 # * Supports HTTP Vary
 # * Portable: 100% Ruby / works with any Rack-enabled framework
-# * VCL-like configuration language for advanced caching policies
 # * Disk, memcached, and heap memory storage backends
 #
 # === Usage
@@ -29,7 +27,6 @@ require 'rack'
 #     set :entitystore, 'file:/var/cache/rack'
 #   end
 #   run app
-#
 module Rack::Cache
   require 'rack/cache/request'
   require 'rack/cache/response'

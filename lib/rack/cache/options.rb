@@ -3,16 +3,16 @@ require 'rack/cache/key'
 require 'rack/cache/storage'
 
 module Rack::Cache
+
   # Configuration options and utility methods for option access. Rack::Cache
   # uses the Rack Environment to store option values. All options documented
   # below are stored in the Rack Environment as "rack-cache.<option>", where
   # <option> is the option name.
   #
-  # The #set method can be used within an event or a top-level configuration
-  # block to configure a option values. When #set is called at the top-level,
-  # the value applies to all requests; when called from within an event, the
-  # values applies only to the request being processed.
-
+  # The #set method can be used to configure a option values. When #set is
+  # called outside of request scope, the value applies to all requests; when
+  # called from within a request context, applies only to the request being
+  # processed.
   module Options
     class << self
       private
@@ -132,12 +132,12 @@ module Rack::Cache
   private
     def initialize_options(options={})
       @default_options = {
-        'rack-cache.key_gen'     => Key,
-        'rack-cache.verbose'     => true,
-        'rack-cache.storage'     => Rack::Cache::Storage.instance,
-        'rack-cache.metastore'   => 'heap:/',
-        'rack-cache.entitystore' => 'heap:/',
-        'rack-cache.default_ttl' => 0,
+        'rack-cache.cache_key'       => Key,
+        'rack-cache.verbose'         => true,
+        'rack-cache.storage'         => Rack::Cache::Storage.instance,
+        'rack-cache.metastore'       => 'heap:/',
+        'rack-cache.entitystore'     => 'heap:/',
+        'rack-cache.default_ttl'     => 0,
         'rack-cache.private_headers' => ['Authorization', 'Cookie']
       }
       self.options = options

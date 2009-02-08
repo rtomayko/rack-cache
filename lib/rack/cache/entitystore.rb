@@ -1,6 +1,7 @@
 require 'digest/sha1'
 
 module Rack::Cache
+
   # Entity stores are used to cache response bodies across requests. All
   # Implementations are required to calculate a SHA checksum of the data written
   # which becomes the response body's key.
@@ -241,7 +242,6 @@ module Rack::Cache
 
     MEMCACHE = MemCache
     MEMCACHED = MemCache
-
   end
 
 end

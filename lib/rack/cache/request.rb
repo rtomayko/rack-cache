@@ -3,13 +3,13 @@ require 'rack/cache/headers'
 require 'rack/utils/environment_headers'
 
 module Rack::Cache
+
   # Provides access to the HTTP request. The +request+ and +original_request+
   # objects exposed by the Core caching engine are instances of this class.
   #
   # Request objects respond to a variety of convenience methods, including
   # everything defined by Rack::Request as well as the Headers and
   # RequestHeaders modules.
-
   class Request < Rack::Request
     include Rack::Cache::Headers
     include Rack::Cache::RequestHeaders
