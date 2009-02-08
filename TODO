@@ -1,11 +1,16 @@
 ## 0.4
 
-  - liberal, conservative, sane caching configs
-  - Sample apps: Rack, Rails, Sinatra, Merb, etc.
-  - busters.rb and no-cache.rb doc and tests
+  - Support request-side Cache-Control directives (especially no-cache but also
+    max-age, max-stale, etc.)
+  - Move breakers.rb configuration file into rack-contrib as a middleware
+    component. So trivial.
   - Cache invalidation on PUT, POST, DELETE.
     - Invalidate at the request URI; or, anything that's "near" the request URI.
     - Invalidate at the URI of the Location or Content-Location response header.
+  - Improve logging. Ideally, a single log entry will be written for each
+    request with enough detail to figure out whether it was a pass, hit, miss,
+    successful validation, failed validation, etc.
+  - Sample apps: Rack, Rails, Sinatra, Merb, etc.
 
 ## Backlog
 
