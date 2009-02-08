@@ -2,9 +2,6 @@ require 'fileutils'
 require 'time'
 require 'rack'
 
-module Rack #:nodoc:
-end
-
 # = HTTP Caching For Rack
 #
 # Rack::Cache is suitable as a quick, drop-in component to enable HTTP caching
