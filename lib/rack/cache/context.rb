@@ -101,6 +101,17 @@ module Rack::Cache
         response.last_modified_at?(original_request.if_modified_since)
     end
 
+    # Whether the cache entry is "fresh enough" to satisfy the request.
+    def fresh_enough?(entry)
+      if entry.fresh?
+        if max_age = request.max_age
+          max_age > 0 && max_age >= entry.age
+        else
+          true
+        end
+      end
+    end
+
     # Called at the beginning of request processing, after the complete
     # request has been fully received. Its purpose is to decide whether or
     # not to serve the request from cache and will transition to the either
@@ -153,18 +164,15 @@ module Rack::Cache
     def lookup
       if request.no_cache?
         record :reload
-        return fetch
-      end
-
-      entry = metastore.lookup(original_request, entitystore)
-      if entry && entry.fresh?
-        record :fresh
-        return entry
-      end
-
-      if entry
-        record :stale
-        validate(entry)
+        fetch
+      elsif entry = metastore.lookup(original_request, entitystore)
+        if fresh_enough?(entry)
+          record :fresh
+          entry
+        else
+          record :stale
+          validate(entry)
+        end
       else
         record :miss
         fetch
