@@ -1,5 +1,15 @@
 ## 0.4.0 / Unreleased
 
+  * Properly implement "Cache-Control: no-cache" request directive by
+    performing a full reload. RFC 2616 states that when "no-cache" is
+    present in the request, the cache MUST NOT serve a stored response even
+    after successful validation. This is slightly different from the
+    "no-cache" directive in responses, which indicates that the cache must
+    first validate its entry with the origin. Previously, we implemented
+    "no-cache" on requests by passing so no new cache entry would be stored
+    based on the response. Now we treat it as a forced miss and enter the
+    response into the cache if it's cacheable.
+
   * Less crazy logging. When the verbose option is set, a single log entry
     is written with a comma separated list of trace events. For example, if
     the cache was stale but validated, the following log entry would be

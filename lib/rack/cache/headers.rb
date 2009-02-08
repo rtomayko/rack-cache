@@ -46,6 +46,19 @@ module Rack::Cache
       end
     end
 
+    # Indicates that the response should not be served from cache without first
+    # revalidating with the origin. Note that this does not necessary imply that
+    # a caching agent ought not store the response in its cache.
+    def no_cache?
+      cache_control['no-cache']
+    end
+
+    # The value of the Cache-Control max-age directive as a Fixnum, or nil
+    # when no max-age directive is present.
+    def max_age
+      age = cache_control['max-age'] && age.to_i
+    end
+
     # The literal value of the ETag HTTP header or nil if no ETag is specified.
     def etag
       headers['Etag']
@@ -131,13 +144,6 @@ module Rack::Cache
     # the response with the origin using a conditional GET request.
     def validateable?
       header?('Last-Modified') || header?('Etag')
-    end
-
-    # Indicates that the response should not be served from cache without first
-    # revalidating with the origin. Note that this does not necessary imply that
-    # a caching agent ought not store the response in its cache.
-    def no_cache?
-      cache_control['no-cache']
     end
 
     # Indicates that the response should not be stored under any circumstances.

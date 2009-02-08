@@ -103,13 +103,37 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
-  it 'caches requests when Cache-Control request header set to no-cache' do
+  it 'stores responses when no-cache request directive present' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
-    get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
 
+    get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
     response.should.be.ok
     cache.trace.should.include :store
     response.headers.should.include 'Age'
+  end
+
+  it 'reloads responses when cache hits but no-cache request directive present' do
+    count = 0
+    respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
+      count+= 1
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :fresh
+
+    get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
+    response.should.be.ok
+    response.body.should.equal 'Goodbye World'
+    cache.trace.should.include :reload
+    cache.trace.should.include :store
   end
 
   it 'fetches response from backend when cache misses' do

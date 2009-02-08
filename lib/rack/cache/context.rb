@@ -151,22 +151,23 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
+      if request.no_cache?
+        record :reload
+        return fetch
+      end
+
       entry = metastore.lookup(original_request, entitystore)
       if entry && entry.fresh?
         record :fresh
-        entry
-      else
-        response =
-          if entry
-            record :stale
-            validate(entry)
-          else
-            record :miss
-            miss
-          end
+        return entry
+      end
 
-        store(response) if response.cacheable?
-        response
+      if entry
+        record :stale
+        validate(entry)
+      else
+        record :miss
+        fetch
       end
     end
 
@@ -178,26 +179,30 @@ module Rack::Cache
       request.headers['If-None-Match'] = entry.etag
       backend_response = forward
 
-      if backend_response.status == 304
-        record :valid
-        response = entry.dup
-        response.headers.delete('Age')
-        response.headers.delete('Date')
-        %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
-          next unless value = backend_response.headers[name]
-          response[name] = value
+      response =
+        if backend_response.status == 304
+          record :valid
+          entry = entry.dup
+          entry.headers.delete('Age')
+          entry.headers.delete('Date')
+          %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
+            next unless value = backend_response.headers[name]
+            entry[name] = value
+          end
+          entry.activate!
+          entry
+        else
+          record :invalid
+          backend_response
         end
-        response.activate!
-        response
-      else
-        record :invalid
-        backend_response
-      end
+      store(response) if response.cacheable?
+
+      response
     end
 
-    # The cache missed. Forward the request to the backend and determine
-    # whether the response should be stored.
-    def miss
+    # The cache missed or a reload is required. Forward the request to the
+    # backend and determine whether the response should be stored.
+    def fetch
       request.env.delete('HTTP_IF_MODIFIED_SINCE')
       request.env.delete('HTTP_IF_NONE_MATCH')
       response = forward
@@ -213,6 +218,7 @@ module Rack::Cache
         # default ttl assigment.
         response.ttl = default_ttl
       end
+      store(response) if response.cacheable?
 
       response
     end
@@ -221,7 +227,7 @@ module Rack::Cache
     def store(response)
       record :store
       metastore.store(original_request, response, entitystore)
-      response
+      nil
     end
   end
 end
