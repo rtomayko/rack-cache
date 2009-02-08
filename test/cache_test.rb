@@ -12,15 +12,18 @@ describe 'Rack::Cache::new' do
     Rack::Cache.new(@app).
       should.respond_to :call
   end
+
   it 'takes an options Hash' do
     lambda { Rack::Cache.new(@app, {}) }.
       should.not.raise(ArgumentError)
   end
+
   it 'sets options provided in the options Hash' do
     object = Rack::Cache.new(@app, :foo => 'bar', 'foo.bar' => 'bling')
     object.options['foo.bar'].should.equal 'bling'
     object.options['rack-cache.foo'].should.equal 'bar'
   end
+
   it 'takes a block; executes it during initialization' do
     state, block_scope = 'not invoked', nil
     object =

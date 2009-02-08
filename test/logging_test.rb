@@ -6,8 +6,7 @@ describe "Rack::Cache::Context logging" do
   before(:each) do
     respond_with 200
     @errors = StringIO.new
-    @cache = Rack::Cache::Context.new(@app)
-    @cache.errors = @errors
+    @cache = Rack::Cache::Context.new(@app, 'rack-cache.errors' => @errors)
     @cache.metaclass.send :public, :log, :warn
   end
 
