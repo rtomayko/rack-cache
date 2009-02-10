@@ -7,7 +7,6 @@ for [Rack][]-based applications that produce freshness (`Expires`,
   * Validation
   * Vary support
   * Portable: 100% Ruby / works with any [Rack][]-enabled framework.
-  * [Configuration language][config] for advanced caching policies.
   * Disk, memcached, and heap memory [storage backends][storage].
 
 Status
@@ -52,8 +51,7 @@ caching.
 More
 ----
 
-  * [Configuration Language Documentation][config] - how to customize cache
-    policy using the simple event-based configuration system.
+  * [Configuration and Options][config] - how to set cache options.
 
   * [Cache Storage Documentation][storage] - detailed information on the various
     storage implementations available in __Rack::Cache__ and how to choose the one
