@@ -21,6 +21,15 @@ module Rack::Cache
   # methods dumb and straight-forward to implement.
   class MetaStore
 
+    def invalidate(request, entity_store)
+      key = cache_key(request)
+      entries = read(key)
+      match = entries.detect do |req,res|
+        entity_store.purge(res['X-Content-Digest'])
+      end
+      purge(key)
+    end
+
     # Locate a cached response for the request provided. Returns a
     # Rack::Cache::Response object if the cache hits or nil if no cache entry
     # was found.

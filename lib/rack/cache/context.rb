@@ -128,7 +128,9 @@ module Rack::Cache
         if @request.method?('GET', 'HEAD') && !@request.header?('Expect')
           lookup
         else
-          pass
+          # Invalidate POST, PUT, DELETE and all methods not understood by this cache
+          # See RFC2616 13.10
+          invalidate
         end
 
       # log trace and set X-Rack-Cache tracing header
@@ -148,10 +150,12 @@ module Rack::Cache
       Response.new(*backend.call(request.env))
     end
 
+    # Old cache entries at this URL are invalidated.
     # The request is sent to the backend, and the backend's response is sent
     # to the client, but is not entered into the cache.
-    def pass
-      record :pass
+    def invalidate
+      record :invalidate
+      metastore.invalidate(@original_request, entitystore)
       @request.env['REQUEST_METHOD'] = @original_request.request_method
       forward
     end
