@@ -82,7 +82,7 @@ module Rack::Cache
     # Write a log message to the errors stream. +level+ is a symbol
     # such as :error, :warn, :info, or :trace.
     def log(message=nil, *params)
-      errors.write("cache: #{message}\n" % params)
+      errors.write("cache: #{@request.path_info} - #{message}\n" % params)
       errors.flush
     end
 
