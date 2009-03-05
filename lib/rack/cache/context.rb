@@ -27,17 +27,10 @@ module Rack::Cache
     attr_reader :backend
 
     def initialize(backend, options={}, &block)
-      @errors = nil
       @backend = backend
       @trace = []
       initialize_options options
       instance_eval(&block) if block_given?
-    end
-
-    # IO-like object that receives log, warning, and error messages;
-    def errors
-      (@errors ||= options['rack-cache.errors'] || @env['rack.errors']) ||
-        STDERR
     end
 
     # The configured MetaStore instance. Changing the rack-cache.metastore
@@ -77,13 +70,6 @@ module Rack::Cache
     # Record that an event took place.
     def record(event)
       @trace << event
-    end
-
-    # Write a log message to the errors stream. +level+ is a symbol
-    # such as :error, :warn, :info, or :trace.
-    def log(message=nil, *params)
-      errors.write("cache: #{@request.path_info} - #{message}\n" % params)
-      errors.flush
     end
 
   private
@@ -135,8 +121,14 @@ module Rack::Cache
 
       # log trace and set X-Rack-Cache tracing header
       trace = @trace.join(', ')
-      log trace if verbose?
       response['X-Rack-Cache'] = trace
+
+      # write log message to rack.errors
+      if verbose?
+        message = "cache: [%s %s] %s\n" %
+          [@request.request_method, @request.fullpath, trace]
+        @env['rack.errors'].write(message)
+      end
 
       # tidy up response a bit
       response.not_modified! if not_modified?(response)
