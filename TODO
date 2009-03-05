@@ -1,19 +1,25 @@
 ## 0.4
 
-  - Support request-side Cache-Control directives (especially no-cache but also
-    max-age, max-stale, etc.)
   - Move breakers.rb configuration file into rack-contrib as a middleware
-    component. So trivial.
-  - Cache invalidation on PUT, POST, DELETE.
-    - Invalidate at the request URI; or, anything that's "near" the request URI.
-    - Invalidate at the URI of the Location or Content-Location response header.
+    component.
+  - Add docs on using Rack::Cache with Rails 2.3 or link to one of the
+    existing tutorials on this.
   - Sample apps: Rack, Rails, Sinatra, Merb, etc.
 
 ## Backlog
 
+  - Use Bacon instead of test/spec
+  - Work with both memcache and memcached gems (memcached hasn't built on MacOS
+    for some time now).
+  - Fast path pass processing. We do a lot more than necessary just to determine
+    that the response should be passed through untouched.
+  - Don't purge/remove cache entries when invalidating. The entries should be
+    marked as stale and be forced revalidated on the next request instead of
+    being removed entirely.
   - Add missing Expires header if we have a max-age.
-  - Purge/invalidate specific cache entries
   - Purge/invalidate everything
+  - Invalidate at the URI of the Location or Content-Location response header
+    on POST, PUT, or DELETE that results in a redirect.
   - Maximum size of cached entity
   - Last-Modified factor: requests that have a Last-Modified header but no Expires
     header have a TTL assigned based on the last modified age of the response:
