@@ -15,6 +15,17 @@ describe 'Rack::Cache::Context' do
     response.headers.should.not.include 'Age'
   end
 
+  %w[post put delete].each do |request_method|
+    it "invalidates on #{request_method} requests" do
+      respond_with 200
+      request request_method, '/'
+
+      app.should.be.called
+      response.should.be.ok
+      cache.trace.should.include :invalidate
+    end
+  end
+
   it 'does not cache with Authorization request header and non public response' do
     respond_with 200, 'Etag' => '"FOO"'
     get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
@@ -544,6 +555,44 @@ describe 'Rack::Cache::Context' do
     response['Content-Length'].should.equal 'Hello World'.length.to_s
   end
 
+  it 'purges cached responses on POST' do
+    respond_with do |req,res|
+      if req.request_method == 'GET'
+        res.status = 200
+        res['Cache-Control'] = 'public, max-age=500'
+        res.body = ['Hello World']
+      elsif req.request_method == 'POST'
+        res.status = 303
+        res['Location'] = '/'
+        res.headers.delete('Cache-Control')
+        res.body = []
+      end
+    end
+
+    # build initial request to enter into the cache
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+
+    # now POST to same URL
+    post '/'
+    app.should.be.called
+    response.should.be.redirect
+    response['Location'].should.equal '/'
+    cache.trace.should.include :invalidate
+    response.body.should.equal ''
+
+    # now make sure it was actually invalidated
+    get '/'
+    app.should.be.called
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+  end
 
   describe 'with responses that include a Vary header' do
     before(:each) do

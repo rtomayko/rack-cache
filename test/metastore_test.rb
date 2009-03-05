@@ -143,6 +143,18 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     body.should.equal 'test'
   end
 
+  it 'purges meta and entity store entries with #invalidate' do
+    store_simple_entry
+    @store.invalidate(@request, @entity_store)
+    response = @store.lookup(@request, @entity_store).should.be.nil
+  end
+
+  it 'succeeds quietly when #invalidate called with no matching entries' do
+    req = mock_request('/test', {})
+    @store.invalidate(req, @entity_store)
+    @store.lookup(@request, @entity_store).should.be.nil
+  end
+
   # Vary =======================================================================
 
   it 'does not return entries that Vary with #lookup' do

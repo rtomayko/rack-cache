@@ -21,15 +21,6 @@ module Rack::Cache
   # methods dumb and straight-forward to implement.
   class MetaStore
 
-    def invalidate(request, entity_store)
-      key = cache_key(request)
-      entries = read(key)
-      match = entries.detect do |req,res|
-        entity_store.purge(res['X-Content-Digest'])
-      end
-      purge(key)
-    end
-
     # Locate a cached response for the request provided. Returns a
     # Rack::Cache::Response object if the cache hits or nil if no cache entry
     # was found.
@@ -92,6 +83,17 @@ module Rack::Cache
     def cache_key(request)
       keygen = request.env['rack-cache.cache_key'] || Key
       keygen.call(request)
+    end
+
+    # Invalidate all cache entries that match the request.
+    #
+    # TODO: This should not purge the entries but rather mark them as
+    # stale so that they're revalidated on the next request.
+    def invalidate(request, entity_store)
+      key = cache_key(request)
+      entries = read(key)
+      entries.each { |req,res| entity_store.purge(res['X-Content-Digest']) }
+      purge(key)
     end
 
   private
