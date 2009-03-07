@@ -38,7 +38,8 @@ module Rack::Cache
 
       req, res = match
       if body = entity_store.open(res['X-Content-Digest'])
-        response = Rack::Cache::Response.new(res['X-Status'].to_i, res, body)
+        status = res.delete('X-Status').to_i
+        response = Rack::Cache::Response.new(status, res, body)
         response.activate!
         response
       else
@@ -57,7 +58,6 @@ module Rack::Cache
 
       # write the response body to the entity store if this is the
       # original response.
-      response['X-Status'] = response.status.to_s
       if response['X-Content-Digest'].nil?
         digest, size = entity_store.write(response.body)
         response['X-Content-Digest'] = digest
@@ -74,7 +74,11 @@ module Rack::Cache
           (vary == res['Vary']) &&
             requests_match?(vary, env, stored_env)
         end
-      entries.unshift [stored_env, {}.update(response.headers)]
+
+      headers = {'X-Status' => response.status.to_s}.update(response.headers)
+      headers.delete 'Age'
+
+      entries.unshift [stored_env, headers]
       write key, entries
       key
     end
@@ -86,14 +90,15 @@ module Rack::Cache
     end
 
     # Invalidate all cache entries that match the request.
-    #
-    # TODO: This should not purge the entries but rather mark them as
-    # stale so that they're revalidated on the next request.
     def invalidate(request, entity_store)
       key = cache_key(request)
       entries = read(key)
-      entries.each { |req,res| entity_store.purge(res['X-Content-Digest']) }
-      purge(key)
+      entries = entries.map do |req, res|
+        res = Rack::Cache::Response.new(0, res, nil)
+        res.headers['Age'] = res.max_age + 1
+        [req, res.headers]
+      end
+      write key, entries
     end
 
   private

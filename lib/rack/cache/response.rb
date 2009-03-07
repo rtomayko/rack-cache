@@ -36,7 +36,6 @@ module Rack::Cache
       @status = status
       @headers = Rack::Utils::HeaderHash.new(headers)
       @body = body
-      @now = Time.now
       @headers['Date'] ||= now.httpdate
     end
 
@@ -57,7 +56,7 @@ module Rack::Cache
 
     # Called immediately after an object is loaded from the cache.
     def activate!
-      headers['Age'] = age.to_i.to_s
+      headers['Age'] = age.to_s
     end
 
     # Return the status, headers, and body in a three-tuple.

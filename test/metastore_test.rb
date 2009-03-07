@@ -143,10 +143,12 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     body.should.equal 'test'
   end
 
-  it 'purges meta and entity store entries with #invalidate' do
+  it 'invalidates meta and entity store entries with #invalidate' do
     store_simple_entry
     @store.invalidate(@request, @entity_store)
-    response = @store.lookup(@request, @entity_store).should.be.nil
+    response = @store.lookup(@request, @entity_store)
+    response.should.be.kind_of Rack::Cache::Response
+    response.should.be.stale
   end
 
   it 'succeeds quietly when #invalidate called with no matching entries' do

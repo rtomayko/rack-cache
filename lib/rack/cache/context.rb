@@ -135,7 +135,6 @@ module Rack::Cache
       # tidy up response a bit
       response.not_modified! if not_modified?(response)
       response.body = [] if @original_request.head?
-      response.headers.delete 'X-Status'
       response.to_a
     end
 
@@ -195,7 +194,6 @@ module Rack::Cache
         if backend_response.status == 304
           record :valid
           entry = entry.dup
-          entry.headers.delete('Age')
           entry.headers.delete('Date')
           %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
             next unless value = backend_response.headers[name]

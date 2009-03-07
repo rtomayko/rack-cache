@@ -2,7 +2,8 @@
 
   * Invalidate cache entries that match the request URL on non-GET/HEAD
     requests. i.e., POST, PUT, DELETE cause matching cache entries to
-    be purged.
+    be invalidated. The cache entry is validated with the backend using
+    a conditional GET the next time it's requested.
 
   * Implement "Cache-Control: max-age=N" request directive by forcing
     validation when the max-age provided exceeds the age of the cache

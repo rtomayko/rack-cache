@@ -23,6 +23,7 @@ describe 'Rack::Cache::Context' do
       app.should.be.called
       response.should.be.ok
       cache.trace.should.include :invalidate
+      cache.trace.should.include :pass
     end
   end
 
@@ -555,7 +556,7 @@ describe 'Rack::Cache::Context' do
     response['Content-Length'].should.equal 'Hello World'.length.to_s
   end
 
-  it 'purges cached responses on POST' do
+  it 'invalidates cached responses on POST' do
     respond_with do |req,res|
       if req.request_method == 'GET'
         res.status = 200
@@ -577,12 +578,20 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :miss
     cache.trace.should.include :store
 
+    # make sure it is valid
+    get '/'
+    app.should.not.called
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :fresh
+
     # now POST to same URL
     post '/'
     app.should.be.called
     response.should.be.redirect
     response['Location'].should.equal '/'
     cache.trace.should.include :invalidate
+    cache.trace.should.include :pass
     response.body.should.equal ''
 
     # now make sure it was actually invalidated
@@ -590,7 +599,8 @@ describe 'Rack::Cache::Context' do
     app.should.be.called
     response.should.be.ok
     response.body.should.equal 'Hello World'
-    cache.trace.should.include :miss
+    cache.trace.should.include :stale
+    cache.trace.should.include :invalid
     cache.trace.should.include :store
   end
 
