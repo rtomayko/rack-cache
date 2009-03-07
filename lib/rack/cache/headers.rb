@@ -7,14 +7,6 @@ module Rack::Cache
   # responds to #headers by returning a Hash.
 
   module Headers
-    # Determine if any of the header names exist:
-    #   if header?('Authorization', 'Cookie')
-    #     ...
-    #   end
-    def header?(*names)
-      names.any? { |name| headers.include?(name) }
-    end
-
     # A Hash of name=value pairs that correspond to the Cache-Control header.
     # Valueless parameters (e.g., must-revalidate, no-store) have a Hash value
     # of true. This method always returns a Hash, empty if no Cache-Control
@@ -129,7 +121,7 @@ module Rack::Cache
     # Determine if the response includes headers that can be used to validate
     # the response with the origin using a conditional GET request.
     def validateable?
-      header?('Last-Modified') || header?('Etag')
+      headers.key?('Last-Modified') || headers.key?('ETag')
     end
 
     # Indicates that the response should not be stored under any circumstances.

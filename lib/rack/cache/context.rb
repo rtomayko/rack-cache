@@ -24,6 +24,9 @@ module Rack::Cache
       @trace = []
       initialize_options options
       instance_eval(&block) if block_given?
+
+      @private_header_keys =
+        private_headers.map { |name| "HTTP_#{name.upcase.tr('-', '_')}" }
     end
 
     # The configured MetaStore instance. Changing the rack-cache.metastore
@@ -70,7 +73,7 @@ module Rack::Cache
     # that should cause the response to be considered private by default?
     # Private responses are not stored in the cache.
     def private_request?
-      request.header?(*private_headers)
+      @private_header_keys.any? { |key| @env.key?(key) }
     end
 
     # Determine if the #response validators (ETag, Last-Modified) matches
@@ -102,7 +105,7 @@ module Rack::Cache
 
       response =
         if @request.get? || @request.head?
-          if !@request.header?('Expect')
+          if !@env['HTTP_EXPECT']
             lookup
           else
             pass
