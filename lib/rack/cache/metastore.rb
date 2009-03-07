@@ -40,7 +40,6 @@ module Rack::Cache
       if body = entity_store.open(res['X-Content-Digest'])
         status = res.delete('X-Status').to_i
         response = Rack::Cache::Response.new(status, res, body)
-        response.activate!
         response
       else
         # TODO the metastore referenced an entity that doesn't exist in
@@ -63,7 +62,6 @@ module Rack::Cache
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
         response.body = entity_store.open(digest)
-        response.activate!
       end
 
       # read existing cache entries, remove non-varying, and add this one to

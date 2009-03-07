@@ -47,11 +47,6 @@ module Rack::Cache
       @headers = other.headers.dup
     end
 
-    # Called immediately after an object is loaded from the cache.
-    def activate!
-      headers['Age'] = age.to_s
-    end
-
     # Return the status, headers, and body in a three-tuple.
     def to_a
       [status, headers.to_hash, body]

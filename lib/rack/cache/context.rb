@@ -160,6 +160,7 @@ module Rack::Cache
       elsif entry = metastore.lookup(request, entitystore)
         if fresh_enough?(entry)
           record :fresh
+          entry.headers['Age'] = entry.age.to_s
           entry
         else
           record :stale
@@ -192,7 +193,6 @@ module Rack::Cache
             next unless value = backend_response.headers[name]
             entry.headers[name] = value
           end
-          entry.activate!
           entry
         else
           record :invalid
@@ -235,6 +235,7 @@ module Rack::Cache
     def store(response)
       record :store
       metastore.store(request, response, entitystore)
+      response.headers['Age'] = response.age.to_s
       nil
     end
   end
