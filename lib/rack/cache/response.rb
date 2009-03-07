@@ -29,12 +29,16 @@ module Rack::Cache
     # The response headers.
     attr_reader :headers
 
+    # The time when the Response object was instantiated.
+    attr_reader :now
+
     # Create a Response instance given the response status code, header hash,
     # and body.
     def initialize(status, headers, body)
       @status = status
       @headers = Rack::Utils::HeaderHash.new(headers)
       @body = body
+      @now = Time.now
       @headers['Date'] ||= now.httpdate
     end
 

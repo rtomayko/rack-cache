@@ -3,7 +3,11 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 class MockResponse < Rack::MockResponse
   include Rack::Cache::Headers
   include Rack::Cache::ResponseHeaders
-  public :now
+  attr_reader :now
+  def initialize(*args)
+    @now = Time.now
+    super
+  end
 end
 
 describe 'Rack::Cache::Headers' do

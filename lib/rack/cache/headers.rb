@@ -298,11 +298,6 @@ module Rack::Cache
       return [] unless vary = headers['Vary']
       vary.split(/[\s,]+/)
     end
-
-  private
-    def now
-      @now ||= Time.now
-    end
   end
 
 end
