@@ -53,7 +53,7 @@ module Rack::Cache
 
     # The literal value of the ETag HTTP header or nil if no ETag is specified.
     def etag
-      headers['Etag']
+      headers['ETag']
     end
   end
 
@@ -111,7 +111,7 @@ module Rack::Cache
     # uncacheable
     #
     # Responses with neither a freshness lifetime (Expires, max-age) nor cache
-    # validator (Last-Modified, Etag) are considered uncacheable.
+    # validator (Last-Modified, ETag) are considered uncacheable.
     def cacheable?
       return false unless CACHEABLE_RESPONSE_CODES.include?(status)
       return false if no_store? || private?
@@ -257,7 +257,7 @@ module Rack::Cache
       Content-Encoding
       Content-Language
       Content-Length
-      Content-Md5
+      Content-MD5
       Content-Type
       Last-Modified
     ].to_set

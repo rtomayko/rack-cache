@@ -74,8 +74,8 @@ describe 'Rack::Cache::ResponseHeaders' do
       @res.extend Rack::Cache::ResponseHeaders
       @res.should.be.validateable
     end
-    it 'is true when Etag header present' do
-      @res = MockResponse.new(200, {'Etag' => '"12345"'}, [])
+    it 'is true when ETag header present' do
+      @res = MockResponse.new(200, {'ETag' => '"12345"'}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.should.be.validateable
     end

@@ -28,7 +28,7 @@ describe 'Rack::Cache::Context' do
   end
 
   it 'does not cache with Authorization request header and non public response' do
-    respond_with 200, 'Etag' => '"FOO"'
+    respond_with 200, 'ETag' => '"FOO"'
     get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
 
     app.should.be.called
@@ -52,7 +52,7 @@ describe 'Rack::Cache::Context' do
   end
 
   it 'does not cache with Cookie header and non public response' do
-    respond_with 200, 'Etag' => '"FOO"'
+    respond_with 200, 'ETag' => '"FOO"'
     get '/', 'HTTP_COOKIE' => 'foo=bar'
 
     app.should.be.called
@@ -98,7 +98,7 @@ describe 'Rack::Cache::Context' do
   it 'responds with 304 when If-None-Match matches ETag' do
     respond_with do |req,res|
       res.status = 200
-      res['Etag'] = '12345'
+      res['ETag'] = '12345'
       res['Content-Type'] = 'text/plain'
       res.body = ['Hello World']
     end
@@ -109,7 +109,7 @@ describe 'Rack::Cache::Context' do
     response.status.should.equal 304
     response.headers.should.not.include 'Content-Length'
     response.headers.should.not.include 'Content-Type'
-    response.headers.should.include 'Etag'
+    response.headers.should.include 'ETag'
     response.body.should.empty
     cache.trace.should.include :miss
     cache.trace.should.include :store
@@ -280,7 +280,7 @@ describe 'Rack::Cache::Context' do
   end
 
   it 'caches responses with an ETag validator but no freshness information' do
-    respond_with 200, 'Etag' => '"123456"'
+    respond_with 200, 'ETag' => '"123456"'
     get '/'
 
     response.should.be.ok
@@ -473,7 +473,7 @@ describe 'Rack::Cache::Context' do
     get '/'
     app.should.be.called
     response.should.be.ok
-    response.headers.should.include 'Etag'
+    response.headers.should.include 'ETag'
     response.headers.should.include 'X-Content-Digest'
     response.body.should.equal 'Hello World'
     cache.trace.should.include :miss
@@ -483,7 +483,7 @@ describe 'Rack::Cache::Context' do
     get '/'
     app.should.be.called
     response.should.be.ok
-    response.headers.should.include 'Etag'
+    response.headers.should.include 'ETag'
     response.headers.should.include 'X-Content-Digest'
     response['Age'].to_i.should.equal 0
     response.body.should.equal 'Hello World'

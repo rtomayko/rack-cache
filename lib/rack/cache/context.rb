@@ -192,7 +192,7 @@ module Rack::Cache
           record :valid
           entry = entry.dup
           entry.headers.delete('Date')
-          %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
+          %w[Date Expires Cache-Control ETag Last-Modified].each do |name|
             next unless value = backend_response.headers[name]
             entry.headers[name] = value
           end
