@@ -9,7 +9,7 @@ end
 describe 'Rack::Cache::Headers' do
   before :each do
     @now = Time.httpdate(Time.now.httpdate)
-    @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
+    @res = MockResponse.new(200, {'Date' => @now.httpdate}, [])
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
   end
   after :each do
@@ -58,7 +58,7 @@ describe 'Rack::Cache::ResponseHeaders' do
     @now = Time.httpdate(Time.now.httpdate)
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
     @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
-    @res = MockResponse.new(200, {'Date' => @now.httpdate}, '')
+    @res = MockResponse.new(200, {'Date' => @now.httpdate}, [])
   end
   after :each do
     @now, @res, @one_hour_ago = nil
@@ -66,17 +66,17 @@ describe 'Rack::Cache::ResponseHeaders' do
 
   describe '#validateable?' do
     it 'is true when Last-Modified header present' do
-      @res = MockResponse.new(200, { 'Last-Modified' => @one_hour_ago.httpdate }, '')
+      @res = MockResponse.new(200, {'Last-Modified' => @one_hour_ago.httpdate}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.should.be.validateable
     end
     it 'is true when Etag header present' do
-      @res = MockResponse.new(200, { 'Etag' => '"12345"' }, '')
+      @res = MockResponse.new(200, {'Etag' => '"12345"'}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.should.be.validateable
     end
     it 'is false when no validator is present' do
-      @res = MockResponse.new(200, {}, '')
+      @res = MockResponse.new(200, {}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.should.not.be.validateable
     end
@@ -84,17 +84,17 @@ describe 'Rack::Cache::ResponseHeaders' do
 
   describe '#date' do
     it 'uses the Date header if present' do
-      @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')
+      @res = MockResponse.new(200, {'Date' => @one_hour_ago.httpdate}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.date.should.equal @one_hour_ago
     end
     it 'uses the current time when no Date header present' do
-      @res = MockResponse.new(200, {}, '')
+      @res = MockResponse.new(200, {}, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.date.should.be.close Time.now, 1
     end
     it 'returns the correct date when the header is modified directly' do
-      @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, '')
+      @res = MockResponse.new(200, { 'Date' => @one_hour_ago.httpdate }, [])
       @res.extend Rack::Cache::ResponseHeaders
       @res.date.should.equal @one_hour_ago
       @res.headers['Date'] = @now.httpdate
@@ -153,12 +153,14 @@ describe 'Rack::Cache::ResponseHeaders' do
     it 'adds the private Cache-Control directive when set true' do
       @res.headers['Cache-Control'] = 'max-age=100'
       @res.private = true
-      @res.headers['Cache-Control'].should.equal 'private, max-age=100'
+      @res.headers['Cache-Control'].split(', ').sort.
+        should.equal ['max-age=100', 'private']
     end
     it 'removes the public Cache-Control directive' do
       @res.headers['Cache-Control'] = 'public, max-age=100'
       @res.private = true
-      @res.headers['Cache-Control'].should.equal 'private, max-age=100'
+      @res.headers['Cache-Control'].split(', ').sort.
+        should.equal ['max-age=100', 'private']
     end
   end
 

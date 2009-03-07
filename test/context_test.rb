@@ -499,8 +499,8 @@ describe 'Rack::Cache::Context' do
     respond_with do |req,res|
       res['Last-Modified'] = timestamp
       case (count+=1)
-      when 1 ; res.body = 'first response'
-      when 2 ; res.body = 'second response'
+      when 1 ; res.body = ['first response']
+      when 2 ; res.body = ['second response']
       when 3
         res.body = []
         res.status = 304
@@ -611,7 +611,7 @@ describe 'Rack::Cache::Context' do
         res['Vary'] = 'Accept User-Agent Foo'
         res['Cache-Control'] = 'max-age=10'
         res['X-Response-Count'] = (count+=1).to_s
-        res.body = req.env['HTTP_USER_AGENT']
+        res.body = [req.env['HTTP_USER_AGENT']]
       end
     end
 

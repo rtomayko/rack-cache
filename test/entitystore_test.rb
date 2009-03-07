@@ -1,3 +1,4 @@
+# coding: utf-8
 require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/entitystore'
 
@@ -16,7 +17,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'stores bodies with #write' do
-    key, size = @store.write('My wild love went riding,')
+    key, size = @store.write(['My wild love went riding,'])
     key.should.not.be.nil
     key.should.be.sha_like
 
@@ -25,19 +26,19 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'correctly determines whether cached body exists for key with #exist?' do
-    key, size = @store.write('She rode to the devil,')
+    key, size = @store.write(['She rode to the devil,'])
     @store.should.exist key
     @store.should.not.exist '938jasddj83jasdh4438021ksdfjsdfjsdsf'
   end
 
   it 'can read data written with #write' do
-    key, size = @store.write('And asked him to pay.')
+    key, size = @store.write(['And asked him to pay.'])
     data = @store.read(key)
     data.should.equal 'And asked him to pay.'
   end
 
   it 'gives a 40 character SHA1 hex digest from #write' do
-    key, size = @store.write('she rode to the sea;')
+    key, size = @store.write(['she rode to the sea;'])
     key.should.not.be.nil
     key.length.should.equal 40
     key.should.be =~ /^[0-9a-z]+$/
@@ -45,7 +46,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'returns the entire body as a String from #read' do
-    key, size = @store.write('She gathered together')
+    key, size = @store.write(['She gathered together'])
     @store.read(key).should.equal 'She gathered together'
   end
 
@@ -54,7 +55,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'returns a Rack compatible body from #open' do
-    key, size = @store.write('Some shells for her hair.')
+    key, size = @store.write(['Some shells for her hair.'])
     body = @store.open(key)
     body.should.respond_to :each
     buf = ''
@@ -67,8 +68,8 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'can store largish bodies with binary data' do
-    pony = File.read(File.dirname(__FILE__) + '/pony.jpg')
-    key, size = @store.write(pony)
+    pony = File.open(File.dirname(__FILE__) + '/pony.jpg', 'rb') { |f| f.read }
+    key, size = @store.write([pony])
     key.should.equal 'd0f30d8659b4d268c5c64385d9790024c2d78deb'
     data = @store.read(key)
     data.length.should.equal pony.length
@@ -76,7 +77,7 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
   end
 
   it 'deletes stored entries with #purge' do
-    key, size = @store.write('My wild love went riding,')
+    key, size = @store.write(['My wild love went riding,'])
     @store.purge(key).should.be.nil
     @store.read(key).should.be.nil
   end
@@ -112,14 +113,14 @@ describe 'Rack::Cache::EntityStore' do
       File.should.be.a.directory path
     end
     it 'produces a body that responds to #to_path' do
-      key, size = @store.write('Some shells for her hair.')
+      key, size = @store.write(['Some shells for her hair.'])
       body = @store.open(key)
       body.should.respond_to :to_path
       path = "#{@temp_dir}/#{key[0..1]}/#{key[2..-1]}"
       body.to_path.should.equal path
     end
     it 'spreads data over a 36² hash radius' do
-      (<<-PROSE).each { |line| @store.write(line).first.should.be.sha_like }
+      (<<-PROSE).each_line { |line| @store.write([line]).first.should.be.sha_like }
         My wild love went riding,
         She rode all the day;
         She rode to the devil,

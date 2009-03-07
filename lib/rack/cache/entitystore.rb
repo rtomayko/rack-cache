@@ -14,7 +14,7 @@ module Rack::Cache
     def slurp(body)
       digest, size = Digest::SHA1.new, 0
       body.each do |part|
-        size += part.length
+        size += bytesize(part)
         digest << part
         yield part
       end
@@ -22,7 +22,13 @@ module Rack::Cache
       [ digest.hexdigest, size ]
     end
 
-    private :slurp
+    if ''.respond_to?(:bytesize)
+      def bytesize(string); string.bytesize; end
+    else
+      def bytesize(string); string.size; end
+    end
+
+    private :slurp, :bytesize
 
 
     # Stores entity bodies on the heap using a Hash object.
@@ -91,7 +97,7 @@ module Rack::Cache
       end
 
       def read(key)
-        File.read(body_path(key))
+        File.open(body_path(key), 'rb') { |f| f.read }
       rescue Errno::ENOENT
         nil
       end

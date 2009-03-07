@@ -1,5 +1,7 @@
 ## 0.4.0 / Unreleased
 
+  * Ruby 1.9.1 / Rack 1.0 compatible.
+
   * Invalidate cache entries that match the request URL on non-GET/HEAD
     requests. i.e., POST, PUT, DELETE cause matching cache entries to
     be invalidated. The cache entry is validated with the backend using
