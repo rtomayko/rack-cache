@@ -124,8 +124,8 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
   it 'does not find an entry with #lookup when the body does not exist' do
     store_simple_entry
-    @response['X-Content-Digest'].should.not.be.nil
-    @entity_store.purge(@response['X-Content-Digest'])
+    @response.headers['X-Content-Digest'].should.not.be.nil
+    @entity_store.purge(@response.headers['X-Content-Digest'])
     @store.lookup(@request, @entity_store).should.be.nil
   end
 
@@ -148,7 +148,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
     @store.invalidate(@request, @entity_store)
     response = @store.lookup(@request, @entity_store)
     response.should.be.kind_of Rack::Cache::Response
-    response.should.be.stale
+    response.should.not.be.fresh
   end
 
   it 'succeeds quietly when #invalidate called with no matching entries' do

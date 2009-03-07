@@ -11,7 +11,6 @@ module Rack::Cache
   # everything defined by Rack::Request as well as the Headers and
   # RequestHeaders modules.
   class Request < Rack::Request
-    include Rack::Cache::Headers
     include Rack::Cache::RequestHeaders
 
     # The HTTP request method. This is the standard implementation of this
@@ -21,17 +20,5 @@ module Rack::Cache
     def request_method
       @env['REQUEST_METHOD']
     end
-
-    # Determine if the request's method matches any of the values
-    # provided:
-    #   if request.request_method?('GET', 'POST')
-    #     ...
-    #   end
-    def request_method?(*methods)
-      method = request_method
-      methods.any? { |test| test.to_s.upcase == method }
-    end
-
-    alias_method :method?, :request_method?
   end
 end

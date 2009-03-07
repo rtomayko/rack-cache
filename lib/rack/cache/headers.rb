@@ -114,12 +114,6 @@ module Rack::Cache
       ttl && ttl > 0
     end
 
-    # Determine if the response is "stale". Stale responses must be validated
-    # with the origin before use. This is the inverse of #fresh?.
-    def stale?
-      !fresh?
-    end
-
     # Determine if the response is worth caching under any circumstance. Responses
     # marked "private" with an explicit Cache-Control directive are considered
     # uncacheable
@@ -130,14 +124,6 @@ module Rack::Cache
       return false unless CACHEABLE_RESPONSE_CODES.include?(status)
       return false if no_store? || private?
       validateable? || fresh?
-    end
-
-    # The response includes specific information about its freshness. True when
-    # a +Cache-Control+ header with +max-age+ value is present or when the
-    # +Expires+ header is set.
-    def freshness_information?
-      header?('Expires') ||
-        !!(cache_control['s-maxage'] || cache_control['max-age'])
     end
 
     # Determine if the response includes headers that can be used to validate
@@ -154,15 +140,6 @@ module Rack::Cache
     # True when the response has been explicitly marked "public".
     def public?
       cache_control['public']
-    end
-
-    # Mark the response "public", making it eligible for other clients. Note
-    # that responses are considered "public" by default unless the request
-    # includes private headers (Authorization, Cookie).
-    def public=(value)
-      value = value ? true : nil
-      self.cache_control = cache_control.
-        merge('public' => value, 'private' => !value)
     end
 
     # True when the response has been marked "private" explicitly.

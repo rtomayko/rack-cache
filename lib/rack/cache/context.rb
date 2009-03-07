@@ -10,14 +10,7 @@ module Rack::Cache
     include Rack::Cache::Options
 
     # The request exactly as received. The object is an instance of
-    # Rack::Cache::Request.  This object cannot be modified. If the
-    # request requires modification before being delivered to the
-    # downstream application, use the #request object.
-    attr_reader :original_request
-
-    # The request that will be made downstream on the application. This
-    # defaults to the request exactly as received (#original_request). The
-    # object is an instance of Rack::Cache::Request.
+    # Rack::Cache::Request.  This object cannot be modified.
     attr_reader :request
 
     # Array of trace Symbols
@@ -67,12 +60,12 @@ module Rack::Cache
     end
 
   private
+
     # Record that an event took place.
     def record(event)
       @trace << event
     end
 
-  private
     # Does the request include authorization or other sensitive information
     # that should cause the response to be considered private by default?
     # Private responses are not stored in the cache.
@@ -81,10 +74,10 @@ module Rack::Cache
     end
 
     # Determine if the #response validators (ETag, Last-Modified) matches
-    # a conditional value specified in #original_request.
+    # a conditional value specified in #request.
     def not_modified?(response)
-      response.etag_matches?(original_request.if_none_match) ||
-        response.last_modified_at?(original_request.if_modified_since)
+      response.etag_matches?(request.if_none_match) ||
+        response.last_modified_at?(request.if_modified_since)
     end
 
     # Whether the cache entry is "fresh enough" to satisfy the request.
@@ -105,13 +98,10 @@ module Rack::Cache
     def dispatch
       # Store the request env exactly as we received it. Freeze the env to
       # ensure no changes are made.
-      @original_request = Request.new(@env.dup.freeze)
-
-      @env['REQUEST_METHOD'] = 'GET' if @original_request.head?
-      @request = Request.new(@env)
+      @request = Request.new(@env.dup.freeze)
 
       response =
-        if @request.method?('GET', 'HEAD')
+        if @request.get? || @request.head?
           if !@request.header?('Expect')
             lookup
           else
@@ -123,7 +113,7 @@ module Rack::Cache
 
       # log trace and set X-Rack-Cache tracing header
       trace = @trace.join(', ')
-      response['X-Rack-Cache'] = trace
+      response.headers['X-Rack-Cache'] = trace
 
       # write log message to rack.errors
       if verbose?
@@ -134,20 +124,19 @@ module Rack::Cache
 
       # tidy up response a bit
       response.not_modified! if not_modified?(response)
-      response.body = [] if @original_request.head?
+      response.body = [] if @request.head?
       response.to_a
     end
 
     # Delegate the request to the backend and create the response.
     def forward
-      Response.new(*backend.call(request.env))
+      Response.new(*backend.call(@env))
     end
 
     # The request is sent to the backend, and the backend's response is sent
     # to the client, but is not entered into the cache.
     def pass
       record :pass
-      @request.env['REQUEST_METHOD'] = @original_request.request_method
       forward
     end
 
@@ -155,7 +144,7 @@ module Rack::Cache
     # See RFC2616 13.10
     def invalidate
       record :invalidate
-      metastore.invalidate(@original_request, entitystore)
+      metastore.invalidate(@request, entitystore)
       pass
     end
 
@@ -168,7 +157,7 @@ module Rack::Cache
       if request.no_cache?
         record :reload
         fetch
-      elsif entry = metastore.lookup(original_request, entitystore)
+      elsif entry = metastore.lookup(request, entitystore)
         if fresh_enough?(entry)
           record :fresh
           entry
@@ -185,9 +174,13 @@ module Rack::Cache
     # Validate that the cache entry is fresh. The original request is used
     # as a template for a conditional GET request with the backend.
     def validate(entry)
-      # add our cached validators to the backend request
-      request.headers['If-Modified-Since'] = entry.last_modified
-      request.headers['If-None-Match'] = entry.etag
+      # send no head requests because we want content
+      @env['REQUEST_METHOD'] = 'GET'
+
+      # add our cached validators to the environment
+      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
+      @env['HTTP_IF_NONE_MATCH'] = entry.etag
+
       backend_response = forward
 
       response =
@@ -197,7 +190,7 @@ module Rack::Cache
           entry.headers.delete('Date')
           %w[Date Expires Cache-Control Etag Last-Modified].each do |name|
             next unless value = backend_response.headers[name]
-            entry[name] = value
+            entry.headers[name] = value
           end
           entry.activate!
           entry
@@ -213,8 +206,13 @@ module Rack::Cache
     # The cache missed or a reload is required. Forward the request to the
     # backend and determine whether the response should be stored.
     def fetch
-      request.env.delete('HTTP_IF_MODIFIED_SINCE')
-      request.env.delete('HTTP_IF_NONE_MATCH')
+      # send no head requests because we want content
+      @env['REQUEST_METHOD'] = 'GET'
+
+      # avoid that the backend sends no content
+      @env.delete('HTTP_IF_MODIFIED_SINCE')
+      @env.delete('HTTP_IF_NONE_MATCH')
+
       response = forward
 
       # mark the response as explicitly private if any of the private
@@ -236,7 +234,7 @@ module Rack::Cache
     # Write the response to the cache.
     def store(response)
       record :store
-      metastore.store(original_request, response, entitystore)
+      metastore.store(request, response, entitystore)
       nil
     end
   end

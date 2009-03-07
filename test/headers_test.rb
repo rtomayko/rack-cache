@@ -135,37 +135,6 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
-  describe '#freshness_information?' do
-    it 'is true when Expires header is present' do
-      @res.headers['Expires'] = Time.now.httpdate
-      @res.freshness_information?.should.be true
-    end
-    it 'is true when a Cache-Control max-age directive is present' do
-      @res.headers['Cache-Control'] = 'max-age=500'
-      @res.freshness_information?.should.be true
-    end
-    it 'is true when a Cache-Control s-maxage directive is present' do
-      @res.headers['Cache-Control'] = 's-maxage=500'
-      @res.freshness_information?.should.be true
-    end
-    it 'is not true otherwise' do
-      @res.freshness_information?.should.be false
-    end
-  end
-
-  describe '#public=' do
-    it 'adds the public Cache-Control directive when set true' do
-      @res.headers['Cache-Control'] = 'max-age=100'
-      @res.public = true
-      @res.headers['Cache-Control'].should.equal 'public, max-age=100'
-    end
-    it 'removes the private Cache-Control directive' do
-      @res.headers['Cache-Control'] = 'private, max-age=100'
-      @res.public = true
-      @res.headers['Cache-Control'].should.equal 'public, max-age=100'
-    end
-  end
-
   describe '#public?' do
     it 'is true when the public directive is present' do
       @res.headers['Cache-Control'] = 'public'
@@ -228,20 +197,6 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
     it 'is false otherwise' do
       assert !@res.must_revalidate?
-    end
-  end
-
-  describe '#stale?' do
-    it 'is true when TTL cannot be established' do
-      @res.should.be.stale
-    end
-    it 'is false when the TTL is <= 0' do
-      @res.headers['Expires'] = (@res.now + 10).httpdate
-      @res.should.not.be.stale
-    end
-    it 'is true when the TTL is >= 0' do
-      @res.headers['Expires'] = (@res.now - 10).httpdate
-      @res.should.be.stale
     end
   end
 

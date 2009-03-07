@@ -17,7 +17,6 @@ module Rack::Cache
   # facilities for generating response output.
   class Response
     include Rack::Response::Helpers
-    include Rack::Cache::Headers
     include Rack::Cache::ResponseHeaders
 
     # The response's status code (integer).
@@ -44,16 +43,6 @@ module Rack::Cache
       @headers = other.headers.dup
     end
 
-    # Return the value of the named response header.
-    def [](header_name)
-      headers[header_name]
-    end
-
-    # Set a response header value.
-    def []=(header_name, header_value)
-      headers[header_name] = header_value
-    end
-
     # Called immediately after an object is loaded from the cache.
     def activate!
       headers['Age'] = age.to_s
@@ -62,11 +51,6 @@ module Rack::Cache
     # Return the status, headers, and body in a three-tuple.
     def to_a
       [status, headers.to_hash, body]
-    end
-
-    def freeze
-      @headers.freeze
-      super
     end
   end
 end
