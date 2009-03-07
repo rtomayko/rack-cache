@@ -91,14 +91,20 @@ module Rack::Cache
 
     # Invalidate all cache entries that match the request.
     def invalidate(request, entity_store)
+      modified = false
       key = cache_key(request)
-      entries = read(key)
-      entries = entries.map do |req, res|
-        res = Rack::Cache::Response.new(0, res, nil)
-        res.headers['Age'] = res.max_age + 1
-        [req, res.headers]
-      end
-      write key, entries
+      entries =
+        read(key).map do |req, res|
+          response = Rack::Cache::Response.new(0, res, nil) # XXX
+          if response.fresh?
+            response.headers['Age'] = (response.max_age + 1).to_s
+            modified = true
+            [req, response.headers.to_hash]
+          else
+            [req, res]
+          end
+        end
+      write key, entries if modified
     end
 
   private
