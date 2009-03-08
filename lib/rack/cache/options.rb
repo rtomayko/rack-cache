@@ -7,20 +7,22 @@ module Rack::Cache
   # uses the Rack Environment to store option values. All options documented
   # below are stored in the Rack Environment as "rack-cache.<option>", where
   # <option> is the option name.
-  #
-  # The #set method can be used to configure a option values. When #set is
-  # called outside of request scope, the value applies to all requests; when
-  # called from within a request context, applies only to the request being
-  # processed.
   module Options
-    class << self
-      private
-      def option_accessor(key)
-        define_method(key) { || read_option(key) }
-        define_method("#{key}=") { |value| write_option(key, value) }
-        define_method("#{key}?") { || !! read_option(key) }
+    def self.option_accessor(key)
+      name = option_name(key)
+      define_method(key) { || options[name] }
+      define_method("#{key}=") { |value| options[name] = value }
+      define_method("#{key}?") { || !! options[name] }
+    end
+
+    def option_name(key)
+      case key
+      when Symbol ; "rack-cache.#{key}"
+      when String ; key
+      else raise ArgumentError
       end
     end
+    module_function :option_name
 
     # Enable verbose trace logging. This option is currently enabled by
     # default but is likely to be disabled in a future release.
@@ -57,9 +59,9 @@ module Rack::Cache
     #   end
     option_accessor :cache_key
 
-    # A URI specifying the entity-store implement that should be used to store
-    # response bodies. See the metastore option for information on supported URI
-    # schemes.
+    # A URI specifying the entity-store implementation that should be used to
+    # store response bodies. See the metastore option for information on
+    # supported URI schemes.
     #
     # If no entity store is specified the 'heap:/' store is assumed. This
     # implementation has significant draw-backs so explicit configuration is
@@ -112,23 +114,6 @@ module Rack::Cache
     end
 
   private
-    def read_option(key)
-      options[option_name(key)]
-    end
-
-    def write_option(key, value)
-      options[option_name(key)] = value
-    end
-
-    def option_name(key)
-      case key
-      when Symbol ; "rack-cache.#{key}"
-      when String ; key
-      else raise ArgumentError
-      end
-    end
-
-  private
     def initialize_options(options={})
       @default_options = {
         'rack-cache.cache_key'       => Key,
@@ -140,6 +125,14 @@ module Rack::Cache
         'rack-cache.private_headers' => ['Authorization', 'Cookie']
       }
       self.options = options
+    end
+
+    def read_option(key)
+      options[option_name(key)]
+    end
+
+    def write_option(key, value)
+      options[option_name(key)] = value
     end
   end
 end
