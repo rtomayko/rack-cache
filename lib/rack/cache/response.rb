@@ -1,6 +1,8 @@
+require 'time'
 require 'set'
 require 'rack/response'
 require 'rack/utils'
+require 'rack/cache/cachecontrol'
 
 module Rack::Cache
 

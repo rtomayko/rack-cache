@@ -1,6 +1,6 @@
-require 'rack'
 require 'fileutils'
 require 'digest/sha1'
+require 'rack/utils'
 
 module Rack::Cache
 

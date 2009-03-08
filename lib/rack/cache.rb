@@ -1,4 +1,3 @@
-require 'time'
 require 'rack'
 
 # = HTTP Caching For Rack
@@ -28,11 +27,11 @@ require 'rack'
 #   end
 #   run app
 module Rack::Cache
-  require 'rack/cache/request'
-  require 'rack/cache/response'
-  require 'rack/cache/context'
-  require 'rack/cache/storage'
-  require 'rack/cache/cachecontrol'
+  autoload :Request,      'rack/cache/request'
+  autoload :Response,     'rack/cache/response'
+  autoload :Context,      'rack/cache/context'
+  autoload :Storage,      'rack/cache/storage'
+  autoload :CacheControl, 'rack/cache/cachecontrol'
 
   # Create a new Rack::Cache middleware component that fetches resources from
   # the specified backend application. The +options+ Hash can be used to

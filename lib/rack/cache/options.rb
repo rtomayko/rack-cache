@@ -1,4 +1,3 @@
-require 'rack'
 require 'rack/cache/key'
 require 'rack/cache/storage'
 
