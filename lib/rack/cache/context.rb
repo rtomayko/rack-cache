@@ -15,11 +15,12 @@ module Rack::Cache
     # The Rack application object immediately downstream.
     attr_reader :backend
 
-    def initialize(backend, options={}, &block)
+    def initialize(backend, options={})
       @backend = backend
       @trace = []
+
       initialize_options options
-      instance_eval(&block) if block_given?
+      yield self if block_given?
 
       @private_header_keys =
         private_headers.map { |name| "HTTP_#{name.upcase.tr('-', '_')}" }

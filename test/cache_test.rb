@@ -25,14 +25,14 @@ describe 'Rack::Cache::new' do
   end
 
   it 'takes a block; executes it during initialization' do
-    state, block_scope = 'not invoked', nil
-    object =
-      Rack::Cache.new @app do
-        block_scope = self
+    state, object  = 'not invoked', nil
+    instance =
+      Rack::Cache.new @app do |cache|
+        object = cache
         state = 'invoked'
-        should.respond_to :set
+        cache.should.respond_to :set
       end
     state.should.equal 'invoked'
-    object.should.be block_scope
+    object.should.be instance
   end
 end
