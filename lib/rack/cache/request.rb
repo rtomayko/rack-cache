@@ -1,5 +1,4 @@
 require 'rack/request'
-require 'rack/cache/headers'
 require 'rack/cache/cachecontrol'
 
 module Rack::Cache
