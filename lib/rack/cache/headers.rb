@@ -1,12 +1,22 @@
 require 'set'
-require 'rack/utils/environment_headers'
 
 module Rack::Cache
-  # Generic HTTP header helper methods. Provides access to headers that can be
-  # included in requests and responses. This can be mixed into any object that
-  # responds to #headers by returning a Hash.
+  # HTTP response header helper methods.
+  module ResponseHeaders
+    # Status codes of responses that MAY be stored by a cache or used in reply
+    # to a subsequent request.
+    #
+    # http://tools.ietf.org/html/rfc2616#section-13.4
+    CACHEABLE_RESPONSE_CODES = [
+      200, # OK
+      203, # Non-Authoritative Information
+      300, # Multiple Choices
+      301, # Moved Permanently
+      302, # Found
+      404, # Not Found
+      410  # Gone
+    ].to_set
 
-  module Headers
     # A Hash of name=value pairs that correspond to the Cache-Control header.
     # Valueless parameters (e.g., must-revalidate, no-store) have a Hash value
     # of true. This method always returns a Hash, empty if no Cache-Control
@@ -30,53 +40,6 @@ module Rack::Cache
         headers['Cache-Control'] = value
       end
     end
-
-    # The literal value of the ETag HTTP header or nil if no ETag is specified.
-    def etag
-      headers['ETag']
-    end
-  end
-
-  # HTTP request header helpers. When included in Rack::Cache::Request, headers
-  # may be accessed by their standard RFC 2616 names using the #headers Hash.
-  module RequestHeaders
-    include Rack::Cache::Headers
-
-    # A Hash-like object providing access to HTTP request headers.
-    def headers
-      @headers ||= Rack::Utils::EnvironmentHeaders.new(env)
-    end
-
-    # The literal value of the If-Modified-Since request header or nil when
-    # no If-Modified-Since header is present.
-    def if_modified_since
-      headers['If-Modified-Since']
-    end
-
-    # The literal value of the If-None-Match request header or nil when
-    # no If-None-Match header is present.
-    def if_none_match
-      headers['If-None-Match']
-    end
-  end
-
-  # HTTP response header helper methods.
-  module ResponseHeaders
-    include Rack::Cache::Headers
-
-    # Status codes of responses that MAY be stored by a cache or used in reply
-    # to a subsequent request.
-    #
-    # http://tools.ietf.org/html/rfc2616#section-13.4
-    CACHEABLE_RESPONSE_CODES = [
-      200, # OK
-      203, # Non-Authoritative Information
-      300, # Multiple Choices
-      301, # Moved Permanently
-      302, # Found
-      404, # Not Found
-      410  # Gone
-    ].to_set
 
     # Determine if the response is "fresh". Fresh responses may be served from
     # cache without any interaction with the origin. A response is considered
@@ -188,6 +151,11 @@ module Rack::Cache
     # in the response (i.e., no date parsing / conversion is performed).
     def last_modified
       headers['Last-Modified']
+    end
+
+    # The literal value of ETag HTTP header or nil if no ETag is specified.
+    def etag
+      headers['ETag']
     end
 
     # Determine if the response was last modified at the time provided.

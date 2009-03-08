@@ -9,10 +9,6 @@ module Rack::Cache
   class Context
     include Rack::Cache::Options
 
-    # The request exactly as received. The object is an instance of
-    # Rack::Cache::Request.  This object cannot be modified.
-    attr_reader :request
-
     # Array of trace Symbols
     attr_reader :trace
 
@@ -59,48 +55,6 @@ module Rack::Cache
     def call!(env)
       @trace = []
       @env = @default_options.merge(env)
-      dispatch
-    end
-
-  private
-
-    # Record that an event took place.
-    def record(event)
-      @trace << event
-    end
-
-    # Does the request include authorization or other sensitive information
-    # that should cause the response to be considered private by default?
-    # Private responses are not stored in the cache.
-    def private_request?
-      @private_header_keys.any? { |key| @env.key?(key) }
-    end
-
-    # Determine if the #response validators (ETag, Last-Modified) matches
-    # a conditional value specified in #request.
-    def not_modified?(response)
-      response.etag_matches?(request.if_none_match) ||
-        response.last_modified_at?(request.if_modified_since)
-    end
-
-    # Whether the cache entry is "fresh enough" to satisfy the request.
-    def fresh_enough?(entry)
-      if entry.fresh?
-        if max_age = request.cache_control.max_age
-          max_age > 0 && max_age >= entry.age
-        else
-          true
-        end
-      end
-    end
-
-    # Called at the beginning of request processing, after the complete
-    # request has been fully received. Its purpose is to decide whether or
-    # not to serve the request from cache and will transition to the either
-    # the #pass or #lookup states.
-    def dispatch
-      # Store the request env exactly as we received it. Freeze the env to
-      # ensure no changes are made.
       @request = Request.new(@env.dup.freeze)
 
       response =
@@ -131,6 +85,38 @@ module Rack::Cache
       response.to_a
     end
 
+  private
+
+    # Record that an event took place.
+    def record(event)
+      @trace << event
+    end
+
+    # Does the request include authorization or other sensitive information
+    # that should cause the response to be considered private by default?
+    # Private responses are not stored in the cache.
+    def private_request?
+      @private_header_keys.any? { |key| @env.key?(key) }
+    end
+
+    # Determine if the #response validators (ETag, Last-Modified) matches
+    # a conditional value specified in #request.
+    def not_modified?(response)
+      response.etag_matches?(@request.env['HTTP_IF_NONE_MATCH']) ||
+        response.last_modified_at?(@request.env['HTTP_IF_MODIFIED_SINCE'])
+    end
+
+    # Whether the cache entry is "fresh enough" to satisfy the request.
+    def fresh_enough?(entry)
+      if entry.fresh?
+        if max_age = @request.cache_control.max_age
+          max_age > 0 && max_age >= entry.age
+        else
+          true
+        end
+      end
+    end
+
     # Delegate the request to the backend and create the response.
     def forward
       Response.new(*backend.call(@env))
@@ -157,10 +143,10 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
-      if request.cache_control.no_cache?
+      if @request.cache_control.no_cache?
         record :reload
         fetch
-      elsif entry = metastore.lookup(request, entitystore)
+      elsif entry = metastore.lookup(@request, entitystore)
         if fresh_enough?(entry)
           record :fresh
           entry.headers['Age'] = entry.age.to_s
@@ -201,6 +187,7 @@ module Rack::Cache
           record :invalid
           backend_response
         end
+
       store(response) if response.cacheable?
 
       response
@@ -229,6 +216,7 @@ module Rack::Cache
         # default ttl assigment.
         response.ttl = default_ttl
       end
+
       store(response) if response.cacheable?
 
       response
@@ -237,9 +225,8 @@ module Rack::Cache
     # Write the response to the cache.
     def store(response)
       record :store
-      metastore.store(request, response, entitystore)
+      metastore.store(@request, response, entitystore)
       response.headers['Age'] = response.age.to_s
-      nil
     end
   end
 end

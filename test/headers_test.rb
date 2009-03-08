@@ -1,7 +1,6 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
 
 class MockResponse < Rack::MockResponse
-  include Rack::Cache::Headers
   include Rack::Cache::ResponseHeaders
   attr_reader :now
   def initialize(*args)
@@ -10,11 +9,12 @@ class MockResponse < Rack::MockResponse
   end
 end
 
-describe 'Rack::Cache::Headers' do
+describe 'Rack::Cache::ResponseHeaders' do
   before :each do
     @now = Time.httpdate(Time.now.httpdate)
-    @res = MockResponse.new(200, {'Date' => @now.httpdate}, [])
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
+    @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
+    @res = MockResponse.new(200, {'Date' => @now.httpdate}, [])
   end
   after :each do
     @now, @res, @one_hour_ago = nil
@@ -33,18 +33,6 @@ describe 'Rack::Cache::Headers' do
       @res.cache_control = {}
       @res.headers.should.not.include 'Cache-Control'
     end
-  end
-end
-
-describe 'Rack::Cache::ResponseHeaders' do
-  before :each do
-    @now = Time.httpdate(Time.now.httpdate)
-    @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
-    @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
-    @res = MockResponse.new(200, {'Date' => @now.httpdate}, [])
-  end
-  after :each do
-    @now, @res, @one_hour_ago = nil
   end
 
   describe '#validateable?' do

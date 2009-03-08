@@ -39,7 +39,7 @@ module Rack::Cache
       @headers = Rack::Utils::HeaderHash.new(headers)
       @body = body
       @now = Time.now
-      @headers['Date'] ||= now.httpdate
+      @headers['Date'] ||= @now.httpdate
     end
 
     def initialize_copy(other)
