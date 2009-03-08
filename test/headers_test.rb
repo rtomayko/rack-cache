@@ -107,6 +107,29 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
+  describe '#expire!' do
+    it 'sets the Age to be equal to the max-age' do
+      @res.headers['Cache-Control'] = 'max-age=100'
+      @res.expire!
+      @res.headers['Age'].should.equal '100'
+    end
+    it 'sets the Age to be equal to the s-maxage when both max-age and s-maxage present' do
+      @res.headers['Cache-Control'] = 'max-age=100, s-maxage=500'
+      @res.expire!
+      @res.headers['Age'].should.equal '500'
+    end
+    it 'does nothing when the response is already stale/expired' do
+      @res.headers['Cache-Control'] = 'max-age=5, s-maxage=500'
+      @res.headers['Age'] = '1000'
+      @res.expire!
+      @res.headers['Age'].should.equal '1000'
+    end
+    it 'does nothing when the response does not include freshness information' do
+      @res.expire!
+      @res.headers.should.not.include 'Age'
+    end
+  end
+
   describe '#ttl' do
     it 'is nil when no Expires or Cache-Control headers present' do
       @res.ttl.should.be.nil

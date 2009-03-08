@@ -83,6 +83,12 @@ module Rack::Cache
       cache_control.must_revalidate || cache_control.proxy_revalidate
     end
 
+    # Mark the response stale by setting the Age header to be equal to the
+    # maximum age of the response.
+    def expire!
+      headers['Age'] = max_age.to_s if fresh?
+    end
+
     # The date, as specified by the Date header. When no Date header is present,
     # set the Date header to Time.now and return.
     def date

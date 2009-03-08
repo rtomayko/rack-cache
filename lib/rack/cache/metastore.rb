@@ -38,9 +38,7 @@ module Rack::Cache
 
       req, res = match
       if body = entity_store.open(res['X-Content-Digest'])
-        status = res.delete('X-Status').to_i
-        response = Rack::Cache::Response.new(status, res, body)
-        response
+        restore_response(res, body)
       else
         # TODO the metastore referenced an entity that doesn't exist in
         # the entitystore. we definitely want to return nil but we should
@@ -73,7 +71,7 @@ module Rack::Cache
             requests_match?(vary, env, stored_env)
         end
 
-      headers = {'X-Status' => response.status.to_s}.update(response.headers)
+      headers = persist_response(response)
       headers.delete 'Age'
 
       entries.unshift [stored_env, headers]
@@ -93,11 +91,11 @@ module Rack::Cache
       key = cache_key(request)
       entries =
         read(key).map do |req, res|
-          response = Rack::Cache::Response.new(0, res, nil) # XXX
+          response = restore_response(res)
           if response.fresh?
-            response.headers['Age'] = (response.max_age + 1).to_s
+            response.expire!
             modified = true
-            [req, response.headers.to_hash]
+            [req, persist_response(response)]
           else
             [req, res]
           end
@@ -114,6 +112,19 @@ module Rack::Cache
       env = request.env.dup
       env.reject! { |key,val| key =~ /[^0-9A-Z_]/ }
       env
+    end
+
+    # Converts a stored response hash into a Response object. The caller
+    # is responsible for loading and passing the body if needed.
+    def restore_response(hash, body=nil)
+      status = hash.delete('X-Status').to_i
+      Rack::Cache::Response.new(status, hash, body)
+    end
+
+    def persist_response(response)
+      hash = response.headers.to_hash
+      hash['X-Status'] = response.status.to_s
+      hash
     end
 
     # Determine whether the two environment hashes are non-varying based on
