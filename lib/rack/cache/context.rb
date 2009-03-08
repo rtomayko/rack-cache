@@ -86,7 +86,7 @@ module Rack::Cache
     # Whether the cache entry is "fresh enough" to satisfy the request.
     def fresh_enough?(entry)
       if entry.fresh?
-        if max_age = request.max_age
+        if max_age = request.cache_control.max_age
           max_age > 0 && max_age >= entry.age
         else
           true
@@ -157,7 +157,7 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
-      if request.no_cache?
+      if request.cache_control.no_cache?
         record :reload
         fetch
       elsif entry = metastore.lookup(request, entitystore)
@@ -218,12 +218,12 @@ module Rack::Cache
 
       response = forward
 
-      # mark the response as explicitly private if any of the private
+      # Mark the response as explicitly private if any of the private
       # request headers are present and the response was not explicitly
       # declared public.
-      if private_request? && !response.public?
+      if private_request? && !response.cache_control.public?
         response.private = true
-      elsif default_ttl > 0 && response.ttl.nil? && !response.must_revalidate?
+      elsif default_ttl > 0 && response.ttl.nil? && !response.cache_control.must_revalidate?
         # assign a default TTL for the cache entry if none was specified in
         # the response; the must-revalidate cache control directive disables
         # default ttl assigment.

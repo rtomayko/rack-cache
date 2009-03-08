@@ -12,43 +12,23 @@ module Rack::Cache
     # of true. This method always returns a Hash, empty if no Cache-Control
     # header is present.
     def cache_control
-      @cache_control ||=
-        headers['Cache-Control'].to_s.delete(' ').split(',').inject({}) {|hash,token|
-          name, value = token.split('=', 2)
-          hash[name.downcase] = (value || true) unless name.empty?
-          hash
-        }.freeze
+      @cache_control ||= CacheControl.new(headers['Cache-Control'])
     end
 
     # Set the Cache-Control header to the values specified by the Hash. See
     # the #cache_control method for information on expected Hash structure.
-    def cache_control=(hash)
-      value =
-        hash.collect { |key,value|
-          next nil unless value
-          next key if value == true
-          "#{key}=#{value}"
-        }.compact.join(', ')
-      if value.empty?
+    def cache_control=(value)
+      if value.respond_to? :to_hash
+        cache_control.clear
+        cache_control.merge!(value)
+        value = cache_control.to_s
+      end
+
+      if value.nil? || value.empty?
         headers.delete('Cache-Control')
-        @cache_control = {}
       else
         headers['Cache-Control'] = value
-        @cache_control = hash.dup.freeze
       end
-    end
-
-    # Indicates that the response should not be served from cache without first
-    # revalidating with the origin. Note that this does not necessary imply that
-    # a caching agent ought not store the response in its cache.
-    def no_cache?
-      cache_control['no-cache']
-    end
-
-    # The value of the Cache-Control max-age directive as a Fixnum, or nil
-    # when no max-age directive is present.
-    def max_age
-      age = cache_control['max-age'] && age.to_i
     end
 
     # The literal value of the ETag HTTP header or nil if no ETag is specified.
@@ -114,7 +94,7 @@ module Rack::Cache
     # validator (Last-Modified, ETag) are considered uncacheable.
     def cacheable?
       return false unless CACHEABLE_RESPONSE_CODES.include?(status)
-      return false if no_store? || private?
+      return false if cache_control.no_store? || cache_control.private?
       validateable? || fresh?
     end
 
@@ -122,21 +102,6 @@ module Rack::Cache
     # the response with the origin using a conditional GET request.
     def validateable?
       headers.key?('Last-Modified') || headers.key?('ETag')
-    end
-
-    # Indicates that the response should not be stored under any circumstances.
-    def no_store?
-      cache_control['no-store']
-    end
-
-    # True when the response has been explicitly marked "public".
-    def public?
-      cache_control['public']
-    end
-
-    # True when the response has been marked "private" explicitly.
-    def private?
-      cache_control['private']
     end
 
     # Mark the response "private", making it ineligible for serving other
@@ -152,8 +117,7 @@ module Rack::Cache
     # the TTL of the response should not be overriden to be greater than the
     # value provided by the origin.
     def must_revalidate?
-      cache_control['must-revalidate'] ||
-      cache_control['proxy-revalidate']
+      cache_control.must_revalidate || cache_control.proxy_revalidate
     end
 
     # The date, as specified by the Date header. When no Date header is present,
@@ -178,11 +142,14 @@ module Rack::Cache
     # back on an expires header; return nil when no maximum age can be
     # established.
     def max_age
-      if age = (cache_control['s-maxage'] || cache_control['max-age'])
-        age.to_i
-      elsif headers['Expires']
-        Time.httpdate(headers['Expires']) - date
-      end
+      cache_control.shared_max_age ||
+        cache_control.max_age ||
+        (expires && (expires - date))
+    end
+
+    # The value of the Expires header as a Time object.
+    def expires
+      headers['Expires'] && Time.httpdate(headers['Expires'])
     end
 
     # The number of seconds after which the response should no longer
@@ -195,19 +162,6 @@ module Rack::Cache
     # to shared caches.
     def shared_max_age=(value)
       self.cache_control = cache_control.merge('s-maxage' => value.to_s)
-    end
-
-    # The Time when the response should be considered stale. With a
-    # Cache-Control/max-age value is present, this is calculated by adding the
-    # number of seconds specified to the responses #date value. Falls back to
-    # the time specified in the Expires header or returns nil if neither is
-    # present.
-    def expires_at
-      if max_age = (cache_control['s-maxage'] || cache_control['max-age'])
-        date + max_age.to_i
-      elsif time = headers['Expires']
-        Time.httpdate(time)
-      end
     end
 
     # The response's time-to-live in seconds, or nil when no freshness

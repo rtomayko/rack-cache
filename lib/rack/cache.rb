@@ -32,6 +32,7 @@ module Rack::Cache
   require 'rack/cache/response'
   require 'rack/cache/context'
   require 'rack/cache/storage'
+  require 'rack/cache/cachecontrol'
 
   # Create a new Rack::Cache middleware component that fetches resources from
   # the specified backend application. The +options+ Hash can be used to

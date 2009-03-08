@@ -21,38 +21,17 @@ describe 'Rack::Cache::Headers' do
   end
 
   describe '#cache_control' do
-    it 'handles single name=value pair' do
-      @res.headers['Cache-Control'] = 'max-age=600'
-      @res.cache_control['max-age'].should.equal '600'
-    end
     it 'handles multiple name=value pairs' do
       @res.headers['Cache-Control'] = 'max-age=600, max-stale=300, min-fresh=570'
       @res.cache_control['max-age'].should.equal '600'
       @res.cache_control['max-stale'].should.equal '300'
       @res.cache_control['min-fresh'].should.equal '570'
     end
-    it 'handles a single flag value' do
-      @res.headers['Cache-Control'] = 'no-cache'
-      @res.cache_control.should.include 'no-cache'
-      @res.cache_control['no-cache'].should.be true
-    end
-    it 'handles a bunch of all kinds of stuff' do
-      @res.headers['Cache-Control'] = 'max-age=600,must-revalidate,min-fresh=3000,foo=bar,baz'
-      @res.cache_control['max-age'].should.equal '600'
-      @res.cache_control['must-revalidate'].should.be true
-      @res.cache_control['min-fresh'].should.equal '3000'
-      @res.cache_control['foo'].should.equal 'bar'
-      @res.cache_control['baz'].should.be true
-    end
     it 'removes the header when given an empty hash' do
       @res.headers['Cache-Control'] = 'max-age=600, must-revalidate'
       @res.cache_control['max-age'].should.equal '600'
       @res.cache_control = {}
       @res.headers.should.not.include 'Cache-Control'
-    end
-    it 'strips leading and trailing spaces from header value' do
-      @res.headers['Cache-Control'] = ' public '
-      @res.cache_control.should.include 'public'
     end
   end
 end
@@ -106,20 +85,6 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
-  describe '#expires_at' do
-    it 'returns #date + #max_age when Cache-Control/max-age is present' do
-      @res.headers['Cache-Control'] = 'max-age=500'
-      @res.expires_at.should.equal @res.date + 500
-    end
-    it 'uses the Expires header when present and no Cache-Control/max-age' do
-      @res.headers['Expires'] = @one_hour_ago.httpdate
-      @res.expires_at.should.equal @one_hour_ago
-    end
-    it 'returns nil when no Expires or Cache-Control provided' do
-      @res.expires_at.should.be nil
-    end
-  end
-
   describe '#max_age' do
     it 'uses s-maxage cache control directive when present' do
       @res.headers['Cache-Control'] = 's-maxage=600, max-age=0'
@@ -139,20 +104,6 @@ describe 'Rack::Cache::ResponseHeaders' do
     end
   end
 
-  describe '#public?' do
-    it 'is true when the public directive is present' do
-      @res.headers['Cache-Control'] = 'public'
-      @res.should.be.public
-    end
-    it 'is false when only the private directive is present' do
-      @res.headers['Cache-Control'] = 'private'
-      @res.should.not.be.public
-    end
-    it 'is false when no Cache-Control header is present' do
-      @res.should.not.be.public
-    end
-  end
-
   describe '#private=' do
     it 'adds the private Cache-Control directive when set true' do
       @res.headers['Cache-Control'] = 'max-age=100'
@@ -165,44 +116,6 @@ describe 'Rack::Cache::ResponseHeaders' do
       @res.private = true
       @res.headers['Cache-Control'].split(', ').sort.
         should.equal ['max-age=100', 'private']
-    end
-  end
-
-  describe '#private?' do
-    it 'is true when the private directive is present' do
-      @res.headers['Cache-Control'] = 'private'
-      @res.should.be.private
-    end
-    it 'is false when the private directive is not present' do
-      @res.headers['Cache-Control'] = 'public'
-      @res.should.not.be.private
-    end
-    it 'is false when no Cache-Control header is present' do
-      @res.should.not.be.private
-    end
-  end
-
-  describe '#no_cache?' do
-    it 'is true when a Cache-Control no-cache directive is present' do
-      @res.headers['Cache-Control'] = 'no-cache'
-      assert @res.no_cache?
-    end
-    it 'is false otherwise' do
-      assert !@res.no_cache?
-    end
-  end
-
-  describe '#must_revalidate?' do
-    it 'is true when a Cache-Control must-revalidate directive is present' do
-      @res.headers['Cache-Control'] = 'private, must-revalidate'
-      assert @res.must_revalidate?
-    end
-    it 'is true when a Cache-Control proxy-revalidate directive is present' do
-      @res.headers['Cache-Control'] = 'public, proxy-revalidate'
-      assert @res.must_revalidate?
-    end
-    it 'is false otherwise' do
-      assert !@res.must_revalidate?
     end
   end
 

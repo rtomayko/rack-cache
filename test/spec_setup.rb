@@ -193,4 +193,9 @@ class Object
   def class_def name, &blk
     class_eval { define_method name, &blk }
   end
+
+  # True when the Object is neither false or nil.
+  def truthy?
+    !!self
+  end
 end
