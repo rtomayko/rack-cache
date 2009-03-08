@@ -21,6 +21,9 @@
     based on the response. Now we treat it as a forced miss and enter the
     response into the cache if it's cacheable.
 
+  * Assume identical semantics for the "Pragma: no-cache" request header
+    as the "Cache-Control: no-cache" directive described above.
+
   * Less crazy logging. When the verbose option is set, a single log entry
     is written with a comma separated list of trace events. For example, if
     the cache was stale but validated, the following log entry would be

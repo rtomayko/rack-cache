@@ -23,5 +23,12 @@ module Rack::Cache
     def cache_control
       @cache_control ||= CacheControl.new(env['HTTP_CACHE_CONTROL'])
     end
+
+    # True when the Cache-Control/no-cache directive is present or the
+    # Pragma header is set to no-cache.
+    def no_cache?
+      cache_control['no-cache'] ||
+        env['HTTP_PRAGMA'] == 'no-cache'
+    end
   end
 end
