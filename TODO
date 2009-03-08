@@ -2,8 +2,6 @@
 
   - Move breakers.rb configuration file into rack-contrib as a middleware
     component.
-  - Add docs on using Rack::Cache with Rails 2.3 or link to one of the
-    existing tutorials on this.
   - Sample apps: Rack, Rails, Sinatra, Merb, etc.
 
 ## Backlog

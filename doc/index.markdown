@@ -9,13 +9,13 @@ for [Rack][]-based applications that produce freshness (`Expires`,
   * Portable: 100% Ruby / works with any [Rack][]-enabled framework.
   * Disk, memcached, and heap memory [storage backends][storage].
 
-Status
-------
+News
+----
 
-__Rack::Cache__ is a young and experimental project that is likely to
-change substantially and may not be wholly functional, consistent,
-fast, or correct. The current focus is on reaching basic compliance
-with RFC 2616 and providing good documentation.
+  * [How to use Rack::Cache with Rails 2.3](http://snippets.aktagon.com/snippets/302-How-to-setup-and-use-Rack-Cache-with-Rails-2-3-0-RC-1) - it's really easy.
+  * [RailsLab's Advanced HTTP Caching Screencast](http://railslab.newrelic.com/2009/02/26/episode-11-advanced-http-caching)
+    is a really great review of HTTP caching concepts and shows how to
+    use Rack::Cache with Rails.
 
 Installation
 ------------
@@ -51,7 +51,7 @@ caching.
 More
 ----
 
-  * [Configuration and Options][config] - how to set cache options.
+  * [Configuration Options][config] - how to set cache options.
 
   * [Cache Storage Documentation][storage] - detailed information on the various
     storage implementations available in __Rack::Cache__ and how to choose the one

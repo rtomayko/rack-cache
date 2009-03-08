@@ -10,6 +10,14 @@ General
 -------
 
 
+<a class='hash' id='rails' href='#rails'>#</a>
+
+### Q: Can I use Rack::Cache with Rails?
+
+Rack::Cache can be used with Rails 2.3 or above. Documentation and a
+sample application is forthcoming; in the mean time, see
+[this example of using Rack::Cache with Rails 2.3](http://snippets.aktagon.com/snippets/302-How-to-setup-and-use-Rack-Cache-with-Rails-2-3-0-RC-1).
+
 <a class='hash' id='why-not-squid' href='#why-not-squid'>#</a>
 
 ### Q: Why Rack::Cache? Why not Squid, Varnish, Perlbol, etc.?

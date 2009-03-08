@@ -31,7 +31,7 @@ end
 
 # DOC =======================================================================
 desc 'Build all documentation'
-task :doc => %w[doc:api doc:graphs doc:markdown]
+task :doc => %w[doc:api doc:markdown]
 
 # requires the hanna gem:
 #   gem install mislav-hanna --source=http://gems.github.com
@@ -54,19 +54,6 @@ file 'doc/api/index.html' => FileList['lib/**/*.rb'] do |f|
   SH
 end
 CLEAN.include 'doc/api'
-
-desc 'Build graphviz graphs'
-task 'doc:graphs'
-%w[pdf png svg].each do |filetype|
-  FileList["doc/*.dot"].each do |source|
-    dest = source.sub(/dot$/, filetype)
-    file dest => source do |f|
-      sh "dot -T#{filetype} #{source} -o #{f.name}"
-    end
-    task 'doc:graphs' => dest
-    CLEAN.include dest
-  end
-end
 
 desc 'Build markdown documentation files'
 task 'doc:markdown'
