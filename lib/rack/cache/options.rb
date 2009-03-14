@@ -85,11 +85,15 @@ module Rack::Cache
     # Default: ['Authorization', 'Cookie']
     option_accessor :private_headers
 
-
     # Specifies whether the client can force a cache reload by including a
     # Cache-Control "no-cache" directive in the request. This is enabled by
     # default for compliance with RFC 2616.
     option_accessor :allow_reload
+
+    # Specifies whether the client can force a cache revalidate by including
+    # a Cache-Control "max-age=0" directive in the request. This is enabled by
+    # default for compliance with RFC 2616.
+    option_accessor :allow_revalidate
 
     # The underlying options Hash. During initialization (or outside of a
     # request), this is a default values Hash. During a request, this is the
@@ -122,14 +126,15 @@ module Rack::Cache
   private
     def initialize_options(options={})
       @default_options = {
-        'rack-cache.cache_key'       => Key,
-        'rack-cache.verbose'         => true,
-        'rack-cache.storage'         => Rack::Cache::Storage.instance,
-        'rack-cache.metastore'       => 'heap:/',
-        'rack-cache.entitystore'     => 'heap:/',
-        'rack-cache.default_ttl'     => 0,
-        'rack-cache.private_headers' => ['Authorization', 'Cookie'],
-        'rack-cache.allow_reload'    => true
+        'rack-cache.cache_key'        => Key,
+        'rack-cache.verbose'          => true,
+        'rack-cache.storage'          => Rack::Cache::Storage.instance,
+        'rack-cache.metastore'        => 'heap:/',
+        'rack-cache.entitystore'      => 'heap:/',
+        'rack-cache.default_ttl'      => 0,
+        'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
+        'rack-cache.allow_reload'     => true,
+        'rack-cache.allow_revalidate' => true
       }
       self.options = options
     end

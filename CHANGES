@@ -9,7 +9,8 @@
 
   * Implement "Cache-Control: max-age=N" request directive by forcing
     validation when the max-age provided exceeds the age of the cache
-    entry.
+    entry. This can be disabled by setting the "allow_revalidate" option to
+    false.
 
   * Properly implement "Cache-Control: no-cache" request directive by
     performing a full reload. RFC 2616 states that when "no-cache" is

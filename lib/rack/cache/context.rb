@@ -110,7 +110,7 @@ module Rack::Cache
     # Whether the cache entry is "fresh enough" to satisfy the request.
     def fresh_enough?(entry)
       if entry.fresh?
-        if max_age = @request.cache_control.max_age
+        if allow_revalidate? && max_age = @request.cache_control.max_age
           max_age > 0 && max_age >= entry.age
         else
           true

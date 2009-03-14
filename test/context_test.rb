@@ -200,6 +200,34 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
+  it 'does not revalidate fresh cache entry when enable_revalidate option is set false' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :fresh
+
+    get '/',
+      'rack-cache.allow_revalidate' => false,
+      'HTTP_CACHE_CONTROL' => 'max-age=0'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.not.include :stale
+    cache.trace.should.not.include :invalid
+    cache.trace.should.include :fresh
+  end
   it 'fetches response from backend when cache misses' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
     get '/'
