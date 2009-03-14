@@ -1,5 +1,6 @@
 require 'pp'
 require 'tmpdir'
+require 'stringio'
 
 [ STDOUT, STDERR ].each { |io| io.sync = true }
 
