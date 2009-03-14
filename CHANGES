@@ -19,7 +19,8 @@
     first validate its entry with the origin. Previously, we implemented
     "no-cache" on requests by passing so no new cache entry would be stored
     based on the response. Now we treat it as a forced miss and enter the
-    response into the cache if it's cacheable.
+    response into the cache if it's cacheable. This can be disabled by
+    setting the "allow_reload" option to false.
 
   * Assume identical semantics for the "Pragma: no-cache" request header
     as the "Cache-Control: no-cache" directive described above.

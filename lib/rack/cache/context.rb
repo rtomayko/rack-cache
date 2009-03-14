@@ -144,7 +144,7 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
-      if @request.no_cache?
+      if @request.no_cache? && allow_reload?
         record :reload
         fetch
       elsif entry = metastore.lookup(@request, entitystore)

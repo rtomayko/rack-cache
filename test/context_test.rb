@@ -148,6 +148,31 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
+  it 'does not reload responses when allow_reload is set false' do
+    count = 0
+    respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
+      count+= 1
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :fresh
+
+    get '/',
+      'rack-cache.allow_reload' => false,
+      'HTTP_CACHE_CONTROL' => 'no-cache'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.not.include :reload
+  end
+
   it 'revalidates fresh cache entry when max-age request directive is exceeded' do
     count = 0
     respond_with do |req,res|

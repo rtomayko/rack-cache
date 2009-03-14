@@ -85,6 +85,12 @@ module Rack::Cache
     # Default: ['Authorization', 'Cookie']
     option_accessor :private_headers
 
+
+    # Specifies whether the client can force a cache reload by including a
+    # Cache-Control "no-cache" directive in the request. This is enabled by
+    # default for compliance with RFC 2616.
+    option_accessor :allow_reload
+
     # The underlying options Hash. During initialization (or outside of a
     # request), this is a default values Hash. During a request, this is the
     # Rack environment Hash. The default values Hash is merged in underneath
@@ -122,7 +128,8 @@ module Rack::Cache
         'rack-cache.metastore'       => 'heap:/',
         'rack-cache.entitystore'     => 'heap:/',
         'rack-cache.default_ttl'     => 0,
-        'rack-cache.private_headers' => ['Authorization', 'Cookie']
+        'rack-cache.private_headers' => ['Authorization', 'Cookie'],
+        'rack-cache.allow_reload'    => true
       }
       self.options = options
     end
