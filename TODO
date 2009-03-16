@@ -1,11 +1,8 @@
-## 0.4
+## Backlog
 
   - Move breakers.rb configuration file into rack-contrib as a middleware
     component.
   - Sample apps: Rack, Rails, Sinatra, Merb, etc.
-
-## Backlog
-
   - Use Bacon instead of test/spec
   - Work with both memcache and memcached gems (memcached hasn't built on MacOS
     for some time now).

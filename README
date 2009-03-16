@@ -24,14 +24,6 @@ caching solution for small to medium sized deployments. More sophisticated /
 high-performance caching systems (e.g., Varnish, Squid, httpd/mod-cache) may be
 more appropriate for large deployments with significant throughput requirements.
 
-Status
-------
-
-Rack::Cache is a young and experimental project that is likely to change
-substantially and may not be wholly functional, consistent, fast, or correct.
-The current focus is on reaching basic compliance with RFC 2616 and providing
-good documentation.
-
 Installation
 ------------
 
@@ -64,6 +56,24 @@ and use as follows:
 Assuming you've designed your backend application to take advantage of HTTP's
 caching features, no further code or configuration is required for basic
 caching.
+
+Using with Rails
+----------------
+
+Add this to your `config/environment.rb`:
+
+   config.middleware.use Rack::Cache,
+       :verbose => true,
+       :metastore   => 'file:/var/cache/rack/meta',
+       :entitystore => 'file:/var/cache/rack/body'
+
+You should now see `Rack::Cache` listed in the middleware pipeline:
+
+    rake middleware
+
+See the following for more information:
+
+    http://snippets.aktagon.com/snippets/302
 
 Links
 -----
