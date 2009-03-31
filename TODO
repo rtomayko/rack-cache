@@ -1,20 +1,19 @@
 ## 0.5
 
-  - Work with both memcache and memcached gems (memcached hasn't built on
-    MacOS for some time now).
+  - Document allow_revalidate and allow_reload options.
   - Support multiple memcache servers.
+  - Purge/invalidate everything
   - Explicit expiration/invalidation based on response headers or via an
     object interface passed in the rack env.
+  - Sample apps: Rack, Rails, Sinatra, Merb, etc.
+  - Move old breakers.rb configuration file into rack-contrib as a
+    middleware component.
 
 ## Backlog
 
-  - Move breakers.rb configuration file into rack-contrib as a middleware
-    component.
-  - Sample apps: Rack, Rails, Sinatra, Merb, etc.
   - Use Bacon instead of test/spec
   - Fast path pass processing. We do a lot more than necessary just to determine
     that the response should be passed through untouched.
-  - Purge/invalidate everything
   - Invalidate at the URI of the Location or Content-Location response header
     on POST, PUT, or DELETE that results in a redirect.
   - Maximum size of cached entity
@@ -23,7 +22,6 @@
     TTL = (Age * Factor), or, 1h  = (10h * 0.1)
   - Consider implementing ESI (http://www.w3.org/TR/esi-lang). This should
     probably be implemented as a separate middleware component.
-  - Sqlite3 (meta store)
   - stale-while-revalidate
   - Serve cached copies when down (see: stale-if-error) - e.g., database
     connection drops and the cache takes over what it can. 
