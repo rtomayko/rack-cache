@@ -250,12 +250,24 @@ describe 'Rack::Cache::MetaStore' do
   end
 
   need_memcached 'metastore tests' do
-    describe 'MemCache' do
+    describe 'MemCached' do
       it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
       before :each do
         @temp_dir = create_temp_directory
         $memcached.flush
-        @store = Rack::Cache::MetaStore::MemCache.new($memcached)
+        @store = Rack::Cache::MetaStore::MemCached.new($memcached)
+        @entity_store = Rack::Cache::EntityStore::Heap.new
+      end
+    end
+  end
+
+  need_memcache 'metastore tests' do
+    describe 'MemCache' do
+      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
+      before :each do
+        @temp_dir = create_temp_directory
+        $memcache.flush_all
+        @store = Rack::Cache::MetaStore::MemCache.new($memcache)
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
     end

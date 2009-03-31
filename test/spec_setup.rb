@@ -15,6 +15,7 @@ end
 # of the MemCached meta and entity stores.
 ENV['MEMCACHED'] ||= 'localhost:11215'
 $memcached = nil
+$memcache = nil
 
 def have_memcached?(server=ENV['MEMCACHED'])
   return $memcached unless $memcached.nil?
@@ -35,11 +36,36 @@ end
 
 have_memcached?
 
+def have_memcache?(server=ENV['MEMCACHED'])
+  return $memcache unless $memcache.nil?
+  require 'memcache'
+  $memcache = MemCache.new(server)
+  $memcache.set('ping', '')
+  true
+rescue LoadError => boom
+  $memcache = false
+  false
+rescue => boom
+  STDERR.puts "memcache not working. related tests will be skipped."
+  $memcache = false
+  false
+end
+
+have_memcache?
+
 def need_memcached(forwhat)
   if have_memcached?
     yield
   else
-    STDERR.puts "skipping memcached #{forwhat} (MEMCACHED environment variable not set)"
+    STDERR.puts "skipping memcached #{forwhat}"
+  end
+end
+
+def need_memcache(forwhat)
+  if have_memcache?
+    yield
+  else
+    STDERR.puts "skipping memcache #{forwhat}"
   end
 end
 

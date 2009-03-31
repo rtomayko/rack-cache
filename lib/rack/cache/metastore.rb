@@ -259,8 +259,65 @@ module Rack::Cache
     # Stores request/response pairs in memcached. Keys are not stored
     # directly since memcached has a 250-byte limit on key names. Instead,
     # the SHA1 hexdigest of the key is used.
-    class MemCache < MetaStore
+    class MemCacheBase < MetaStore
+      extend Rack::Utils
 
+      # The MemCache object used to communicated with the memcached
+      # daemon.
+      attr_reader :cache
+
+      # Create MemCache store for the given URI. The URI must specify
+      # a host and may specify a port, namespace, and options:
+      #
+      # memcached://example.com:11211/namespace?opt1=val1&opt2=val2
+      #
+      # Query parameter names and values are documented with the memcached
+      # library: http://tinyurl.com/4upqnd
+      def self.resolve(uri)
+        server = "#{uri.host}:#{uri.port || '11211'}"
+        options = parse_query(uri.query)
+        options.keys.each do |key|
+          value =
+            case value = options.delete(key)
+            when 'true' ; true
+            when 'false' ; false
+            else value.to_sym
+            end
+          options[k.to_sym] = value
+        end
+        options[:namespace] = uri.path.sub(/^\//, '')
+        new server, options
+      end
+    end
+
+    class MemCache < MemCacheBase
+      def initialize(server="localhost:11211", options={})
+        @cache =
+          if server.respond_to?(:stats)
+            server
+          else
+            require 'memcache'
+            ::MemCache.new(server, options)
+          end
+      end
+
+      def read(key)
+        key = hexdigest(key)
+        cache.get(key) || []
+      end
+
+      def write(key, entries)
+        key = hexdigest(key)
+        cache.set(key, entries)
+      end
+
+      def purge(key)
+        cache.delete(hexdigest(key))
+        nil
+      end
+    end
+
+    class MemCached < MemCacheBase
       # The Memcached instance used to communicated with the memcached
       # daemon.
       attr_reader :cache
@@ -294,34 +351,14 @@ module Rack::Cache
       rescue Memcached::NotFound
         nil
       end
-
-      extend Rack::Utils
-
-      # Create MemCache store for the given URI. The URI must specify
-      # a host and may specify a port, namespace, and options:
-      #
-      # memcached://example.com:11211/namespace?opt1=val1&opt2=val2
-      #
-      # Query parameter names and values are documented with the memcached
-      # library: http://tinyurl.com/4upqnd
-      def self.resolve(uri)
-        server = "#{uri.host}:#{uri.port || '11211'}"
-        options = parse_query(uri.query)
-        options.keys.each do |key|
-          value =
-            case value = options.delete(key)
-            when 'true' ; true
-            when 'false' ; false
-            else value.to_sym
-            end
-          options[k.to_sym] = value
-        end
-        options[:namespace] = uri.path.sub(/^\//, '')
-        new server, options
-      end
     end
 
-    MEMCACHE = MemCache
+    MEMCACHE =
+      if defined?(::Memcached)
+        MemCached
+      else
+        MemCache
+      end
     MEMCACHED = MemCache
   end
 
