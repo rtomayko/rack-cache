@@ -69,6 +69,16 @@ def need_memcache(forwhat)
   end
 end
 
+def need_java(forwhat)
+  
+  if RUBY_PLATFORM =~ /java/
+    yield
+  else
+    STDERR.puts "skipping app engine #{forwhat}"
+  end
+end
+
+
 # Setup the load path ..
 $LOAD_PATH.unshift File.dirname(File.dirname(__FILE__)) + '/lib'
 $LOAD_PATH.unshift File.dirname(__FILE__)

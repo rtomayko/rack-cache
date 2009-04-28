@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
 
   s.name = 'rack-cache'
   s.version = '0.4'
-  s.date = '2009-03-16'
+  s.date = '2009-04-28'
 
   s.description = "HTTP Caching for Rack"
   s.summary     = "HTTP Caching for Rack"
@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
     example/sinatra/app.rb
     example/sinatra/views/index.erb
     lib/rack/cache.rb
+    lib/rack/cache/appengine.rb
     lib/rack/cache/cachecontrol.rb
     lib/rack/cache/context.rb
     lib/rack/cache/entitystore.rb

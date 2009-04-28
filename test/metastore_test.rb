@@ -272,4 +272,31 @@ describe 'Rack::Cache::MetaStore' do
       end
     end
   end
+  
+  need_java 'entity store testing' do
+    module Rack::Cache::AppEngine
+      module MC
+        class << (Service = {})
+
+          def contains(key); include?(key); end
+          def get(key); self[key]; end;
+          def put(key, value, ttl = nil)
+            self[key] = value
+          end  
+
+        end
+      end
+    end
+  
+    describe 'GAEStore' do
+      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
+      before :each do
+        Rack::Cache::AppEngine::MC::Service.clear
+        @store = Rack::Cache::MetaStore::GAEStore.new
+        @entity_store = Rack::Cache::EntityStore::Heap.new
+      end
+    end
+  
+  end
+
 end

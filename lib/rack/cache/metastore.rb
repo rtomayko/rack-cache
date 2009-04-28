@@ -360,6 +360,40 @@ module Rack::Cache
         MemCache
       end
     MEMCACHED = MemCache
+
+    class GAEStore < MetaStore
+      attr_reader :cache
+
+      def initialize(options = {})
+        require 'rack/cache/appengine'
+        @cache = Rack::Cache::AppEngine::MemCache.new(options)
+      end
+
+      def read(key)
+        key = hexdigest(key)
+        cache.get(key) || []
+      end
+
+      def write(key, entries)
+        key = hexdigest(key)
+        cache.put(key, entries)
+      end
+
+      def purge(key)
+        key = hexdigest(key)
+        cache.delete(key)
+        nil
+      end
+
+      def self.resolve(uri)
+        self.new(:namespace => uri.host)
+      end
+
+    end
+
+    GAECACHE = GAEStore
+    GAE = GAEStore
+
   end
 
 end

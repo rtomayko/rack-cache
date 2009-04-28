@@ -282,6 +282,52 @@ module Rack::Cache
       end
 
     MEMCACHED = MEMCACHE
+
+    class GAEStore < EntityStore
+      attr_reader :cache
+
+      def initialize(options = {})
+        require 'rack/cache/appengine'
+        @cache = Rack::Cache::AppEngine::MemCache.new(options)
+      end
+
+      def exist?(key)
+        cache.contains?(key)
+      end
+
+      def read(key)
+        cache.get(key)
+      end
+
+      def open(key)
+        if data = read(key)
+          [data]
+        else
+          nil
+        end
+      end
+
+      def write(body)
+        buf = StringIO.new
+        key, size = slurp(body){|part| buf.write(part) }
+        cache.put(key, buf.string)
+        [key, size]
+      end
+
+      def purge(key)
+        cache.delete(key)
+        nil
+      end
+
+      def self.resolve(uri)
+        self.new(:namespace => uri.host)
+      end
+
+    end
+
+    GAECACHE = GAEStore
+    GAE = GAEStore
+
   end
 
 end

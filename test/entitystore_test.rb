@@ -200,4 +200,31 @@ describe 'Rack::Cache::EntityStore' do
       end
     end
   end
+  
+  need_java 'entity store testing' do
+    module Rack::Cache::AppEngine
+      module MC
+        class << (Service = {})
+ 
+          def contains(key); include?(key); end
+          def get(key); self[key]; end;
+          def put(key, value, ttl = nil)
+            self[key] = value
+          end  
+        end
+        
+      end
+    end
+    
+    describe 'GAEStore' do
+      it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
+      before do
+        puts Rack::Cache::AppEngine::MC::Service.inspect
+        @store = Rack::Cache::EntityStore::GAEStore.new
+      end
+      after do
+        @store = nil
+      end
+    end
+  end
 end
