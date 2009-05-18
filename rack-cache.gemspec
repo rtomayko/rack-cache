@@ -59,7 +59,7 @@ Gem::Specification.new do |s|
   s.test_files = s.files.select {|path| path =~ /^test\/.*_test.rb/}
 
   s.extra_rdoc_files = %w[README COPYING TODO CHANGES]
-  s.add_dependency 'rack', '~> 0.4'
+  s.add_dependency 'rack', '>= 0.4'
 
   s.has_rdoc = true
   s.homepage = "http://tomayko.com/src/rack-cache/"
