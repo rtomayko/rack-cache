@@ -124,7 +124,8 @@ describe 'Rack::Cache::Context' do
     response.headers.should.include 'Age'
   end
 
-  it 'reloads responses when cache hits but no-cache request directive present' do
+  it 'reloads responses when cache hits but no-cache request directive present ' +
+     'when allow_reload is set true' do
     count = 0
     respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
       count+= 1
@@ -141,14 +142,16 @@ describe 'Rack::Cache::Context' do
     response.body.should.equal 'Hello World'
     cache.trace.should.include :fresh
 
-    get '/', 'HTTP_CACHE_CONTROL' => 'no-cache'
+    get '/',
+      'rack-cache.allow_reload' => true,
+      'HTTP_CACHE_CONTROL' => 'no-cache'
     response.should.be.ok
     response.body.should.equal 'Goodbye World'
     cache.trace.should.include :reload
     cache.trace.should.include :store
   end
 
-  it 'does not reload responses when allow_reload is set false' do
+  it 'does not reload responses when allow_reload is set false (default)' do
     count = 0
     respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
       count+= 1
@@ -171,9 +174,17 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     response.body.should.equal 'Hello World'
     cache.trace.should.not.include :reload
+
+    # test again without explicitly setting the allow_reload option to false
+    get '/',
+      'HTTP_CACHE_CONTROL' => 'no-cache'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.not.include :reload
   end
 
-  it 'revalidates fresh cache entry when max-age request directive is exceeded' do
+  it 'revalidates fresh cache entry when max-age request directive is exceeded ' +
+     'when allow_revalidate option is set true' do
     count = 0
     respond_with do |req,res|
       count+= 1
@@ -192,7 +203,9 @@ describe 'Rack::Cache::Context' do
     response.body.should.equal 'Hello World'
     cache.trace.should.include :fresh
 
-    get '/', 'HTTP_CACHE_CONTROL' => 'max-age=0'
+    get '/',
+      'rack-cache.allow_revalidate' => true,
+      'HTTP_CACHE_CONTROL' => 'max-age=0'
     response.should.be.ok
     response.body.should.equal 'Goodbye World'
     cache.trace.should.include :stale
@@ -200,7 +213,7 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
-  it 'does not revalidate fresh cache entry when enable_revalidate option is set false' do
+  it 'does not revalidate fresh cache entry when enable_revalidate option is set false (default)' do
     count = 0
     respond_with do |req,res|
       count+= 1
@@ -221,6 +234,15 @@ describe 'Rack::Cache::Context' do
 
     get '/',
       'rack-cache.allow_revalidate' => false,
+      'HTTP_CACHE_CONTROL' => 'max-age=0'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.not.include :stale
+    cache.trace.should.not.include :invalid
+    cache.trace.should.include :fresh
+
+    # test again without explicitly setting the allow_revalidate option to false
+    get '/',
       'HTTP_CACHE_CONTROL' => 'max-age=0'
     response.should.be.ok
     response.body.should.equal 'Hello World'

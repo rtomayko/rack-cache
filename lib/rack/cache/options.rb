@@ -133,8 +133,8 @@ module Rack::Cache
         'rack-cache.entitystore'      => 'heap:/',
         'rack-cache.default_ttl'      => 0,
         'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
-        'rack-cache.allow_reload'     => true,
-        'rack-cache.allow_revalidate' => true
+        'rack-cache.allow_reload'     => false,
+        'rack-cache.allow_revalidate' => false
       }
       self.options = options
     end

@@ -4,6 +4,13 @@
     memcache-client library. These are the default unless the memcached
     library has already been required.
 
+  * The "allow_reload" and "allow_revalidate" options now default to
+    false instead of true. This means we break with RFC 2616 out of
+    the box but this is the expected configuration in a huge majority
+    of gateway cache scenarios. See the docs on configuration
+    options for more information on these options:
+    http://tomayko.com/src/rack-cache/configuration
+
 ## 0.4.0 / March 2009
 
   * Ruby 1.9.1 / Rack 1.0 compatible.

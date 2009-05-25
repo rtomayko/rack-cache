@@ -16,8 +16,8 @@ __Environment__.
 When the __Rack::Cache__ object is instantiated:
 
     use Rack::Cache,
-      :verbose => true,
-      :metastore => 'memcached://localhost:11211/',
+      :verbose     => true,
+      :metastore   => 'memcached://localhost:11211/',
       :entitystore => 'file:/var/cache/rack'
 
 Using __Rack__'s __Environment__:
@@ -80,6 +80,32 @@ private cache control semantics. The default value is `['Authorization', 'Cookie
 If any of these headers are present in the request, the response is considered
 private and will not be cached _unless_ the response is explicitly marked public
 (e.g., `Cache-Control: public`).
+
+### `allow_reload`
+
+A boolean specifying whether reload requests sent by the client should be
+honored by the cache. When this option is enabled (`rack-cache.allow_reload`
+is `true`), requests that include a `Cache-Control: no-cache` header cause
+the cache to discard anything it has stored for the request and ask that the
+response be fully generated.
+
+Most browsers include a `Cache-Control: no-cache` header when the user performs
+a "hard refresh" (e.g., holding `Shift` while clicking the "Refresh" button).
+
+*IMPORTANT: Enabling this option globally allows all clients to break your cache.*
+
+### `allow_revalidate`
+
+A boolean specifying whether revalidate requests sent by the client should be
+honored by the cache. When this option is enabled (`rack-cache.allow_revalidate`
+is `true`), requests that include a `Cache-Control: max-age=0` header cause the
+cache to assume its copy of the response is stale, resulting in a conditional
+GET / validation request to be sent to the server.
+
+Most browsers include a `Cache-Control: max-age=0` header when the user performs
+a refresh (e.g., clicking the "Refresh" button).
+
+*IMPORTANT: Enabling this option globally allows all clients to break your cache.*
 
 ### `cache_key`
 
