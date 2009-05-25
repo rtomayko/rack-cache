@@ -1,4 +1,4 @@
-## 0.5.0 / unreleased
+## 0.5.0 / May 2009
 
   * Added meta and entity store implementations based on the
     memcache-client library. These are the default unless the memcached

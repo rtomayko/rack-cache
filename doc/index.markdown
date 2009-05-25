@@ -12,6 +12,9 @@ for [Rack][]-based applications that produce freshness (`Expires`,
 News
 ----
 
+  * Rack::Cache 0.5 was released on May 25, 2009. See the
+    [`CHANGES`](http://github.com/rtomayko/rack-cache/blob/0.5.0/CHANGES) file
+    for details.
   * [How to use Rack::Cache with Rails 2.3](http://snippets.aktagon.com/snippets/302-How-to-setup-and-use-Rack-Cache-with-Rails-2-3-0-RC-1) - it's really easy.
   * [RailsLab's Advanced HTTP Caching Screencast](http://railslab.newrelic.com/2009/02/26/episode-11-advanced-http-caching)
     is a really great review of HTTP caching concepts and shows how to
