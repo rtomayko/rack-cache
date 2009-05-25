@@ -11,6 +11,17 @@
     options for more information on these options:
     http://tomayko.com/src/rack-cache/configuration
 
+  * Added Google AppEngine memcache entity store and metastore
+    implementations. To use GAE's memcache with rack-cache, set the
+    "metastore" and "entitystore" options as follows:
+
+        use Rack::Cache,
+          :metastore   => 'gae://cache-meta',
+          :entitystore => 'gae://cache-body'
+
+    The 'cache-meta' and 'cache-body' parts are memcache namespace
+    prefixes and should be set to different values.
+
 ## 0.4.0 / March 2009
 
   * Ruby 1.9.1 / Rack 1.0 compatible.
