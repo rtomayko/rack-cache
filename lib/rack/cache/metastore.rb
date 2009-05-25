@@ -285,7 +285,10 @@ module Rack::Cache
             end
           options[k.to_sym] = value
         end
+
+        fail "Invalid memcached URL: #{uri.to_s.inspect}"  if uri.path.nil?
         options[:namespace] = uri.path.sub(/^\//, '')
+
         new server, options
       end
     end
