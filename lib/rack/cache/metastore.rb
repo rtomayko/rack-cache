@@ -362,7 +362,7 @@ module Rack::Cache
       else
         MemCache
       end
-    MEMCACHED = MemCache
+    MEMCACHED = MEMCACHE
 
     class GAEStore < MetaStore
       attr_reader :cache
