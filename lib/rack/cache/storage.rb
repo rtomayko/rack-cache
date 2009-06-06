@@ -42,9 +42,9 @@ module Rack::Cache
         # hack in support for passing a MemCache or Memcached object
         # as the storage URI.
         case
-        when defined?(::MemCache) && type.kind_of?(::MemCache)
+        when defined?(::MemCache) && uri.kind_of?(::MemCache)
           type.const_get(:MemCache).resolve(uri)
-        when defined?(::Memcached) && type.respond_to?(:stats)
+        when defined?(::Memcached) && uri.respond_to?(:stats)
           type.const_get(:MemCached).resolve(uri)
         else
           fail "Unknown storage provider: #{uri.to_s}"
