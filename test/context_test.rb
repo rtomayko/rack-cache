@@ -746,4 +746,29 @@ describe 'Rack::Cache::Context' do
       response['X-Response-Count'].should.equal '3'
     end
   end
+
+  it 'passes if there was a metastore exception' do
+    respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
+      res.body = ['Hello World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    get '/' do |cache|
+      cache.meta_def(:metastore) { raise Timeout::Error }
+    end
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :pass
+
+    post '/' do |cache|
+      cache.meta_def(:metastore) { raise Timeout::Error }
+    end
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :pass
+  end
 end

@@ -133,8 +133,12 @@ module Rack::Cache
     # Invalidate POST, PUT, DELETE and all methods not understood by this cache
     # See RFC2616 13.10
     def invalidate
-      record :invalidate
       metastore.invalidate(@request, entitystore)
+    rescue Exception => e
+      log_error(e)
+      pass
+    else
+      record :invalidate
       pass
     end
 
@@ -147,18 +151,26 @@ module Rack::Cache
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
-      elsif entry = metastore.lookup(@request, entitystore)
-        if fresh_enough?(entry)
-          record :fresh
-          entry.headers['Age'] = entry.age.to_s
-          entry
-        else
-          record :stale
-          validate(entry)
-        end
       else
-        record :miss
-        fetch
+        begin
+          entry = metastore.lookup(@request, entitystore)
+        rescue Exception => e
+          log_error(e)
+          return pass
+        end
+        if entry
+          if fresh_enough?(entry)
+            record :fresh
+            entry.headers['Age'] = entry.age.to_s
+            entry
+          else
+            record :stale
+            validate(entry)
+          end
+        else
+          record :miss
+          fetch
+        end
       end
     end
 
@@ -225,9 +237,17 @@ module Rack::Cache
 
     # Write the response to the cache.
     def store(response)
-      record :store
       metastore.store(@request, response, entitystore)
       response.headers['Age'] = response.age.to_s
+    rescue Exception => e
+      log_error(e)
+      nil
+    else
+      record :store
+    end
+
+    def log_error(exception)
+      @env['rack.errors'].write("cache error: #{exception.message}\n#{exception.backtrace.join("\n")}\n")
     end
   end
 end
