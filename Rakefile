@@ -110,12 +110,20 @@ file package('.tar.gz') => %w[dist/] + $spec.files do |f|
 end
 
 desc 'Upload gem and tar.gz distributables to rubyforge'
-task :release => [package('.gem'), package('.tar.gz')] do |t|
+task 'release:rubyforge' => [package('.gem'), package('.tar.gz')] do |t|
   sh <<-SH
     rubyforge add_release wink rack-cache #{$spec.version} #{package('.gem')} &&
     rubyforge add_file    wink rack-cache #{$spec.version} #{package('.tar.gz')}
   SH
 end
+
+desc 'Upload gem to gemcutter.org'
+task 'release:gemcutter' => [package('.gem')] do |t|
+  sh "gem push #{package('.gem')}"
+end
+
+desc 'Upload gem to gemcutter and rubyforge'
+task 'release' => ['release:gemcutter', 'release:rubyforge']
 
 # GEMSPEC ===================================================================
 
