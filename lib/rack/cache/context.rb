@@ -55,7 +55,7 @@ module Rack::Cache
     # the context of the receiver.
     def call!(env)
       @trace = []
-      @env = @default_options.merge(env)
+      @env = env.merge!(@default_options.merge(env))
       @request = Request.new(@env.dup.freeze)
 
       response =
