@@ -103,8 +103,13 @@ module Rack::Cache
     # Determine if the #response validators (ETag, Last-Modified) matches
     # a conditional value specified in #request.
     def not_modified?(response)
-      response.etag_matches?(@request.env['HTTP_IF_NONE_MATCH']) ||
-        response.last_modified_at?(@request.env['HTTP_IF_MODIFIED_SINCE'])
+      last_modified = @request.env['HTTP_IF_MODIFIED_SINCE']
+      if etags = @request.env['HTTP_IF_NONE_MATCH']
+        etags = etags.split(/\s*,\s*/)
+        (etags.include?(response.etag) || etags.include?('*')) && (!last_modified || response.last_modified == last_modified)
+      elsif last_modified
+        response.last_modified == last_modified
+      end
     end
 
     # Whether the cache entry is "fresh enough" to satisfy the request.

@@ -208,19 +208,6 @@ module Rack::Cache
       headers['ETag']
     end
 
-    # Determine if the response was last modified at the time provided.
-    # time_value is the exact string provided in an origin response's
-    # Last-Modified header.
-    def last_modified_at?(time_value)
-      time_value && last_modified == time_value
-    end
-
-    # Determine if response's ETag matches the etag value provided. Return
-    # false when either value is nil.
-    def etag_matches?(etag)
-      etag && self.etag == etag
-    end
-
     # Headers that MUST NOT be included with 304 Not Modified responses.
     #
     # http://tools.ietf.org/html/rfc2616#section-10.3.5

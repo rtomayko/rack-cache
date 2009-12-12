@@ -115,6 +115,36 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
+  it 'responds with 304 only if If-None-Match and If-Modified-Since both match' do
+    timestamp = Time.now
+
+    respond_with do |req,res|
+      res.status = 200
+      res['ETag'] = '12345'
+      res['Last-Modified'] = timestamp.httpdate
+      res['Content-Type'] = 'text/plain'
+      res.body = ['Hello World']
+    end
+
+    # Only etag matches
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '12345', 'HTTP_IF_MODIFIED_SINCE' => (timestamp - 1).httpdate
+    app.should.be.called
+    response.status.should.equal 200
+
+    # Only last-modified matches
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '1234', 'HTTP_IF_MODIFIED_SINCE' => timestamp.httpdate
+    app.should.be.called
+    response.status.should.equal 200
+
+    # Both matches
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '12345', 'HTTP_IF_MODIFIED_SINCE' => timestamp.httpdate
+    app.should.be.called
+    response.status.should.equal 304
+  end
+
   it 'stores responses when no-cache request directive present' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
 
