@@ -185,15 +185,27 @@ module Rack::Cache
       # send no head requests because we want content
       @env['REQUEST_METHOD'] = 'GET'
 
-      # add our cached validators to the environment
+      # add our cached last-modified validator to the environment
       @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
-      @env['HTTP_IF_NONE_MATCH'] = entry.etag
+
+      # Add our cached etag validator to the environment.
+      # We keep the etags from the client to handle the case when the client
+      # has a different private valid entry which is not cached here.
+      cached_etags = entry.etag.to_s.split(/\s*,\s*/)
+      request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
+      etags = (cached_etags + request_etags).uniq
+      @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
 
       backend_response = forward
 
       response =
         if backend_response.status == 304
           record :valid
+
+          # Check if the response validated which is not cached here
+          etag = backend_response.headers['ETag']
+          return backend_response if etag && request_etags.include?(etag) && !cached_etags.include?(etag)
+
           entry = entry.dup
           entry.headers.delete('Date')
           %w[Date Expires Cache-Control ETag Last-Modified].each do |name|

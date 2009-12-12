@@ -145,6 +145,67 @@ describe 'Rack::Cache::Context' do
     response.status.should.equal 304
   end
 
+  it 'validates private responses cached on the client' do
+    respond_with do |req,res|
+      etags = req.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
+      if req.env['HTTP_COOKIE'] == 'authenticated'
+        res['Cache-Control'] = 'private, no-store'
+        res['ETag'] = '"private tag"'
+        if etags.include?('"private tag"')
+          res.status = 304
+        else
+          res.status = 200
+          res['Content-Type'] = 'text/plain'
+          res.body = ['private data']
+        end
+      else
+        res['ETag'] = '"public tag"'
+        if etags.include?('"public tag"')
+          res.status = 304
+        else
+          res.status = 200
+          res['Content-Type'] = 'text/plain'
+          res.body = ['public data']
+        end
+      end
+    end
+
+    get '/'
+    app.should.be.called
+    response.status.should.equal 200
+    response.headers['ETag'].should == '"public tag"'
+    response.body.should == 'public data'
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+
+    get '/', 'HTTP_COOKIE' => 'authenticated'
+    app.should.be.called
+    response.status.should.equal 200
+    response.headers['ETag'].should == '"private tag"'
+    response.body.should == 'private data'
+    cache.trace.should.include :stale
+    cache.trace.should.include :invalid
+    cache.trace.should.not.include :store
+
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '"public tag"'
+    app.should.be.called
+    response.status.should.equal 304
+    response.headers['ETag'].should == '"public tag"'
+    cache.trace.should.include :stale
+    cache.trace.should.include :valid
+    cache.trace.should.include :store
+
+    get '/',
+      'HTTP_IF_NONE_MATCH' => '"private tag"',
+      'HTTP_COOKIE' => 'authenticated'
+    app.should.be.called
+    response.status.should.equal 304
+    response.headers['ETag'].should == '"private tag"'
+    cache.trace.should.include :valid
+    cache.trace.should.not.include :store
+  end
+
   it 'stores responses when no-cache request directive present' do
     respond_with 200, 'Expires' => (Time.now + 5).httpdate
 
