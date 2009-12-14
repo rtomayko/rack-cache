@@ -196,27 +196,25 @@ module Rack::Cache
       etags = (cached_etags + request_etags).uniq
       @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
 
-      backend_response = forward
+      response = forward
 
-      response =
-        if backend_response.status == 304
-          record :valid
+      if response.status == 304
+        record :valid
 
-          # Check if the response validated which is not cached here
-          etag = backend_response.headers['ETag']
-          return backend_response if etag && request_etags.include?(etag) && !cached_etags.include?(etag)
+        # Check if the response validated which is not cached here
+        etag = response.headers['ETag']
+        return response if etag && request_etags.include?(etag) && !cached_etags.include?(etag)
 
-          entry = entry.dup
-          entry.headers.delete('Date')
-          %w[Date Expires Cache-Control ETag Last-Modified].each do |name|
-            next unless value = backend_response.headers[name]
-            entry.headers[name] = value
-          end
-          entry
-        else
-          record :invalid
-          backend_response
+        entry = entry.dup
+        entry.headers.delete('Date')
+        %w[Date Expires Cache-Control ETag Last-Modified].each do |name|
+          next unless value = response.headers[name]
+          entry.headers[name] = value
         end
+        response = entry
+      else
+        record :invalid
+      end
 
       store(response) if response.cacheable?
 
