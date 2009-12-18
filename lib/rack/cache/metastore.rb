@@ -214,23 +214,26 @@ module Rack::Cache
       def read(key)
         path = key_path(key)
         File.open(path, 'rb') { |io| Marshal.load(io) }
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT, IOError
         []
       end
 
       def write(key, entries)
-        path = key_path(key)
-        File.open(path, 'wb') { |io| Marshal.dump(entries, io, -1) }
-      rescue Errno::ENOENT
-        Dir.mkdir(File.dirname(path), 0755)
-        retry
+        tries = 0
+        begin
+          path = key_path(key)
+          File.open(path, 'wb') { |io| Marshal.dump(entries, io, -1) }
+        rescue Errno::ENOENT, IOError
+          Dir.mkdir(File.dirname(path), 0755)
+          retry if (tries += 1) == 1
+        end
       end
 
       def purge(key)
         path = key_path(key)
         File.unlink(path)
         nil
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT, IOError
         nil
       end
 
