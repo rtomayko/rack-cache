@@ -30,7 +30,7 @@ module Rack::Cache
     # Create a Response instance given the response status code, header hash,
     # and body.
     def initialize(status, headers, body)
-      @status = status
+      @status = status.to_i
       @headers = Rack::Utils::HeaderHash.new(headers)
       @body = body
       @now = Time.now

@@ -12,6 +12,12 @@ describe 'Rack::Cache::Response' do
     @now, @res, @one_hour_ago = nil
   end
 
+  it 'marks Rack tuples with string typed statuses as cacheable' do
+    @res = Rack::Cache::Response.new('200',{'Date' => @now.httpdate},[])
+    @res.headers['Expires'] = @one_hour_later.httpdate
+    @res.cacheable?.should.equal true
+  end
+
   it 'responds to #to_a with a Rack response tuple' do
     @res.should.respond_to :to_a
     @res.to_a.should.equal [200, {'Date' => @now.httpdate}, []]
