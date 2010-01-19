@@ -61,6 +61,8 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = %w[README COPYING TODO CHANGES]
   s.add_dependency 'rack', '>= 0.4'
 
+  s.add_development_dependency 'test-spec'
+
   s.has_rdoc = true
   s.homepage = "http://tomayko.com/src/rack-cache/"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
