@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::MetaStore::MemCache [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Class</span>
+          Rack::Cache::MetaStore::MemCache
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../../files/lib/rack/cache/metastore_rb.html">lib/rack/cache/metastore.rb</a>
+          </li>
+        </ol>
+        <div class='parent'>
+          Parent:
+          <strong><a href="MemCacheBase.html">Rack::Cache::MetaStore::MemCacheBase</a></strong>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000089">new</a></li>
+            </ol>
+            <h3>public instance</h3>
+            <ol>
+              <li><a href="#M000092">purge</a></li>
+              <li><a href="#M000090">read</a></li>
+              <li><a href="#M000091">write</a></li>
+            </ol>
+          </div>
+          <div id='section'>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000089'>
+                <a name='M000089'></a>
+                <div class='synopsis'>
+                  <span class='name'>new</span>
+                  <span class='arguments'>(server=&quot;localhost:11211&quot;, options={})</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000089-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000089-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 305</span>&#x000A;305:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">server</span>=<span class="ruby-value str">&quot;localhost:11211&quot;</span>, <span class="ruby-identifier">options</span>={})&#x000A;306:         <span class="ruby-ivar">@cache</span> =&#x000A;307:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">server</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:stats</span>)&#x000A;308:             <span class="ruby-identifier">server</span>&#x000A;309:           <span class="ruby-keyword kw">else</span>&#x000A;310:             <span class="ruby-identifier">require</span> <span class="ruby-value str">'memcache'</span>&#x000A;311:             <span class="ruby-operator">::</span><span class="ruby-constant">MemCache</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">server</span>, <span class="ruby-identifier">options</span>)&#x000A;312:           <span class="ruby-keyword kw">end</span>&#x000A;313:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <h2>Public instance methods</h2>
+              <div class='method public-instance' id='method-M000092'>
+                <a name='M000092'></a>
+                <div class='synopsis'>
+                  <span class='name'>purge</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000092-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000092-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 325</span>&#x000A;325:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">purge</span>(<span class="ruby-identifier">key</span>)&#x000A;326:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">hexdigest</span>(<span class="ruby-identifier">key</span>))&#x000A;327:         <span class="ruby-keyword kw">nil</span>&#x000A;328:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000090'>
+                <a name='M000090'></a>
+                <div class='synopsis'>
+                  <span class='name'>read</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000090-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000090-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 315</span>&#x000A;315:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read</span>(<span class="ruby-identifier">key</span>)&#x000A;316:         <span class="ruby-identifier">key</span> = <span class="ruby-identifier">hexdigest</span>(<span class="ruby-identifier">key</span>)&#x000A;317:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">key</span>) <span class="ruby-operator">||</span> []&#x000A;318:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000091'>
+                <a name='M000091'></a>
+                <div class='synopsis'>
+                  <span class='name'>write</span>
+                  <span class='arguments'>(key, entries)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000091-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000091-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 320</span>&#x000A;320:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">entries</span>)&#x000A;321:         <span class="ruby-identifier">key</span> = <span class="ruby-identifier">hexdigest</span>(<span class="ruby-identifier">key</span>)&#x000A;322:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">set</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">entries</span>)&#x000A;323:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

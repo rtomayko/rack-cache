@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::EntityStore [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Class</span>
+          Rack::Cache::EntityStore
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../files/lib/rack/cache/entitystore_rb.html">lib/rack/cache/entitystore.rb</a>
+          </li>
+        </ol>
+        <div class='parent'>
+          Parent:
+          <strong>Object</strong>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <p>
+            Entity stores are used to cache response bodies across requests. All
+            Implementations are required to calculate a SHA checksum of the data
+            written which becomes the response body&#8217;s key.
+            </p>
+          </div>
+          <div id='section'>
+            <div id='class-list'>
+              <h2>Classes and Modules</h2>
+              Class <a href="EntityStore/Disk.html" class="link">Rack::Cache::EntityStore::Disk</a><br />
+              Class <a href="EntityStore/Heap.html" class="link">Rack::Cache::EntityStore::Heap</a><br />
+              Class <a href="EntityStore/MemCache.html" class="link">Rack::Cache::EntityStore::MemCache</a><br />
+              Class <a href="EntityStore/MemCacheBase.html" class="link">Rack::Cache::EntityStore::MemCacheBase</a><br />
+              Class <a href="EntityStore/MemCached.html" class="link">Rack::Cache::EntityStore::MemCached</a><br />
+            </div>
+            <div id='constants-list'>
+              <h2>Constants</h2>
+              <div class='name-list'>
+                <table summary='Constants'>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>HEAP</td>
+                    <td>=</td>
+                    <td class='context-item-value'>Heap</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>MEM</td>
+                    <td>=</td>
+                    <td class='context-item-value'>Heap</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>DISK</td>
+                    <td>=</td>
+                    <td class='context-item-value'>Disk</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>FILE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>Disk</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>MEMCACHE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>if defined?(::Memcached)</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

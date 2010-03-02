@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::Options [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Module</span>
+          Rack::Cache::Options
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../files/lib/rack/cache/options_rb.html">lib/rack/cache/options.rb</a>
+          </li>
+        </ol>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <p>
+            Configuration options and utility methods for option access. <a
+            href="../Cache.html">Rack::Cache</a> uses the <a
+            href="../../Rack.html">Rack</a> Environment to store option values. All
+            options documented below are stored in the <a
+            href="../../Rack.html">Rack</a> Environment as
+            &#8220;rack-cache.<option>&#8221;, where <option> is the option name.
+            </p>
+          </div>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000002">option_accessor</a></li>
+              <li><a href="#M000003">option_name</a></li>
+            </ol>
+            <h3>public instance</h3>
+            <ol>
+              <li><a href="#M000004">options</a></li>
+              <li><a href="#M000005">options=</a></li>
+              <li><a href="#M000006">set</a></li>
+            </ol>
+          </div>
+          <div id='section'>
+            <div id='attribute-list'>
+              <h2 class='section-bar'>Attributes</h2>
+              <div class='name-list'>
+                <table>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>allow_reload</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      Specifies whether the client can force a cache reload by including a
+                      Cache-Control &#8220;no-cache&#8221; directive in the request. This is
+                      enabled by default for compliance with RFC 2616.
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>allow_revalidate</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      Specifies whether the client can force a cache revalidate by including a
+                      Cache-Control &#8220;max-age=0&#8221; directive in the request. This is
+                      enabled by default for compliance with RFC 2616.
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>cache_key</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      A custom cache key generator, which can be anything that responds to :call.
+                      By default, this is the <a href="Key.html">Rack::Cache::Key</a> class, but
+                      you can implement your own generator. A cache key generator gets passed a
+                      request and generates the appropriate cache key.
+                      
+                      <p>
+                      In addition to setting the generator to an object, you can just pass a
+                      block instead, which will act as the cache key generator:
+                      </p>
+                      <pre>set :cache_key do |request|&#x000A;  request.fullpath.replace(/\//, '-')&#x000A;end</pre>
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>default_ttl</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      The number of seconds that a cache entry should be considered
+                      &#8220;fresh&#8221; when no explicit freshness information is provided in a
+                      response. Explicit Cache-Control or Expires headers override this value.
+                      
+                      <p>
+                      Default: 0
+                      </p>
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>entitystore</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      A URI specifying the entity-store implementation that should be used to
+                      store response bodies. See the metastore option for information on
+                      supported URI schemes.
+                      
+                      <p>
+                      If no entity store is specified the &#8216;heap:/&#8217; store is assumed.
+                      This implementation has significant draw-backs so explicit configuration is
+                      recommended.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>metastore</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      A URI specifying the meta-store implementation that should be used to store
+                      request/response meta information. The following URIs schemes are
+                      supported:
+                      
+                      <ul>
+                      <li>heap:/
+                      
+                      </li>
+                      <li>file:/absolute/path or file:relative/path
+                      
+                      </li>
+                      <li>memcached://localhost:11211[/namespace]
+                      
+                      </li>
+                      </ul>
+                      <p>
+                      If no meta store is specified the &#8216;heap:/&#8217; store is assumed.
+                      This implementation has significant draw-backs so explicit configuration is
+                      recommended.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>private_headers</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      Set of request headers that trigger &#8220;private&#8221; cache-control
+                      behavior on responses that don&#8217;t explicitly state whether the
+                      response is public or private via a Cache-Control directive. Applications
+                      that use cookies for authorization may need to add the &#8216;Cookie&#8217;
+                      header to this list.
+                      
+                      <p>
+                      Default: [&#8216;Authorization&#8217;, &#8216;Cookie&#8217;]
+                      </p>
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>storage</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      The storage resolver. Defaults to the Rack::Cache.storage singleton
+                      instance of <a href="Storage.html">Rack::Cache::Storage</a>. This object is
+                      responsible for resolving metastore and entitystore URIs to an
+                      implementation instances.
+                    </td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>verbose</td>
+                    <td class='context-item-value'>[RW]</td>
+                    <td class='context-item-desc'>
+                      
+                      Enable verbose trace logging. This option is currently enabled by default
+                      but is likely to be disabled in a future release.
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000002'>
+                <a name='M000002'></a>
+                <div class='synopsis'>
+                  <span class='name'>option_accessor</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000002-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000002-source'>    <span class="ruby-comment cmt"># File lib/rack/cache/options.rb, line 11</span>&#x000A;11:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">option_accessor</span>(<span class="ruby-identifier">key</span>)&#x000A;12:       <span class="ruby-identifier">name</span> = <span class="ruby-identifier">option_name</span>(<span class="ruby-identifier">key</span>)&#x000A;13:       <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">key</span>) { <span class="ruby-operator">||</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">name</span>] }&#x000A;14:       <span class="ruby-identifier">define_method</span>(<span class="ruby-node">&quot;#{key}=&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">value</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">name</span>] = <span class="ruby-identifier">value</span> }&#x000A;15:       <span class="ruby-identifier">define_method</span>(<span class="ruby-node">&quot;#{key}?&quot;</span>) { <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-operator">!</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">name</span>] }&#x000A;16:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-class' id='method-M000003'>
+                <a name='M000003'></a>
+                <div class='synopsis'>
+                  <span class='name'>option_name</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000003-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000003-source'>    <span class="ruby-comment cmt"># File lib/rack/cache/options.rb, line 18</span>&#x000A;18:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">option_name</span>(<span class="ruby-identifier">key</span>)&#x000A;19:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">key</span>&#x000A;20:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Symbol</span> ; <span class="ruby-node">&quot;rack-cache.#{key}&quot;</span>&#x000A;21:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">String</span> ; <span class="ruby-identifier">key</span>&#x000A;22:       <span class="ruby-keyword kw">else</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>&#x000A;23:       <span class="ruby-keyword kw">end</span>&#x000A;24:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <h2>Public instance methods</h2>
+              <div class='method public-instance' id='method-M000004'>
+                <a name='M000004'></a>
+                <div class='synopsis'>
+                  <span class='name'>options</span>
+                  <span class='arguments'>()</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  The underlying options Hash. During initialization (or outside of a
+                  request), this is a default values Hash. During a request, this is the <a
+                  href="../../Rack.html">Rack</a> environment Hash. The default values Hash
+                  is merged in underneath the <a href="../../Rack.html">Rack</a> environment
+                  before each request is processed.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000004-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000004-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/options.rb, line 102</span>&#x000A;102:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">options</span>&#x000A;103:       <span class="ruby-ivar">@env</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@default_options</span>&#x000A;104:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000005'>
+                <a name='M000005'></a>
+                <div class='synopsis'>
+                  <span class='name'>options=</span>
+                  <span class='arguments'>(hash={})</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  Set multiple options.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000005-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000005-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/options.rb, line 107</span>&#x000A;107:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">options=</span>(<span class="ruby-identifier">hash</span>={})&#x000A;108:       <span class="ruby-identifier">hash</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>,<span class="ruby-identifier">value</span><span class="ruby-operator">|</span> <span class="ruby-identifier">write_option</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>) }&#x000A;109:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000006'>
+                <a name='M000006'></a>
+                <div class='synopsis'>
+                  <span class='name'>set</span>
+                  <span class='arguments'>(option, value=self, &amp;block)</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  Set an option. When <tt>option</tt> is a Symbol, it is set in the <a
+                  href="../../Rack.html">Rack</a> Environment as
+                  &#8220;rack-cache.option&#8220;. When <tt>option</tt> is a String, it
+                  exactly as specified. The <tt>option</tt> argument may also be a Hash in
+                  which case each key/value pair is merged into the environment as if the <a
+                  href="Options.html#M000006">set</a> method were called on each.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000006-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000006-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/options.rb, line 116</span>&#x000A;116:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set</span>(<span class="ruby-identifier">option</span>, <span class="ruby-identifier">value</span>=<span class="ruby-keyword kw">self</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)&#x000A;117:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>&#x000A;118:         <span class="ruby-identifier">write_option</span> <span class="ruby-identifier">option</span>, <span class="ruby-identifier">block</span>&#x000A;119:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">value</span> <span class="ruby-operator">==</span> <span class="ruby-keyword kw">self</span>&#x000A;120:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">options</span> = <span class="ruby-identifier">option</span>.<span class="ruby-identifier">to_hash</span>&#x000A;121:       <span class="ruby-keyword kw">else</span>&#x000A;122:         <span class="ruby-identifier">write_option</span> <span class="ruby-identifier">option</span>, <span class="ruby-identifier">value</span>&#x000A;123:       <span class="ruby-keyword kw">end</span>&#x000A;124:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

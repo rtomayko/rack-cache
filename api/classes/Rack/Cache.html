@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <div class='name'>
+          <span class='type'>Module</span>
+          Rack::Cache
+        </div>
+        <ol class='paths'>
+          <li>
+            <a href="../../files/lib/rack/cache/cachecontrol_rb.html">lib/rack/cache/cachecontrol.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/context_rb.html">lib/rack/cache/context.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/entitystore_rb.html">lib/rack/cache/entitystore.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/key_rb.html">lib/rack/cache/key.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/metastore_rb.html">lib/rack/cache/metastore.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/options_rb.html">lib/rack/cache/options.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/request_rb.html">lib/rack/cache/request.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/response_rb.html">lib/rack/cache/response.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache/storage_rb.html">lib/rack/cache/storage.rb</a>
+          </li>
+          <li class='other'>
+            <a href="../../files/lib/rack/cache_rb.html">lib/rack/cache.rb</a>
+          </li>
+          <li>
+            <a class='show' href='#' onclick='this.parentNode.parentNode.className += " expanded"; this.parentNode.removeChild(this); return false'>show all</a>
+          </li>
+        </ol>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <h1>HTTP Caching For <a href="../Rack.html">Rack</a></h1>
+            <p>
+            <a href="Cache.html">Rack::Cache</a> is suitable as a quick, drop-in
+            component to enable HTTP caching for Rack-enabled applications that produce
+            freshness (<tt>Expires</tt>, <tt>Cache-Control</tt>) and/or validation
+            (<tt>Last-Modified</tt>, <tt>ETag</tt>) information.
+            </p>
+            <ul>
+            <li>Standards-based (RFC 2616 compliance)
+            
+            </li>
+            <li>Freshness/expiration based caching and validation
+            
+            </li>
+            <li>Supports HTTP Vary
+            
+            </li>
+            <li>Portable: 100% Ruby / works with any Rack-enabled framework
+            
+            </li>
+            <li>Disk, memcached, and heap memory storage backends
+            
+            </li>
+            </ul>
+            <h3>Usage</h3>
+            <p>
+            Create with default options:
+            </p>
+            <pre>require 'rack/cache'&#x000A;Rack::Cache.new(app, :verbose =&gt; true, :entitystore =&gt; 'file:cache')</pre>
+            <p>
+            Within a rackup file (or with Rack::Builder):
+            </p>
+            <pre>require 'rack/cache'&#x000A;use Rack::Cache do&#x000A;  set :verbose, true&#x000A;  set :metastore, 'memcached://localhost:11211/meta'&#x000A;  set :entitystore, 'file:/var/cache/rack'&#x000A;end&#x000A;run app</pre>
+          </div>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000001">new</a></li>
+            </ol>
+          </div>
+          <div id='section'>
+            <div id='class-list'>
+              <h2>Classes and Modules</h2>
+              Module <a href="Cache/AppEngine.html" class="link">Rack::Cache::AppEngine</a><br />
+              Module <a href="Cache/Options.html" class="link">Rack::Cache::Options</a><br />
+              Class <a href="Cache/CacheControl.html" class="link">Rack::Cache::CacheControl</a><br />
+              Class <a href="Cache/Context.html" class="link">Rack::Cache::Context</a><br />
+              Class <a href="Cache/EntityStore.html" class="link">Rack::Cache::EntityStore</a><br />
+              Class <a href="Cache/GAEStore.html" class="link">Rack::Cache::GAEStore</a><br />
+              Class <a href="Cache/Key.html" class="link">Rack::Cache::Key</a><br />
+              Class <a href="Cache/MetaStore.html" class="link">Rack::Cache::MetaStore</a><br />
+              Class <a href="Cache/Request.html" class="link">Rack::Cache::Request</a><br />
+              Class <a href="Cache/Response.html" class="link">Rack::Cache::Response</a><br />
+              Class <a href="Cache/Storage.html" class="link">Rack::Cache::Storage</a><br />
+            </div>
+            <div id='constants-list'>
+              <h2>Constants</h2>
+              <div class='name-list'>
+                <table summary='Constants'>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>MEMCACHED</td>
+                    <td>=</td>
+                    <td class='context-item-value'>MEMCACHE</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>GAECACHE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>GAEStore</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>GAE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>GAEStore</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>MEMCACHED</td>
+                    <td>=</td>
+                    <td class='context-item-value'>MEMCACHE</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>GAECACHE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>GAEStore</td>
+                  </tr>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>GAE</td>
+                    <td>=</td>
+                    <td class='context-item-value'>GAEStore</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000001'>
+                <a name='M000001'></a>
+                <div class='synopsis'>
+                  <span class='name'>new</span>
+                  <span class='arguments'>(backend, options={}, &amp;b)</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  Create a new <a href="Cache.html">Rack::Cache</a> middleware component that
+                  fetches resources from the specified backend application. The
+                  <tt>options</tt> Hash can be used to specify default configuration values
+                  (see attributes defined in <a
+                  href="Cache/Options.html">Rack::Cache::Options</a> for possible
+                  key/values). When a block is given, it is executed within the context of
+                  the newly create <a href="Cache/Context.html">Rack::Cache::Context</a>
+                  object.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000001-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000001-source'>    <span class="ruby-comment cmt"># File lib/rack/cache.rb, line 42</span>&#x000A;42:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">backend</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)&#x000A;43:     <span class="ruby-constant">Context</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">backend</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)&#x000A;44:   <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::EntityStore::MemCached [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Class</span>
+          Rack::Cache::EntityStore::MemCached
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../../files/lib/rack/cache/entitystore_rb.html">lib/rack/cache/entitystore.rb</a>
+          </li>
+        </ol>
+        <div class='parent'>
+          Parent:
+          <strong><a href="MemCacheBase.html">Rack::Cache::EntityStore::MemCacheBase</a></strong>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <p>
+            Uses the memcached client library. The ruby based memcache-client is used
+            in preference to this store unless the memcached library has already been
+            required.
+            </p>
+          </div>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000100">new</a></li>
+            </ol>
+            <h3>public instance</h3>
+            <ol>
+              <li><a href="#M000101">exist?</a></li>
+              <li><a href="#M000104">purge</a></li>
+              <li><a href="#M000102">read</a></li>
+              <li><a href="#M000103">write</a></li>
+            </ol>
+          </div>
+          <div id='section'>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000100'>
+                <a name='M000100'></a>
+                <div class='synopsis'>
+                  <span class='name'>new</span>
+                  <span class='arguments'>(server=&quot;localhost:11211&quot;, options={})</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000100-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000100-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/entitystore.rb, line 244</span>&#x000A;244:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">server</span>=<span class="ruby-value str">&quot;localhost:11211&quot;</span>, <span class="ruby-identifier">options</span>={})&#x000A;245:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prefix_key</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:namespace</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:namespace</span>)&#x000A;246:         <span class="ruby-ivar">@cache</span> =&#x000A;247:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">server</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:stats</span>)&#x000A;248:             <span class="ruby-identifier">server</span>&#x000A;249:           <span class="ruby-keyword kw">else</span>&#x000A;250:             <span class="ruby-identifier">require</span> <span class="ruby-value str">'memcached'</span>&#x000A;251:             <span class="ruby-operator">::</span><span class="ruby-constant">Memcached</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">server</span>, <span class="ruby-identifier">options</span>)&#x000A;252:           <span class="ruby-keyword kw">end</span>&#x000A;253:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <h2>Public instance methods</h2>
+              <div class='method public-instance' id='method-M000101'>
+                <a name='M000101'></a>
+                <div class='synopsis'>
+                  <span class='name'>exist?</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000101-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000101-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/entitystore.rb, line 255</span>&#x000A;255:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">key</span>)&#x000A;256:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">append</span>(<span class="ruby-identifier">key</span>, <span class="ruby-value str">''</span>)&#x000A;257:         <span class="ruby-keyword kw">true</span>&#x000A;258:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Memcached</span><span class="ruby-operator">::</span><span class="ruby-constant">NotStored</span>&#x000A;259:         <span class="ruby-keyword kw">false</span>&#x000A;260:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000104'>
+                <a name='M000104'></a>
+                <div class='synopsis'>
+                  <span class='name'>purge</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000104-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000104-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/entitystore.rb, line 275</span>&#x000A;275:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">purge</span>(<span class="ruby-identifier">key</span>)&#x000A;276:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">key</span>)&#x000A;277:         <span class="ruby-keyword kw">nil</span>&#x000A;278:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Memcached</span><span class="ruby-operator">::</span><span class="ruby-constant">NotFound</span>&#x000A;279:         <span class="ruby-keyword kw">nil</span>&#x000A;280:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000102'>
+                <a name='M000102'></a>
+                <div class='synopsis'>
+                  <span class='name'>read</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000102-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000102-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/entitystore.rb, line 262</span>&#x000A;262:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read</span>(<span class="ruby-identifier">key</span>)&#x000A;263:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">key</span>, <span class="ruby-keyword kw">false</span>)&#x000A;264:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Memcached</span><span class="ruby-operator">::</span><span class="ruby-constant">NotFound</span>&#x000A;265:         <span class="ruby-keyword kw">nil</span>&#x000A;266:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000103'>
+                <a name='M000103'></a>
+                <div class='synopsis'>
+                  <span class='name'>write</span>
+                  <span class='arguments'>(body)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000103-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000103-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/entitystore.rb, line 268</span>&#x000A;268:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">body</span>)&#x000A;269:         <span class="ruby-identifier">buf</span> = <span class="ruby-constant">StringIO</span>.<span class="ruby-identifier">new</span>&#x000A;270:         <span class="ruby-identifier">key</span>, <span class="ruby-identifier">size</span> = <span class="ruby-identifier">slurp</span>(<span class="ruby-identifier">body</span>){<span class="ruby-operator">|</span><span class="ruby-identifier">part</span><span class="ruby-operator">|</span> <span class="ruby-identifier">buf</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">part</span>) }&#x000A;271:         <span class="ruby-identifier">cache</span>.<span class="ruby-identifier">set</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">buf</span>.<span class="ruby-identifier">string</span>, <span class="ruby-value">0</span>, <span class="ruby-keyword kw">false</span>)&#x000A;272:         [<span class="ruby-identifier">key</span>, <span class="ruby-identifier">size</span>]&#x000A;273:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

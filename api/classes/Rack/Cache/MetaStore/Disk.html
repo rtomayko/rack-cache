@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::MetaStore::Disk [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Class</span>
+          Rack::Cache::MetaStore::Disk
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../../files/lib/rack/cache/metastore_rb.html">lib/rack/cache/metastore.rb</a>
+          </li>
+        </ol>
+        <div class='parent'>
+          Parent:
+          <strong><a href="../MetaStore.html">Rack::Cache::MetaStore</a></strong>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <p>
+            Concrete <a href="../MetaStore.html">MetaStore</a> implementation that
+            stores request/response pairs on disk.
+            </p>
+          </div>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000093">new</a></li>
+              <li><a href="#M000097">resolve</a></li>
+            </ol>
+            <h3>public instance</h3>
+            <ol>
+              <li><a href="#M000096">purge</a></li>
+              <li><a href="#M000094">read</a></li>
+              <li><a href="#M000095">write</a></li>
+            </ol>
+          </div>
+          <div id='section'>
+            <div id='attribute-list'>
+              <h2 class='section-bar'>Attributes</h2>
+              <div class='name-list'>
+                <table>
+                  <tr class='top-aligned-row context-row'>
+                    <td class='context-item-name'>root</td>
+                    <td class='context-item-value'>[R]</td>
+                    <td class='context-item-desc'></td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000093'>
+                <a name='M000093'></a>
+                <div class='synopsis'>
+                  <span class='name'>new</span>
+                  <span class='arguments'>(root=&quot;/tmp/rack-cache/meta-</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000093-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000093-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 209</span>&#x000A;209:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">root</span>=<span class="ruby-node">&quot;/tmp/rack-cache/meta-#{ARGV[0]}&quot;</span>)&#x000A;210:         <span class="ruby-ivar">@root</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">root</span>)&#x000A;211:         <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">mkdir_p</span>(<span class="ruby-identifier">root</span>, <span class="ruby-identifier">:mode</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">0755</span>)&#x000A;212:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-class' id='method-M000097'>
+                <a name='M000097'></a>
+                <div class='synopsis'>
+                  <span class='name'>resolve</span>
+                  <span class='arguments'>(uri)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000097-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000097-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 252</span>&#x000A;252:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">resolve</span>(<span class="ruby-identifier">uri</span>)&#x000A;253:         <span class="ruby-identifier">path</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">opaque</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>)&#x000A;254:         <span class="ruby-identifier">new</span> <span class="ruby-identifier">path</span>&#x000A;255:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <h2>Public instance methods</h2>
+              <div class='method public-instance' id='method-M000096'>
+                <a name='M000096'></a>
+                <div class='synopsis'>
+                  <span class='name'>purge</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000096-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000096-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 232</span>&#x000A;232:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">purge</span>(<span class="ruby-identifier">key</span>)&#x000A;233:         <span class="ruby-identifier">path</span> = <span class="ruby-identifier">key_path</span>(<span class="ruby-identifier">key</span>)&#x000A;234:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">unlink</span>(<span class="ruby-identifier">path</span>)&#x000A;235:         <span class="ruby-keyword kw">nil</span>&#x000A;236:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>, <span class="ruby-constant">IOError</span>&#x000A;237:         <span class="ruby-keyword kw">nil</span>&#x000A;238:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000094'>
+                <a name='M000094'></a>
+                <div class='synopsis'>
+                  <span class='name'>read</span>
+                  <span class='arguments'>(key)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000094-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000094-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 214</span>&#x000A;214:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read</span>(<span class="ruby-identifier">key</span>)&#x000A;215:         <span class="ruby-identifier">path</span> = <span class="ruby-identifier">key_path</span>(<span class="ruby-identifier">key</span>)&#x000A;216:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">path</span>, <span class="ruby-value str">'rb'</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span> <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">load</span>(<span class="ruby-identifier">io</span>) }&#x000A;217:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>, <span class="ruby-constant">IOError</span>&#x000A;218:         []&#x000A;219:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-instance' id='method-M000095'>
+                <a name='M000095'></a>
+                <div class='synopsis'>
+                  <span class='name'>write</span>
+                  <span class='arguments'>(key, entries)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000095-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000095-source'>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 221</span>&#x000A;221:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">entries</span>)&#x000A;222:         <span class="ruby-identifier">tries</span> = <span class="ruby-value">0</span>&#x000A;223:         <span class="ruby-keyword kw">begin</span>&#x000A;224:           <span class="ruby-identifier">path</span> = <span class="ruby-identifier">key_path</span>(<span class="ruby-identifier">key</span>)&#x000A;225:           <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">path</span>, <span class="ruby-value str">'wb'</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span> <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-identifier">entries</span>, <span class="ruby-identifier">io</span>, <span class="ruby-value">-1</span>) }&#x000A;226:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>, <span class="ruby-constant">IOError</span>&#x000A;227:           <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-identifier">path</span>), <span class="ruby-value">0755</span>)&#x000A;228:           <span class="ruby-keyword kw">retry</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">tries</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">==</span> <span class="ruby-value">1</span>&#x000A;229:         <span class="ruby-keyword kw">end</span>&#x000A;230:       <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>

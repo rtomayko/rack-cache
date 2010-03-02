@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>: Rack::Cache::Key [Rack::Cache API Documentation]</title>
+    <meta content='text/html; charset=utf8' http-equiv='Content-Type'>
+    <link href='../../../rdoc-style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='class' id='wrapper'>
+      <div class='header'>
+        <h1 class='name'>
+          <span class='type'>Class</span>
+          Rack::Cache::Key
+        </h1>
+        <ol class='paths'>
+          <li>
+            <a href="../../../files/lib/rack/cache/key_rb.html">lib/rack/cache/key.rb</a>
+          </li>
+        </ol>
+        <div class='parent'>
+          Parent:
+          <strong>Object</strong>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='method-list'>
+            <h2>Methods</h2>
+            <h3>public class</h3>
+            <ol>
+              <li><a href="#M000132">call</a></li>
+              <li><a href="#M000133">new</a></li>
+            </ol>
+            <h3>public instance</h3>
+            <ol>
+              <li><a href="#M000134">generate</a></li>
+            </ol>
+          </div>
+          <div id='context'>
+            <div id='includes'>
+              <h2>Included modules</h2>
+              <ol>
+                <li>Rack::Utils</li>
+              </ol>
+            </div>
+          </div>
+          <div id='section'>
+            <div id='methods'>
+              <h2>Public class methods</h2>
+              <div class='method public-class' id='method-M000132'>
+                <a name='M000132'></a>
+                <div class='synopsis'>
+                  <span class='name'>call</span>
+                  <span class='arguments'>(request)</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  Implement .call, since it seems like the &#8220;Rack-y&#8221; thing to do.
+                  Plus, it opens the door for cache key generators to just be blocks.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000132-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000132-source'>    <span class="ruby-comment cmt"># File lib/rack/cache/key.rb, line 9</span>&#x000A; 9:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">request</span>)&#x000A;10:       <span class="ruby-identifier">new</span>(<span class="ruby-identifier">request</span>).<span class="ruby-identifier">generate</span>&#x000A;11:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <div class='method public-class' id='method-M000133'>
+                <a name='M000133'></a>
+                <div class='synopsis'>
+                  <span class='name'>new</span>
+                  <span class='arguments'>(request)</span>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000133-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000133-source'>    <span class="ruby-comment cmt"># File lib/rack/cache/key.rb, line 13</span>&#x000A;13:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">request</span>)&#x000A;14:       <span class="ruby-ivar">@request</span> = <span class="ruby-identifier">request</span>&#x000A;15:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+              <h2>Public instance methods</h2>
+              <div class='method public-instance' id='method-M000134'>
+                <a name='M000134'></a>
+                <div class='synopsis'>
+                  <span class='name'>generate</span>
+                  <span class='arguments'>()</span>
+                </div>
+                <div class='description'>
+                  <p>
+                  Generate a normalized cache key for the request.
+                  </p>
+                </div>
+                <div class='source'>
+                  <a class='source-toggle' href='#' onclick="toggleCode('M000134-source'); return false">
+                    [show source]
+                  </a>
+                  <pre id='M000134-source'>    <span class="ruby-comment cmt"># File lib/rack/cache/key.rb, line 18</span>&#x000A;18:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">generate</span>&#x000A;19:       <span class="ruby-identifier">parts</span> = []&#x000A;20:       <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">scheme</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;://&quot;</span>&#x000A;21:       <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">host</span>&#x000A;22: &#x000A;23:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">scheme</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;https&quot;</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">port</span> <span class="ruby-operator">!=</span> <span class="ruby-value">443</span> <span class="ruby-operator">||</span>&#x000A;24:           <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">scheme</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;http&quot;</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">port</span> <span class="ruby-operator">!=</span> <span class="ruby-value">80</span>&#x000A;25:         <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;:&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">port</span>.<span class="ruby-identifier">to_s</span>&#x000A;26:       <span class="ruby-keyword kw">end</span>&#x000A;27: &#x000A;28:       <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">script_name</span>&#x000A;29:       <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">path_info</span>&#x000A;30: &#x000A;31:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">qs</span> = <span class="ruby-identifier">query_string</span>&#x000A;32:         <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;?&quot;</span>&#x000A;33:         <span class="ruby-identifier">parts</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">qs</span>&#x000A;34:       <span class="ruby-keyword kw">end</span>&#x000A;35: &#x000A;36:       <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">join</span>&#x000A;37:     <span class="ruby-keyword kw">end</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>
