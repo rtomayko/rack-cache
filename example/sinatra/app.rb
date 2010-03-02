@@ -5,10 +5,6 @@ use Rack::Cache do
   set :verbose, true
   set :metastore,   'heap:/'
   set :entitystore, 'heap:/'
-
-  on :receive do
-    pass! if request.url =~ /favicon/
-  end
 end
 
 before do
