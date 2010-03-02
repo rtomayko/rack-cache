@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
+    <title>Rack::Cache Configuration</title>
+    <link rel='stylesheet' href='rack-cache.css' type='text/css' media='all'>
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.2.3.js'></script>
+    <script type='text/javascript' src='http://tomayko.com/js/tomayko.js'></script>
+  </head>
+  <body>
+    <div id='container'>
+      <div id='header'>
+        <h1><a href="./">rack-cache</a></h1>
+        <p>
+          <a href="./configuration" title='Configuration Language Documentation'>Config</a> |
+          <a href="./storage" title='Cache Storage Documentation'>Storage</a> |
+          <a href="http://tomayko.com/writings/things-caches-do" title="Things Caches Do">Things</a> |
+          <a href="./faq" title='Frequently Asked Questions'>FAQ</a> |
+          <a href="./api/" title='Fucking Sucks.'>RDoc</a>
+        </p>
+      </div>
+      <div id='content'><h1>Configuration</h1>
+
+<p><strong>Rack::Cache</strong> includes a configuration system that can be used to specify
+fairly sophisticated cache policy on a global or per-request basis.</p>
+
+<p><a id='setopt'></a></p>
+
+<h2>Setting Cache Options</h2>
+
+<p>Cache options can be set when the <strong>Rack::Cache</strong> object is created,
+or by setting a <code>rack-cache.&lt;option&gt;</code> variable in <strong>Rack</strong>&rsquo;s
+<strong>Environment</strong>.</p>
+
+<p>When the <strong>Rack::Cache</strong> object is instantiated:</p>
+
+<pre><code>use Rack::Cache,
+  :verbose     =&gt; true,
+  :metastore   =&gt; 'memcached://localhost:11211/',
+  :entitystore =&gt; 'file:/var/cache/rack'
+</code></pre>
+
+<p>Using <strong>Rack</strong>&rsquo;s <strong>Environment</strong>:</p>
+
+<pre><code>env.merge!(
+  'rack-cache.verbose' =&gt; true,
+  'rack-cache.metastore' =&gt; 'memcached://localhost:11211/',
+  'rack-cache.entitystore' =&gt; 'file:/var/cache/rack'
+)
+</code></pre>
+
+<p><a id='options'></a></p>
+
+<h2>Cache Option Reference</h2>
+
+<p>Use the following options to customize <strong>Rack::Cache</strong>:</p>
+
+<h3><code>verbose</code></h3>
+
+<p>Boolean specifying whether verbose trace logging is enabled. This option is
+currently enabled (<code>true</code>) by default but is likely to be disabled (<code>false</code>) in
+a future release. All log output is written to the <code>rack.errors</code> stream, which
+is typically set to <code>STDERR</code>.</p>
+
+<p>The <code>trace</code>, <code>info</code>, <code>warn</code>, and <code>error</code> methods can be used within the
+configuration context to write messages to the errors stream.</p>
+
+<h3><code>default_ttl</code></h3>
+
+<p>An integer specifying the number of seconds a cached object should be considered
+&ldquo;fresh&rdquo; when no explicit freshness information is provided in a response.
+Explicit <code>Cache-Control</code> or <code>Expires</code> response headers always override this
+value. The <code>default_ttl</code> option defaults to <code>0</code>, meaning responses without
+explicit freshness information are considered immediately &ldquo;stale&rdquo; and will not
+be served from cache without validation.</p>
+
+<h3><code>metastore</code></h3>
+
+<p>A URI specifying the <strong>MetaStore</strong> implementation used to store request/response
+meta information. See the <a href="storage.html">Rack::Cache Storage Documentation</a>
+for detailed information on different storage implementations.</p>
+
+<p>If no metastore is specified, the <code>heap:/</code> store is assumed. This implementation
+has significant draw-backs so explicit configuration is recommended.</p>
+
+<h3><code>entitystore</code></h3>
+
+<p>A URI specifying the <strong>EntityStore</strong> implementation used to store
+response bodies. See the <a href="storage.html">Rack::Cache Storage Documentation</a>
+for detailed information on different storage implementations.</p>
+
+<p>If no entitystore is specified, the <code>heap:/</code> store is assumed. This
+implementation has significant draw-backs so explicit configuration is
+recommended.</p>
+
+<h3><code>private_headers</code></h3>
+
+<p>An array of request header names that cause the response to be treated with
+private cache control semantics. The default value is <code>['Authorization', 'Cookie']</code>.
+If any of these headers are present in the request, the response is considered
+private and will not be cached <em>unless</em> the response is explicitly marked public
+(e.g., <code>Cache-Control: public</code>).</p>
+
+<h3><code>allow_reload</code></h3>
+
+<p>A boolean specifying whether reload requests sent by the client should be
+honored by the cache. When this option is enabled (<code>rack-cache.allow_reload</code>
+is <code>true</code>), requests that include a <code>Cache-Control: no-cache</code> header cause
+the cache to discard anything it has stored for the request and ask that the
+response be fully generated.</p>
+
+<p>Most browsers include a <code>Cache-Control: no-cache</code> header when the user performs
+a &ldquo;hard refresh&rdquo; (e.g., holding <code>Shift</code> while clicking the &ldquo;Refresh&rdquo; button).</p>
+
+<p><em>IMPORTANT: Enabling this option globally allows all clients to break your cache.</em></p>
+
+<h3><code>allow_revalidate</code></h3>
+
+<p>A boolean specifying whether revalidate requests sent by the client should be
+honored by the cache. When this option is enabled (<code>rack-cache.allow_revalidate</code>
+is <code>true</code>), requests that include a <code>Cache-Control: max-age=0</code> header cause the
+cache to assume its copy of the response is stale, resulting in a conditional
+GET / validation request to be sent to the server.</p>
+
+<p>Most browsers include a <code>Cache-Control: max-age=0</code> header when the user performs
+a refresh (e.g., clicking the &ldquo;Refresh&rdquo; button).</p>
+
+<p><em>IMPORTANT: Enabling this option globally allows all clients to break your cache.</em></p>
+
+<h3><code>cache_key</code></h3>
+
+<p>TODO: Document custom cache keys</p>
+</div>
+      <div id='footer'>
+        <p class='rights'>
+          Copyright
+          <a href="./license" rel="license">&copy;</a>
+          2003-2008
+          by
+          <a href='http://tomayko.com/about' rel='me author'>Ryan Tomayko</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

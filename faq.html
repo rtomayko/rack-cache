@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
+    <title>Rack::Cache Frequently Asked Questions</title>
+    <link rel='stylesheet' href='rack-cache.css' type='text/css' media='all'>
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.2.3.js'></script>
+    <script type='text/javascript' src='http://tomayko.com/js/tomayko.js'></script>
+  </head>
+  <body>
+    <div id='container'>
+      <div id='header'>
+        <h1><a href="./">rack-cache</a></h1>
+        <p>
+          <a href="./configuration" title='Configuration Language Documentation'>Config</a> |
+          <a href="./storage" title='Cache Storage Documentation'>Storage</a> |
+          <a href="http://tomayko.com/writings/things-caches-do" title="Things Caches Do">Things</a> |
+          <a href="./faq" title='Frequently Asked Questions'>FAQ</a> |
+          <a href="./api/" title='Fucking Sucks.'>RDoc</a>
+        </p>
+      </div>
+      <div id='content'><h1>Frequently Asked Questions</h1>
+
+<p class='intro'>
+<strong>NOTE:</strong> This is a work in progress. Please send questions, comments, or
+suggestions to <a href="mailto:r@tomayko.com">r@tomayko.com</a>.
+</p>
+
+
+<h2>General</h2>
+
+<p><a class='hash' id='rails' href='#rails'>#</a></p>
+
+<h3>Q: Can I use Rack::Cache with Rails?</h3>
+
+<p>Rack::Cache can be used with Rails 2.3 or above. Documentation and a
+sample application is forthcoming; in the mean time, see
+<a href="http://snippets.aktagon.com/snippets/302-How-to-setup-and-use-Rack-Cache-with-Rails-2-3-0-RC-1">this example of using Rack::Cache with Rails 2.3</a>.</p>
+
+<p><a class='hash' id='why-not-squid' href='#why-not-squid'>#</a></p>
+
+<h3>Q: Why Rack::Cache? Why not Squid, Varnish, Perlbol, etc.?</h3>
+
+<p><strong>Rack::Cache</strong> is often easier to setup as part of your existing Ruby
+application than a separate caching system. <strong>Rack::Cache</strong> runs entirely inside
+your backend application processes &ndash; no separate / external process is required.
+This lets <strong>Rack::Cache</strong> scale down to development environments and simple
+deployments very easily while not sacrificing the benefits of a standards-based
+approach to caching.</p>
+
+<p><a class='hash' id='why-not-rails' href='#why-not-rails'>#</a></p>
+
+<h3>Q: Why Rack::Cache? Why not use Rails/Merb/FrameworkX&rsquo;s caching system?</h3>
+
+<p><strong>Rack::Cache</strong> takes a standards-based approach to caching that provides some
+benefits over framework-integrated systems.  It uses standard HTTP headers
+(<code>Expires</code>, <code>Cache-Control</code>, <code>Etag</code>, <code>Last-Modified</code>, etc.) to determine
+what/when to cache. Designing applications to support these standard HTTP
+mechanisms gives the benefit of being able to switch to a different HTTP
+cache implementation in the future.</p>
+
+<p>In addition, using a standards-based approach to caching creates a clear
+separation between application and caching logic. The application need only
+specify a basic set of information about the response and all decisions
+regarding how and when to cache is moved into the caching layer.</p>
+
+<p><a class='hash' id='scale' href='#scale'>#</a></p>
+
+<h3>Q: Will Rack::Cache make my app scale?</h3>
+
+<p>No. Your design is the only thing that can make your app scale.</p>
+
+<p>Also, <strong>Rack::Cache</strong> is not overly optimized for performance. The main goal of
+the project is to provide a portable, easy-to-configure, and standards-based
+caching solution for small to medium sized deployments. More sophisticated /
+performant caching systems (e.g., <a href="http://varnish.projects.linpro.no/">Varnish</a>, <a href="http://www.squid-cache.org/">Squid</a>,
+<a href="http://httpd.apache.org/docs/2.0/mod/mod_cache.html">httpd/mod-cache</a>) may be more appropriate for large deployments with
+crazy-land throughput requirements.</p>
+
+<h2>Features</h2>
+
+<p><a class='hash' id='validation' href='#validation'>#</a></p>
+
+<h3>Q: Does Rack::Cache support validation?</h3>
+
+<p>Yes. Both freshness and validation-based caching is supported. A response
+will be cached if it has a freshness lifetime (e.g., <code>Expires</code> or
+<code>Cache-Control: max-age=N</code> headers) and/or includes a validator (e.g.,
+<code>Last-Modified</code> or <code>ETag</code> headers). When the cache hits and the response is
+fresh, it&rsquo;s delivered immediately without talking to the backend application;
+when the cache is stale, the cached response is validated using a conditional
+GET request.</p>
+
+<p><a class='hash' id='fragments' href='#fragments'>#</a></p>
+
+<h3>Q: Does Rack::Cache support fragment caching?</h3>
+
+<p>Not really. <strong>Rack::Cache</strong> deals with entire responses and doesn&rsquo;t know
+anything about how your application constructs them.</p>
+
+<p>However, something like <a href="http://www.w3.org/TR/esi-lang">ESI</a> may be implemented
+in the future (likely as a separate Rack middleware component that could be
+situated upstream from Rack::Cache), which would allow applications to compose
+responses based on several &ldquo;fragment resources&rdquo;. Each fragment would have its
+own cache policy.</p>
+
+<p><a class='hash' id='manual-purge' href='#manual-purge'>#</a></p>
+
+<h3>Q: How do I manually purge or expire a cached entry?</h3>
+
+<p>Although planned, there is currently no mechanism for manually purging
+an entry stored in the cache.</p>
+
+<p>Note that using an <code>Expires</code> or <code>Cache-Control: max-age=N</code> header and relying on
+manual purge to invalidate cached entry can often be implemented more simply
+using efficient validation based caching (<code>Last-Modified</code>, <code>Etag</code>). Many web
+frameworks are based entirely on manual purge and do not support validation at
+the cache level.</p>
+
+<p><a class='hash' id='efficient-validation' href='#efficient-validation'>#</a></p>
+
+<h3>Q: What does &ldquo;Efficient Validation&rdquo; mean?</h3>
+
+<p>It means that your application performs only the processing necessary to
+determine if a response is valid before sending a <code>304 Not Modified</code> in response
+to a conditional GET request.  Many applications that perform validation do so
+only after the entire response has been generated, which provides bandwidth
+savings but results in no CPU/IO savings.  Implementing validation efficiently
+can increase backend application throughput significantly when fronted by a
+validating caching system (like <strong>Rack::Cache</strong>).</p>
+
+<p><a href="http://gist.github.com/9395">Here&rsquo;s an example Rack application</a> that performs
+efficient validation.</p>
+
+<p><a class='hash' id='orly' href='#orly'>#</a></p>
+
+<h3>Q: Did you just make that up?</h3>
+
+<p>Yes.</p>
+
+<p><a class='hash' id='https' href='#https'>#</a></p>
+
+<h3>Q: Can I do HTTPS with Rack::Cache?</h3>
+
+<p>Sure. HTTPS is typically managed by a front-end web server so this isn&rsquo;t really
+relevant to Rack::Cache.</p>
+</div>
+      <div id='footer'>
+        <p class='rights'>
+          Copyright
+          <a href="./license" rel="license">&copy;</a>
+          2003-2008
+          by
+          <a href='http://tomayko.com/about' rel='me author'>Ryan Tomayko</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
+    <title>Rack::Cache </title>
+    <link rel='stylesheet' href='rack-cache.css' type='text/css' media='all'>
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.2.3.js'></script>
+    <script type='text/javascript' src='http://tomayko.com/js/tomayko.js'></script>
+  </head>
+  <body>
+    <div id='container'>
+      <div id='header'>
+        <h1><a href="./">rack-cache</a></h1>
+        <p>
+          <a href="./configuration" title='Configuration Language Documentation'>Config</a> |
+          <a href="./storage" title='Cache Storage Documentation'>Storage</a> |
+          <a href="http://tomayko.com/writings/things-caches-do" title="Things Caches Do">Things</a> |
+          <a href="./faq" title='Frequently Asked Questions'>FAQ</a> |
+          <a href="./api/" title='Fucking Sucks.'>RDoc</a>
+        </p>
+      </div>
+      <div id='content'><p><strong>Rack::Cache</strong> is suitable as a quick drop-in component to enable HTTP caching
+for <a href="http://rack.rubyforge.org/" title="Rack: a Ruby Webserver Interface">Rack</a>-based applications that produce freshness (<code>Expires</code>,
+<code>Cache-Control</code>) and/or validation (<code>Last-Modified</code>, <code>ETag</code>) information.</p>
+
+<ul>
+<li>Standards-based (see <a href="http://tools.ietf.org/html/rfc2616" title="RFC 2616 &ndash; Hypertext Transfer Protocol &mdash; HTTP/1.1 [ietf.org]">RFC 2616</a> / <a href="http://tools.ietf.org/html/rfc2616#section-13" title="RFC 2616 / Section 13 Caching in HTTP">Section 13</a>).</li>
+<li>Freshness/expiration based caching</li>
+<li>Validation</li>
+<li>Vary support</li>
+<li>Portable: 100% Ruby / works with any <a href="http://rack.rubyforge.org/" title="Rack: a Ruby Webserver Interface">Rack</a>-enabled framework.</li>
+<li>Disk, memcached, and heap memory <a href="./storage" title="Rack::Cache Storage Documentation">storage backends</a>.</li>
+</ul>
+
+
+<h2>News</h2>
+
+<ul>
+<li>Rack::Cache 0.5 was released on May 25, 2009. See the
+<a href="http://github.com/rtomayko/rack-cache/blob/0.5.0/CHANGES"><code>CHANGES</code></a> file
+for details.</li>
+<li><a href="http://snippets.aktagon.com/snippets/302-How-to-setup-and-use-Rack-Cache-with-Rails-2-3-0-RC-1">How to use Rack::Cache with Rails 2.3</a> &ndash; it&rsquo;s really easy.</li>
+<li><a href="http://railslab.newrelic.com/2009/02/26/episode-11-advanced-http-caching">RailsLab&rsquo;s Advanced HTTP Caching Screencast</a>
+is a really great review of HTTP caching concepts and shows how to
+use Rack::Cache with Rails.</li>
+</ul>
+
+
+<h2>Installation</h2>
+
+<pre><code>$ sudo gem install rack-cache
+</code></pre>
+
+<p>Or, from a local working copy:</p>
+
+<pre><code>$ git clone git://github.com/rtomayko/rack-cache.git
+$ rake package &amp;&amp; sudo rake install
+</code></pre>
+
+<h2>Basic Usage</h2>
+
+<p><strong>Rack::Cache</strong> is implemented as a piece of <a href="http://rack.rubyforge.org/" title="Rack: a Ruby Webserver Interface">Rack</a> middleware and can be used
+with any <strong>Rack</strong>-based application. If your application includes a rackup
+(<code>.ru</code>) file or uses <strong>Rack::Builder</strong> to construct the application pipeline,
+simply <code>require</code> and <code>use</code> as follows:</p>
+
+<pre><code>require 'rack/cache'
+
+use Rack::Cache,
+  :verbose     =&gt; true,
+  :metastore   =&gt; 'file:/var/cache/rack/meta'
+  :entitystore =&gt; 'file:/var/cache/rack/body'
+
+run app
+</code></pre>
+
+<p>Assuming you've designed your backend application to take advantage of HTTP&rsquo;s
+caching features, no further code or configuration is required for basic
+caching.</p>
+
+<h2>More</h2>
+
+<ul>
+<li><p><a href="./configuration" title="Rack::Cache Configuration Language Documentation">Configuration Options</a> &ndash; how to set cache options.</p></li>
+<li><p><a href="./storage" title="Rack::Cache Storage Documentation">Cache Storage Documentation</a> &ndash; detailed information on the various
+storage implementations available in <strong>Rack::Cache</strong> and how to choose the one
+that&rsquo;s best for your application.</p></li>
+<li><p><a href="http://tomayko.com/writings/things-caches-do">Things Caches Do</a> &ndash; an illustrated guide to how HTTP gateway
+caches work with pointers to other useful resources on HTTP caching.</p></li>
+<li><p><a href="http://github.com/rtomayko/rack-cache/">GitHub Repository</a> &ndash; get your
+fork on.</p></li>
+<li><p><a href="http://groups.google.com/group/rack-cache">Mailing List</a> &ndash; for hackers
+and users (<code>rack-cache@groups.google.com</code>).</p></li>
+<li><p><a href="./faq">FAQ</a> &ndash; Frequently Asked Questions about <strong>Rack::Cache</strong>.</p></li>
+<li><p><a href="./api/">RDoc API Documentation</a> &ndash; Mostly worthless if you just want to use
+<strong>Rack::Cache</strong> in your application but mildly insightful if you'd like to
+get a feel for how the system has been put together; I recommend
+<a href="http://github.com/rtomayko/rack-cache/master/lib/rack/cache">reading the source</a>.</p></li>
+</ul>
+
+
+<h2>See Also</h2>
+
+<p>The overall design of <strong>Rack::Cache</strong> is based largely on the work of the
+internet standards community. The following resources provide a good starting
+point for exploring the basic concepts of HTTP caching:</p>
+
+<ul>
+<li><p>Mark Nottingham&rsquo;s <a href="http://www.mnot.net/cache_docs/">Caching Tutorial</a>,
+especially the short section on
+<a href="http://www.mnot.net/cache_docs/#WORK">How Web Caches Work</a></p></li>
+<li><p>Joe Gregorio&rsquo;s <a href="http://www.xml.com/lpt/a/1642">Doing HTTP Caching Right</a></p></li>
+<li><p><a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a>, especially
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html">Section 13, &ldquo;Caching in HTTP&rdquo;</a></p></li>
+</ul>
+
+
+<p><strong>Rack::Cache</strong> takes (<em>liberally</em>) various concepts from
+<a href="http://varnish.projects.linpro.no/">Varnish</a> and
+<a href="http://docs.djangoproject.com/en/dev/topics/cache/">Django&rsquo;s cache framework</a>.</p>
+
+<h2>License</h2>
+
+<p><strong>Rack::Cache</strong> is Copyright &copy; 2008
+by <a href="http://tomayko.com/about">Ryan Tomayko</a>
+and is provided under <a href="./license">the MIT license</a></p>
+</div>
+      <div id='footer'>
+        <p class='rights'>
+          Copyright
+          <a href="./license" rel="license">&copy;</a>
+          2003-2008
+          by
+          <a href='http://tomayko.com/about' rel='me author'>Ryan Tomayko</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
