@@ -24,7 +24,7 @@ for <a href="http://rack.rubyforge.org/" title="Rack: a Ruby Webserver Interface
 <code>Cache-Control</code>) and/or validation (<code>Last-Modified</code>, <code>ETag</code>) information.</p>
 
 <ul>
-<li>Standards-based (see <a href="http://tools.ietf.org/html/rfc2616" title="RFC 2616 &ndash; Hypertext Transfer Protocol &mdash; HTTP/1.1 [ietf.org]">RFC 2616</a> / <a href="http://tools.ietf.org/html/rfc2616#section-13" title="RFC 2616 / Section 13 Caching in HTTP">Section 13</a>).</li>
+<li>Standards-based (see <a href="http://tools.ietf.org/html/rfc2616" title="RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1 [ietf.org]">RFC 2616</a> / <a href="http://tools.ietf.org/html/rfc2616#section-13" title="RFC 2616 / Section 13 Caching in HTTP">Section 13</a>).</li>
 <li>Freshness/expiration based caching</li>
 <li>Validation</li>
 <li>Vary support</li>
@@ -68,13 +68,13 @@ simply <code>require</code> and <code>use</code> as follows:</p>
 
 use Rack::Cache,
   :verbose     =&gt; true,
-  :metastore   =&gt; 'file:/var/cache/rack/meta'
+  :metastore   =&gt; 'file:/var/cache/rack/meta',
   :entitystore =&gt; 'file:/var/cache/rack/body'
 
 run app
 </code></pre>
 
-<p>Assuming you've designed your backend application to take advantage of HTTP&rsquo;s
+<p>Assuming you&rsquo;ve designed your backend application to take advantage of HTTP&rsquo;s
 caching features, no further code or configuration is required for basic
 caching.</p>
 
@@ -93,9 +93,9 @@ fork on.</p></li>
 and users (<code>rack-cache@groups.google.com</code>).</p></li>
 <li><p><a href="./faq">FAQ</a> &ndash; Frequently Asked Questions about <strong>Rack::Cache</strong>.</p></li>
 <li><p><a href="./api/">RDoc API Documentation</a> &ndash; Mostly worthless if you just want to use
-<strong>Rack::Cache</strong> in your application but mildly insightful if you'd like to
+<strong>Rack::Cache</strong> in your application but mildly insightful if you&rsquo;d like to
 get a feel for how the system has been put together; I recommend
-<a href="http://github.com/rtomayko/rack-cache/master/lib/rack/cache">reading the source</a>.</p></li>
+<a href="http://github.com/rtomayko/rack-cache/tree/master/lib/rack/cache">reading the source</a>.</p></li>
 </ul>
 
 
