@@ -74,7 +74,7 @@ More
   * [RDoc API Documentation](./api/) - Mostly worthless if you just want to use
     __Rack::Cache__ in your application but mildly insightful if you'd like to
     get a feel for how the system has been put together; I recommend
-    [reading the source](http://github.com/rtomayko/rack-cache/master/lib/rack/cache).
+    [reading the source](http://github.com/rtomayko/rack-cache/tree/master/lib/rack/cache).
 
 
 See Also
