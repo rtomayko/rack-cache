@@ -5,12 +5,6 @@ task :default => :test
 CLEAN.include %w[coverage/ doc/api tags]
 CLOBBER.include %w[dist]
 
-# load gemspec like github's gem builder to surface any SAFE issues.
-Thread.new do
-  require 'rubygems/specification'
-  $spec = eval("$SAFE=3\n#{File.read('rack-cache.gemspec')}")
-end.join
-
 # SPECS =====================================================================
 
 desc 'Run specs with story style output'
@@ -36,7 +30,7 @@ task :doc => %w[doc:api doc:markdown]
 # requires the hanna gem:
 #   gem install mislav-hanna --source=http://gems.github.com
 desc 'Build API documentation (doc/api)'
-task 'doc:api' => 'doc/api/index.html' 
+task 'doc:api' => 'doc/api/index.html'
 file 'doc/api/index.html' => FileList['lib/**/*.rb'] do |f|
   rm_rf 'doc/api'
   sh((<<-SH).gsub(/[\s\n]+/, ' ').strip)
@@ -86,44 +80,38 @@ end
 
 # PACKAGING =================================================================
 
-def package(ext='')
-  "dist/rack-cache-#{$spec.version}" + ext
+if defined?(Gem)
+  # load gemspec
+  $spec = eval("$SAFE=3\n#{File.read('rack-cache.gemspec')}")
+
+  def package(ext='')
+    "dist/rack-cache-#{$spec.version}" + ext
+  end
+
+  desc 'Build packages'
+  task :package => %w[.gem .tar.gz].map {|e| package(e)}
+
+  desc 'Build and install as local gem'
+  task :install => package('.gem') do
+    sh "gem install #{package('.gem')}"
+  end
+
+  directory 'dist/'
+
+  file package('.gem') => %w[dist/ rack-cache.gemspec] + $spec.files do |f|
+    sh "gem build rack-cache.gemspec"
+    mv File.basename(f.name), f.name
+  end
+
+  file package('.tar.gz') => %w[dist/] + $spec.files do |f|
+    sh "git archive --format=tar HEAD | gzip > #{f.name}"
+  end
+
+  desc 'Upload gem to gemcutter.org'
+  task 'release' => [package('.gem')] do |t|
+    sh "gem push #{package('.gem')}"
+  end
 end
-
-desc 'Build packages'
-task :package => %w[.gem .tar.gz].map {|e| package(e)}
-
-desc 'Build and install as local gem'
-task :install => package('.gem') do
-  sh "gem install #{package('.gem')}"
-end
-
-directory 'dist/'
-
-file package('.gem') => %w[dist/ rack-cache.gemspec] + $spec.files do |f|
-  sh "gem build rack-cache.gemspec"
-  mv File.basename(f.name), f.name
-end
-
-file package('.tar.gz') => %w[dist/] + $spec.files do |f|
-  sh "git archive --format=tar HEAD | gzip > #{f.name}"
-end
-
-desc 'Upload gem and tar.gz distributables to rubyforge'
-task 'release:rubyforge' => [package('.gem'), package('.tar.gz')] do |t|
-  sh <<-SH
-    rubyforge add_release wink rack-cache #{$spec.version} #{package('.gem')} &&
-    rubyforge add_file    wink rack-cache #{$spec.version} #{package('.tar.gz')}
-  SH
-end
-
-desc 'Upload gem to gemcutter.org'
-task 'release:gemcutter' => [package('.gem')] do |t|
-  sh "gem push #{package('.gem')}"
-end
-
-desc 'Upload gem to gemcutter and rubyforge'
-task 'release' => ['release:gemcutter', 'release:rubyforge']
 
 # GEMSPEC ===================================================================
 
