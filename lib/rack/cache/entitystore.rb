@@ -204,16 +204,16 @@ module Rack::Cache
       end
     end
 
-    # Uses the memcache-client ruby library. This is the default unless
+    # Uses the Dalli ruby library. This is the default unless
     # the memcached library has already been required.
-    class MemCache < MemCacheBase
+    class Dalli < MemCacheBase
       def initialize(server="localhost:11211", options={})
         @cache =
           if server.respond_to?(:stats)
             server
           else
-            require 'memcache'
-            ::MemCache.new(server, options)
+            require 'dalli'
+            ::Dalli::Client.new(server, options)
           end
       end
 
@@ -284,7 +284,7 @@ module Rack::Cache
       if defined?(::Memcached)
         MemCached
       else
-        MemCache
+        Dalli
       end
 
     MEMCACHED = MEMCACHE
