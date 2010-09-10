@@ -82,7 +82,7 @@ end
 
 if defined?(Gem)
   # load gemspec
-  $spec = eval("$SAFE=3\n#{File.read('rack-cache.gemspec')}")
+  $spec = eval(File.read('rack-cache.gemspec'))
 
   def package(ext='')
     "dist/rack-cache-#{$spec.version}" + ext
