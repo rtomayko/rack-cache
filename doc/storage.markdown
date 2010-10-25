@@ -128,6 +128,28 @@ __NOTE:__ When both the metastore and entitystore are configured to use file
 system storage, they should be set to different paths to prevent any chance of
 collision.
 
+### AccelRedirect Storage
+
+Stores cached entries just like Disk storage, but uses nginx's
+[X-Accel-Redirect](http://wiki.nginx.org/NginxXSendfile) to serve the cached
+files.  This can only be used as an entity store.  The redirect root is 
+configured by adding an entity to the uri.  
+
+Example:
+
+ * Rack::Cache configuration:
+
+    use Rack::Cache,
+      :metastore   => 'file:/var/cache/rack/meta',
+      :entitystore => 'entitystore:/var/cache/rack/body#cache'
+
+ * Nginx configuration:
+ 
+    location /cache/ {
+      internal;
+      alias /var/cache/rack/body/;
+    }
+
 ### Memcached Storage
 
 Stores cached entries in a remote [memcached](http://www.danga.com/memcached/)

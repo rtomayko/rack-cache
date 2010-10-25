@@ -27,9 +27,33 @@ module Rack::Cache
     else
       def bytesize(string); string.size; end
     end
-
     private :slurp, :bytesize
 
+    def restore_response(hash)
+      if body = open(hash['X-Content-Digest'])
+        status = hash.delete('X-Status').to_i
+        Rack::Cache::Response.new(status, hash, body)
+      end
+    end
+
+    def write_response(response)
+      digest, size = write(response.body)
+      add_response_headers(response,digest,size)
+      add_response_body(response,digest)
+      response
+    end
+
+    protected
+    def add_response_headers(response,digest,size)
+      response.headers['X-Content-Digest'] = digest
+      unless response.headers['Transfer-Encoding']
+        response.headers['Content-Length']   = size.to_s
+      end
+    end
+
+    def add_response_body(response,digest)
+      response.body = read(digest)
+    end
 
     # Stores entity bodies on the heap using a Hash object.
     class Heap < EntityStore
@@ -167,6 +191,45 @@ module Rack::Cache
 
     DISK = Disk
     FILE = Disk
+
+    class AccelRedirect < Disk
+      attr_reader(:redirect_root)
+      def initialize(root,redirect_root)
+        super(root)
+        @redirect_root = redirect_root
+      end
+
+      def restore_response(hash)
+        key = hash['X-Content-Digest']
+        if exist?(key)
+          status = hash.delete('X-Status').to_i
+          hash['X-Accel-Redirect'] = cache_path(key)
+          Rack::Cache::Response.new(status, hash,'')
+        end
+      end
+
+      protected
+      def add_response_headers(response,digest,size)
+        super(response,digest,size)
+        response.headers['X-Accel-Redirect'] = cache_path(digest)
+      end
+      def add_response_body(response,digest)
+        response.body = ""
+      end
+
+      def self.resolve(uri)
+        path  = File.expand_path(uri.opaque || uri.path)
+        redir = "/#{uri.fragment}"
+        redir = "/cache" if redir == "/"
+        new(path,redir)
+      end
+
+      protected
+      def cache_path(key)
+        File.join(redirect_root,spread(key))
+      end
+    end
+    ACCELREDIRECT = AccelRedirect
 
     # Base class for memcached entity stores.
     class MemCacheBase < EntityStore

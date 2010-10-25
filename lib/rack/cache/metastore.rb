@@ -37,8 +37,8 @@ module Rack::Cache
       return nil if match.nil?
 
       req, res = match
-      if body = entity_store.open(res['X-Content-Digest'])
-        restore_response(res, body)
+      if response = entity_store.restore_response(res)
+        response
       else
         # TODO the metastore referenced an entity that doesn't exist in
         # the entitystore. we definitely want to return nil but we should
@@ -56,10 +56,7 @@ module Rack::Cache
       # write the response body to the entity store if this is the
       # original response.
       if response.headers['X-Content-Digest'].nil?
-        digest, size = entity_store.write(response.body)
-        response.headers['X-Content-Digest'] = digest
-        response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
-        response.body = entity_store.open(digest)
+        entity_store.write_response(response)
       end
 
       # read existing cache entries, remove non-varying, and add this one to

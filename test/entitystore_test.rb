@@ -11,7 +11,7 @@ end
 describe_shared 'A Rack::Cache::EntityStore Implementation' do
 
   it 'responds to all required messages' do
-    %w[read open write exist?].each do |message|
+    %w[read open write exist? ].each do |message|
       @store.should.respond_to message
     end
   end
@@ -81,6 +81,111 @@ describe_shared 'A Rack::Cache::EntityStore Implementation' do
     @store.purge(key).should.be.nil
     @store.read(key).should.be.nil
   end
+
+  it "writes an application response" do
+    body = "hello world"
+    response = mock_response(200, {}, [body])
+    @store.write_response(response)
+    response.headers['Content-Length'].should == body.size.to_s
+    digest = response.headers['X-Content-Digest']
+    digest.should.not.nil
+    @store.should.exist(digest)
+  end
+
+  it "restores a saved application response" do
+    body     = "hello world"
+    response = mock_response(200, {}, [body])
+    @store.write_response(response)
+    restored = @store.restore_response(response.headers)
+    restored.should.not.nil
+    restored.should.not == response
+    restored.headers['Content-Length'].should == body.size.to_s
+  end
+
+  # Helper Methods =============================================================
+  define_method :mock_response do |status,headers,body|
+    headers ||= {}
+    body = Array(body).compact
+    Rack::Cache::Response.new(status, headers, body)
+  end
+end
+
+describe_shared 'A Rack::Cache::EntityStore::Disk Implementation' do
+  it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
+  before do
+    @temp_dir = create_temp_directory
+    @store = Rack::Cache::EntityStore::Disk.new(@temp_dir)
+  end
+  after do
+    @store = nil
+    remove_entry_secure @temp_dir
+  end
+  it 'takes a path to ::new and creates the directory' do
+    path = @temp_dir + '/foo'
+    @store = Rack::Cache::EntityStore::Disk.new(path)
+    File.should.be.a.directory path
+  end
+  it 'produces a body that responds to #to_path' do
+    key, size = @store.write(['Some shells for her hair.'])
+    body = @store.open(key)
+    body.should.respond_to :to_path
+    path = "#{@temp_dir}/#{key[0..1]}/#{key[2..-1]}"
+    body.to_path.should.equal path
+  end
+  it 'spreads data over a 36² hash radius' do
+    (<<-PROSE).each_line { |line| @store.write([line]).first.should.be.sha_like }
+      My wild love went riding,
+      She rode all the day;
+      She rode to the devil,
+      And asked him to pay.
+
+      The devil was wiser
+      It's time to repent;
+      He asked her to give back
+      The money she spent
+
+      My wild love went riding,
+      She rode to sea;
+      She gathered together
+      Some shells for her hair
+
+      She rode on to Christmas,
+      She rode to the farm;
+      She rode to Japan
+      And re-entered a town
+
+      My wild love is crazy
+      She screams like a bird;
+      She moans like a cat
+      When she wants to be heard
+
+      She rode and she rode on
+      She rode for a while,
+      Then stopped for an evening
+      And laid her head down
+
+      By this time the weather
+      Had changed one degree,
+      She asked for the people
+      To let her go free
+
+      My wild love went riding,
+      She rode for an hour;
+      She rode and she rested,
+      And then she rode on
+      My wild love went riding,
+    PROSE
+    subdirs = Dir["#{@temp_dir}/*"]
+    subdirs.each do |subdir|
+      File.basename(subdir).should.be =~ /^[0-9a-z]{2}$/
+      files = Dir["#{subdir}/*"]
+      files.each do |filename|
+        File.basename(filename).should.be =~ /^[0-9a-z]{38}$/
+      end
+      files.length.should.be > 0
+    end
+    subdirs.length.should.equal 28
+  end
 end
 
 describe 'Rack::Cache::EntityStore' do
@@ -97,81 +202,62 @@ describe 'Rack::Cache::EntityStore' do
     end
   end
 
-  describe 'Disk' do
-    it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
+  describe_shared 'DISK' do
+    it_should_behave_like 'A Rack::Cache::EntityStore::Disk Implementation'
+
+    it "write an application response and return the body" do
+      body = "hello world"
+      response = mock_response(200, {}, [body])
+      @store.write_response(response)
+      response.body.should == [body]
+    end
+
+    describe "it should restore the response body" do
+      body     = "hello world"
+      response = mock_response(200, {}, [body])
+      @store.write_response(response)
+      restored = @store.restore_response(response.headers)
+      restored.body.should == response.body
+    end
+  end
+
+  describe 'AccelRedirect' do
+    it_should_behave_like 'A Rack::Cache::EntityStore::Disk Implementation'
     before do
       @temp_dir = create_temp_directory
-      @store = Rack::Cache::EntityStore::Disk.new(@temp_dir)
+      @redirect = "/cache"
+      @store = Rack::Cache::EntityStore::AccelRedirect.new(@temp_dir,@redirect)
     end
+
     after do
       @store = nil
-      remove_entry_secure @temp_dir
     end
-    it 'takes a path to ::new and creates the directory' do
-      path = @temp_dir + '/foo'
-      @store = Rack::Cache::EntityStore::Disk.new(path)
-      File.should.be.a.directory path
+
+    it "should parse redirect_root from the uri fragment" do
+      store = Rack::Cache::EntityStore::AccelRedirect::resolve(URI.parse("accelredirect:/foo/bar"))
+      store.root.should          == "/foo/bar"
+      store.redirect_root.should == "/cache"
+
+      store = Rack::Cache::EntityStore::AccelRedirect::resolve(URI.parse("accelredirect:/foo/bar#baz"))
+      store.root.should          == "/foo/bar"
+      store.redirect_root.should == "/baz"
     end
-    it 'produces a body that responds to #to_path' do
-      key, size = @store.write(['Some shells for her hair.'])
-      body = @store.open(key)
-      body.should.respond_to :to_path
-      path = "#{@temp_dir}/#{key[0..1]}/#{key[2..-1]}"
-      body.to_path.should.equal path
+
+    it "sets x-accel-redirect when writing an application response" do
+      body = "hello world"
+      response = mock_response(200, {}, [body])
+      @store.write_response(response)
+      response.body.should == ""
+      response.headers['X-Accel-Redirect'].should == @store.__send__(:cache_path,response.headers['X-Content-Digest'])
     end
-    it 'spreads data over a 36² hash radius' do
-      (<<-PROSE).each_line { |line| @store.write([line]).first.should.be.sha_like }
-        My wild love went riding,
-        She rode all the day;
-        She rode to the devil,
-        And asked him to pay.
 
-        The devil was wiser
-        It's time to repent;
-        He asked her to give back
-        The money she spent
-
-        My wild love went riding,
-        She rode to sea;
-        She gathered together
-        Some shells for her hair
-
-        She rode on to Christmas,
-        She rode to the farm;
-        She rode to Japan
-        And re-entered a town
-
-        My wild love is crazy
-        She screams like a bird;
-        She moans like a cat
-        When she wants to be heard
-
-        She rode and she rode on
-        She rode for a while,
-        Then stopped for an evening
-        And laid her head down
-
-        By this time the weather
-        Had changed one degree,
-        She asked for the people
-        To let her go free
-
-        My wild love went riding,
-        She rode for an hour;
-        She rode and she rested,
-        And then she rode on
-        My wild love went riding,
-      PROSE
-      subdirs = Dir["#{@temp_dir}/*"]
-      subdirs.each do |subdir|
-        File.basename(subdir).should.be =~ /^[0-9a-z]{2}$/
-        files = Dir["#{subdir}/*"]
-        files.each do |filename|
-          File.basename(filename).should.be =~ /^[0-9a-z]{38}$/
-        end
-        files.length.should.be > 0
-      end
-      subdirs.length.should.equal 28
+    it "sets x-accel-redirect when restoring an application response" do
+      body     = "hello world"
+      response = mock_response(200, {}, [body])
+      @store.write_response(response)
+      restored = @store.restore_response(response.headers)
+      restored.body.should == ""
+      restored.headers['X-Accel-Redirect'].should == @store.__send__(:cache_path,response.headers['X-Content-Digest'])
     end
   end
 
