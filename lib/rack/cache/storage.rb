@@ -46,6 +46,8 @@ module Rack::Cache
           type.const_get(:MemCache).resolve(uri)
         when defined?(::Memcached) && uri.respond_to?(:stats)
           type.const_get(:MemCached).resolve(uri)
+        when defined?(::Dalli) && uri.respond_to?(:stats)
+          type.const_get(:Dalli).resolve(uri)
         else
           fail "Unknown storage provider: #{uri.to_s}"
         end

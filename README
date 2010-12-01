@@ -75,6 +75,22 @@ See the following for more information:
 
     http://snippets.aktagon.com/snippets/302
 
+Using with Dalli
+----------------
+
+Dalli is a high performance memcached client for Ruby
+More information at: https://github.com/mperham/dalli
+
+    require 'rack/cache'
+    require 'dalli'
+
+    use Rack::Cache,
+      :verbose => true,
+	    :metastore   => "memcached://localhost:11211/meta",
+	    :entitystore => "memcached://localhost:11211/body"
+		
+    run app
+
 Links
 -----
 

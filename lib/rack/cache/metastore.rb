@@ -364,12 +364,46 @@ module Rack::Cache
       end
     end
 
-    MEMCACHE =
-      if defined?(::Memcached)
-        MemCached
-      else
-        MemCache
+    class Dalli < MemCacheBase
+      # The Dalli instance used to communicated with the memcached
+      # daemon.
+      attr_reader :cache
+
+      def initialize(server=nil, options={})
+        @cache =
+          if server.respond_to?(:stats)
+            server
+          else
+            require 'dalli'
+            ::Dalli::Client.new(server, options)
+          end
       end
+
+      def read(key)
+        key = hexdigest(key)
+        cache.get(key) || []
+      end
+
+      def write(key, entries)
+        key = hexdigest(key)
+        cache.set(key, entries)
+      end
+
+      def purge(key)
+        cache.delete(hexdigest(key))
+        nil
+      end
+      
+    end
+    
+    MEMCACHE = 
+          if defined?(::Dalli)
+            Dalli
+          elsif defined?(::Memcached)
+            MemCached
+          else
+            MemCache
+          end
     MEMCACHED = MEMCACHE
 
     class GAEStore < MetaStore

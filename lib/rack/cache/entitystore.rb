@@ -280,8 +280,42 @@ module Rack::Cache
       end
     end
 
+    class Dalli < MemCacheBase
+      def initialize(server="localhost:11211", options={})
+        options[:prefix_key] ||= options.delete(:namespace) if options.key?(:namespace)
+        @cache =
+          if server.respond_to?(:stats)
+            server
+          else
+            require 'dalli'
+            ::Dalli::Client.new(server, options)
+          end
+      end
+
+      def exist?(key)
+        !cache.get(key).nil?
+      end
+
+      def read(key)
+        cache.get(key)
+      end
+
+      def write(body)
+        buf = StringIO.new
+        key, size = slurp(body){|part| buf.write(part) }
+        [key, size] if cache.set(key, buf.string)
+      end
+
+      def purge(key)
+        cache.delete(key)
+        nil
+      end
+    end
+
     MEMCACHE =
-      if defined?(::Memcached)
+      if defined?(::Dalli)
+        Dalli
+      elsif defined?(::Memcached)
         MemCached
       else
         MemCache
