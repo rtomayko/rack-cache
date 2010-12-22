@@ -49,6 +49,12 @@ describe 'Rack::Cache::CacheControl' do
     cache_control['max-age'].should.equal '600'
   end
 
+  it 'strips blank segments' do
+    cache_control = Rack::Cache::CacheControl.new('max-age=600,,max-stale=300')
+    cache_control['max-age'].should.equal '600'
+    cache_control['max-stale'].should.equal '300'
+  end
+
   it 'removes all directives with #clear' do
     cache_control = Rack::Cache::CacheControl.new('max-age=600, must-revalidate')
     cache_control.clear
