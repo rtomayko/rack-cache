@@ -261,13 +261,13 @@ describe 'Rack::Cache::MetaStore' do
     end
   end
 
-  need_memcache 'metastore tests' do
-    describe 'MemCache' do
+  need_dalli 'metastore tests' do
+    describe 'Dalli' do
       it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
       before :each do
         @temp_dir = create_temp_directory
-        $memcache.flush_all
-        @store = Rack::Cache::MetaStore::MemCache.new($memcache)
+        $dalli.flush_all
+        @store = Rack::Cache::MetaStore::Dalli.new($dalli)
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
     end

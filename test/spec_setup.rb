@@ -15,7 +15,7 @@ end
 # of the MemCached meta and entity stores.
 ENV['MEMCACHED'] ||= 'localhost:11211'
 $memcached = nil
-$memcache = nil
+$dalli = nil
 
 def have_memcached?(server=ENV['MEMCACHED'])
   return $memcached unless $memcached.nil?
@@ -36,36 +36,36 @@ end
 
 have_memcached?
 
-def have_memcache?(server=ENV['MEMCACHED'])
-  return $memcache unless $memcache.nil?
-  require 'memcache'
-  $memcache = MemCache.new(server)
-  $memcache.set('ping', '')
+def have_dalli?(server=ENV['MEMCACHED'])
+  return $dalli unless $dalli.nil?
+  require 'dalli'
+  $dalli = Dalli::Client.new(server)
+  $dalli.set('ping', '')
   true
 rescue LoadError => boom
-  $memcache = false
+  $dalli = false
   false
 rescue => boom
-  STDERR.puts "memcache not working. related tests will be skipped."
-  $memcache = false
+  STDERR.puts "dalli not working. related tests will be skipped."
+  $dalli = false
   false
 end
 
-have_memcache?
+have_dalli?
+
+def need_dalli(forwhat)
+  if have_dalli?
+    yield
+  else
+    STDERR.puts "skipping Dalli #{forwhat}"
+  end
+end
 
 def need_memcached(forwhat)
   if have_memcached?
     yield
   else
     STDERR.puts "skipping memcached #{forwhat}"
-  end
-end
-
-def need_memcache(forwhat)
-  if have_memcache?
-    yield
-  else
-    STDERR.puts "skipping memcache #{forwhat}"
   end
 end
 
