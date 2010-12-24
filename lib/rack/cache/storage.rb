@@ -39,11 +39,11 @@ module Rack::Cache
           fail "Unknown storage provider: #{uri.to_s}"
         end
       else
-        # hack in support for passing a MemCache or Memcached object
+        # hack in support for passing a Dalli::Client or Memcached object
         # as the storage URI.
         case
-        when defined?(::MemCache) && uri.kind_of?(::MemCache)
-          type.const_get(:MemCache).resolve(uri)
+        when defined?(::Dalli) && uri.kind_of?(::Dalli::Client)
+          type.const_get(:Dalli).resolve(uri)
         when defined?(::Memcached) && uri.respond_to?(:stats)
           type.const_get(:MemCached).resolve(uri)
         else
