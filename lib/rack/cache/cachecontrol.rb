@@ -182,12 +182,12 @@ module Rack
     private
       def parse(value)
         return  if value.nil? || value.empty?
-        value.delete(' ').split(',').inject(self) do |hash,part|
+        value.delete(' ').split(',').each do |part|
           next if part.empty?
           name, value = part.split('=', 2)
-          hash[name.downcase] = (value || true) unless name.empty?
-          hash
+          self[name.downcase] = (value || true) unless name.empty?
         end
+        self
       end
     end
   end
