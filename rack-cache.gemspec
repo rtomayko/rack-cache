@@ -63,7 +63,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'test-spec'
   s.add_development_dependency 'memcached'
-  s.add_development_dependency 'memcache-client'
+  s.add_development_dependency 'dalli'
 
   s.has_rdoc = true
   s.homepage = "http://tomayko.com/src/rack-cache/"
