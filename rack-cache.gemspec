@@ -62,11 +62,12 @@ Gem::Specification.new do |s|
   s.add_dependency 'rack', '>= 0.4'
 
   s.add_development_dependency 'test-spec'
+  s.add_development_dependency 'memcached'
+  s.add_development_dependency 'memcache-client'
 
   s.has_rdoc = true
   s.homepage = "http://tomayko.com/src/rack-cache/"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
   s.require_paths = %w[lib]
-  s.rubyforge_project = 'wink'
   s.rubygems_version = '1.1.1'
 end
