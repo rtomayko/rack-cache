@@ -1,3 +1,11 @@
+## 1.0 / December 2010
+
+  * Rack::Cache is 1.0 and will now maintain semantic versioning <http://semver.org/>
+
+  * Add Dalli memcache client support and removed support for the unmaintained
+    memcache-client library. You will need to move your apps to Dalli before
+    upgrading rack-cache to 1.0.
+
 ## 0.5.3 / September 2010
 
   * A matching If-Modified-Since is ignored if an If-None-Match is also provided
