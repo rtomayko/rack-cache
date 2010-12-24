@@ -141,11 +141,11 @@ The URI must specify the host and port of a remote memcached daemon. The path
 portion is an optional (but recommended) namespace that is prepended to each
 cache key.
 
-The memcached storage backend requires either the `memcache-client` or
-`memcached` libraries. By default, the `memcache-client` library is used;
-require the `memcached` library explicitly to use it instead.
+The memcached storage backend requires either the `dalli` or `memcached`
+libraries. By default, the `dalli` library is used; require the `memcached`
+library explicitly to use it instead.
 
-    gem install memcache-client
+    gem install dalli
 
 Memcached storage is reasonably fast and allows multiple backends to share a
 single cache. It is also the only storage implementation that allows the cache
