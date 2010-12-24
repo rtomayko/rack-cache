@@ -166,11 +166,11 @@ instance.</p>
 portion is an optional (but recommended) namespace that is prepended to each
 cache key.</p>
 
-<p>The memcached storage backend requires either the <code>memcache-client</code> or
-<code>memcached</code> libraries. By default, the <code>memcache-client</code> library is used;
-require the <code>memcached</code> library explicitly to use it instead.</p>
+<p>The memcached storage backend requires either the <code>dalli</code> or <code>memcached</code>
+libraries. By default, the <code>dalli</code> library is used; require the <code>memcached</code>
+library explicitly to use it instead.</p>
 
-<pre><code>gem install memcache-client
+<pre><code>gem install dalli
 </code></pre>
 
 <p>Memcached storage is reasonably fast and allows multiple backends to share a
