@@ -1,4 +1,20 @@
-## 0.6.0 / Unreleased
+## 0.5.3 / September 2010
+
+  * A matching If-Modified-Since is ignored if an If-None-Match is also provided
+    and doesn't match. This is in line with RFC 2616.
+
+  * Converts string status codes to integers before returns to workaround bad
+    behaving rack middleware and apps.
+
+  * Misc doc clean up.
+
+## 0.5.2 / September 2009
+
+  * Exceptions raised from the metastore are not fatal. This makes a lot of
+    sense in most cases because its okay for the cache to be down - it
+    shouldn't blow up your app.
+
+## 0.5.1 / June 2009
 
   * Added support for memcached clusters and other advanced
     configuration provided by the memcache-client and memcached
