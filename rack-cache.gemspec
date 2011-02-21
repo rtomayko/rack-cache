@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
     doc/storage.markdown
     example/sinatra/app.rb
     example/sinatra/views/index.erb
+    lib/rack-cache.rb
     lib/rack/cache.rb
     lib/rack/cache/appengine.rb
     lib/rack/cache/cachecontrol.rb
