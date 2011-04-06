@@ -2,8 +2,8 @@ require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/context'
 
 describe 'Rack::Cache::Context' do
-  before(:each) { setup_cache_context }
-  after(:each)  { teardown_cache_context }
+  before { setup_cache_context }
+  after  { teardown_cache_context }
 
   it 'passes on non-GET/HEAD requests' do
     respond_with 200
@@ -771,7 +771,7 @@ describe 'Rack::Cache::Context' do
   end
 
   describe 'with responses that include a Vary header' do
-    before(:each) do
+    before do
       count = 0
       respond_with 200 do |req,res|
         res['Vary'] = 'Accept User-Agent Foo'

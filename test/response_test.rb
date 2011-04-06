@@ -1,21 +1,21 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
 
 describe 'Rack::Cache::Response' do
-  before :each do
+  before do
     @now = Time.httpdate(Time.now.httpdate)
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)
     @one_hour_later = Time.httpdate((Time.now + (60**2)).httpdate)
     @res = Rack::Cache::Response.new(200, {'Date' => @now.httpdate}, [])
   end
 
-  after :each do
+  after do
     @now, @res, @one_hour_ago = nil
   end
 
   it 'marks Rack tuples with string typed statuses as cacheable' do
     @res = Rack::Cache::Response.new('200',{'Date' => @now.httpdate},[])
     @res.headers['Expires'] = @one_hour_later.httpdate
-    @res.cacheable?.should.equal true
+    @res.should.be.cacheable
   end
 
   it 'responds to #to_a with a Rack response tuple' do
@@ -60,7 +60,7 @@ describe 'Rack::Cache::Response' do
     end
     it 'uses the current time when no Date header present' do
       @res = Rack::Cache::Response.new(200, {}, [])
-      @res.date.should.be.close Time.now, 1
+      @res.date.to_i.should.be.close Time.now.to_i, 1
     end
     it 'returns the correct date when the header is modified directly' do
       @res = Rack::Cache::Response.new(200, { 'Date' => @one_hour_ago.httpdate }, [])

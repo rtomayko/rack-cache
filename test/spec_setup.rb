@@ -5,10 +5,10 @@ require 'stringio'
 [ STDOUT, STDERR ].each { |io| io.sync = true }
 
 begin
-  require 'test/spec'
+  require 'bacon'
 rescue LoadError => boom
   require 'rubygems' rescue nil
-  require 'test/spec'
+  require 'bacon'
 end
 
 # Set the MEMCACHED environment variable as follows to enable testing
@@ -84,7 +84,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'rack/cache'
 
-
 # Methods for constructing downstream applications / response
 # generators.
 module CacheContextHelpers
@@ -128,18 +127,18 @@ module CacheContextHelpers
 
   def teardown_cache_context
     @app, @cache_template, @cache, @caches, @called,
-    @request, @response, @responses, @cache_config = nil
+    @request, @response, @responses, @cache_config, @cache_prototype = nil
   end
 
   # A basic response with 200 status code and a tiny body.
-  def respond_with(status=200, headers={}, body=['Hello World'])
+  def respond_with(status=200, headers={}, body=['Hello World'], &bk)
     called = false
     @app =
       lambda do |env|
         called = true
         response = Rack::Response.new(body, status, headers)
         request = Rack::Request.new(env)
-        yield request, response if block_given?
+        bk.call(request, response) if bk
         response.finish
       end
     @app.meta_def(:called?) { called }
@@ -210,7 +209,7 @@ module TestHelpers
 
 end
 
-class Test::Unit::TestCase
+class Bacon::Context
   include TestHelpers
   include CacheContextHelpers
 end

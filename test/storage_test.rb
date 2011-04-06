@@ -15,7 +15,7 @@ describe 'Rack::Cache::Storage' do
   end
   it "returns an existing MetaStore instance for URI that exists" do
     store = @storage.resolve_metastore_uri('heap:/')
-    @storage.resolve_metastore_uri('heap:/').should.be store
+    @storage.resolve_metastore_uri('heap:/').should.be.same_as store
   end
   it "creates a new EntityStore for URI if none exists" do
     @storage.resolve_entitystore_uri('heap:/').
@@ -23,14 +23,14 @@ describe 'Rack::Cache::Storage' do
   end
   it "returns an existing EntityStore instance for URI that exists" do
     store = @storage.resolve_entitystore_uri('heap:/')
-    @storage.resolve_entitystore_uri('heap:/').should.be store
+    @storage.resolve_entitystore_uri('heap:/').should.be.same_as store
   end
   it "clears all URI -> store mappings with #clear" do
     meta = @storage.resolve_metastore_uri('heap:/')
     entity = @storage.resolve_entitystore_uri('heap:/')
     @storage.clear
-    @storage.resolve_metastore_uri('heap:/').should.not.be meta
-    @storage.resolve_entitystore_uri('heap:/').should.not.be entity
+    @storage.resolve_metastore_uri('heap:/').should.not.be.same_as meta
+    @storage.resolve_entitystore_uri('heap:/').should.not.be.same_as entity
   end
 
   describe 'Heap Store URIs' do

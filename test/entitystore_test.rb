@@ -8,8 +8,7 @@ class Object
   end
 end
 
-describe_shared 'A Rack::Cache::EntityStore Implementation' do
-
+shared 'A Rack::Cache::EntityStore Implementation' do
   it 'responds to all required messages' do
     %w[read open write exist?].each do |message|
       @store.should.respond_to message
@@ -86,8 +85,8 @@ end
 describe 'Rack::Cache::EntityStore' do
 
   describe 'Heap' do
-    it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
     before { @store = Rack::Cache::EntityStore::Heap.new }
+    behaves_like 'A Rack::Cache::EntityStore Implementation'
     it 'takes a Hash to ::new' do
       @store = Rack::Cache::EntityStore::Heap.new('foo' => ['bar'])
       @store.read('foo').should.equal 'bar'
@@ -98,7 +97,6 @@ describe 'Rack::Cache::EntityStore' do
   end
 
   describe 'Disk' do
-    it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
     before do
       @temp_dir = create_temp_directory
       @store = Rack::Cache::EntityStore::Disk.new(@temp_dir)
@@ -107,6 +105,8 @@ describe 'Rack::Cache::EntityStore' do
       @store = nil
       remove_entry_secure @temp_dir
     end
+    behaves_like 'A Rack::Cache::EntityStore Implementation'
+
     it 'takes a path to ::new and creates the directory' do
       path = @temp_dir + '/foo'
       @store = Rack::Cache::EntityStore::Disk.new(path)
@@ -177,20 +177,19 @@ describe 'Rack::Cache::EntityStore' do
 
   need_memcached 'entity store tests' do
     describe 'MemCached' do
-      it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
       before do
         @store = Rack::Cache::EntityStore::MemCached.new($memcached)
       end
       after do
         @store = nil
       end
+      behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
   end
 
 
   need_dalli 'entity store tests' do
     describe 'Dalli' do
-      it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
       before do
         $dalli.flush_all
         @store = Rack::Cache::EntityStore::Dalli.new($dalli)
@@ -198,26 +197,25 @@ describe 'Rack::Cache::EntityStore' do
       after do
         @store = nil
       end
+      behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
   end
-  
+
   need_java 'entity store testing' do
     module Rack::Cache::AppEngine
       module MC
         class << (Service = {})
- 
           def contains(key); include?(key); end
           def get(key); self[key]; end;
           def put(key, value, ttl = nil)
             self[key] = value
-          end  
+          end
         end
-        
+
       end
     end
-    
+
     describe 'GAEStore' do
-      it_should_behave_like 'A Rack::Cache::EntityStore Implementation'
       before do
         puts Rack::Cache::AppEngine::MC::Service.inspect
         @store = Rack::Cache::EntityStore::GAEStore.new
@@ -225,6 +223,7 @@ describe 'Rack::Cache::EntityStore' do
       after do
         @store = nil
       end
+      behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
   end
 end

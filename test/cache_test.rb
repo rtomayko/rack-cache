@@ -25,7 +25,7 @@ describe 'Rack::Cache::new' do
   end
 
   it 'takes a block; executes it during initialization' do
-    state, object  = 'not invoked', nil
+    state, object = 'not invoked', nil
     instance =
       Rack::Cache.new @app do |cache|
         object = cache
@@ -33,6 +33,6 @@ describe 'Rack::Cache::new' do
         cache.should.respond_to :set
       end
     state.should.equal 'invoked'
-    object.should.be instance
+    object.should.be.same_as instance
   end
 end

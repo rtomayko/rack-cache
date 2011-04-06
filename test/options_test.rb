@@ -59,13 +59,13 @@ describe 'Rack::Cache::Options' do
   it 'allows the meta store to be configured' do
     @options.should.respond_to :metastore
     @options.should.respond_to :metastore=
-    @options.metastore.should.not.be nil
+    @options.metastore.should.not.be.nil
   end
 
   it 'allows the entity store to be configured' do
     @options.should.respond_to :entitystore
     @options.should.respond_to :entitystore=
-    @options.entitystore.should.not.be nil
+    @options.entitystore.should.not.be.nil
   end
 
   it 'allows log verbosity to be configured' do

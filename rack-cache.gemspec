@@ -62,7 +62,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = %w[README COPYING TODO CHANGES]
   s.add_dependency 'rack', '>= 0.4'
 
-  s.add_development_dependency 'test-spec'
+  s.add_development_dependency 'bacon'
   s.add_development_dependency 'memcached'
   s.add_development_dependency 'dalli'
 

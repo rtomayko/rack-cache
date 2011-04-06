@@ -1,11 +1,44 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/metastore'
+require 'rack/cache/entitystore'
 
-describe_shared 'A Rack::Cache::MetaStore Implementation' do
+shared 'A Rack::Cache::MetaStore Implementation' do
+
+  ###
+  # Helpers
+
+  def mock_request(uri, opts)
+    env = Rack::MockRequest.env_for(uri, opts || {})
+    Rack::Cache::Request.new(env)
+  end
+
+  def mock_response(status, headers, body)
+    headers ||= {}
+    body = Array(body).compact
+    Rack::Cache::Response.new(status, headers, body)
+  end
+
+  def slurp(body)
+    buf = ''
+    body.each { |part| buf << part }
+    buf
+  end
+
+  # Stores an entry for the given request args, returns a url encoded cache key
+  # for the request.
+  def store_simple_entry(*request_args)
+    path, headers = request_args
+    @request = mock_request(path || '/test', headers || {})
+    @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
+    body = @response.body
+    cache_key = @store.store(@request, @response, @entity_store)
+    @response.body.should.not.be.same_as body
+    cache_key
+  end
+
   before do
     @request = mock_request('/', {})
     @response = mock_response(200, {}, ['hello world'])
-    @entity_store = nil
   end
   after do
     @store = nil
@@ -43,7 +76,7 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
   it 'returns nil from #purge' do
     @store.write('/test', [[{},{}]])
-    @store.purge('/test').should.be nil
+    @store.purge('/test').should.be.nil
     @store.read('/test').should.equal []
   end
 
@@ -76,18 +109,6 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
   end
 
   # Abstract methods ===========================================================
-
-  # Stores an entry for the given request args, returns a url encoded cache key
-  # for the request.
-  define_method :store_simple_entry do |*request_args|
-    path, headers = request_args
-    @request = mock_request(path || '/test', headers || {})
-    @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
-    body = @response.body
-    cache_key = @store.store(@request, @response, @entity_store)
-    @response.body.should.not.be body
-    cache_key
-  end
 
   it 'stores a cache entry' do
     cache_key = store_simple_entry
@@ -206,39 +227,19 @@ describe_shared 'A Rack::Cache::MetaStore Implementation' do
 
     @store.read(key).length.should.equal 2
   end
-
-  # Helper Methods =============================================================
-
-  define_method :mock_request do |uri,opts|
-    env = Rack::MockRequest.env_for(uri, opts || {})
-    Rack::Cache::Request.new(env)
-  end
-
-  define_method :mock_response do |status,headers,body|
-    headers ||= {}
-    body = Array(body).compact
-    Rack::Cache::Response.new(status, headers, body)
-  end
-
-  define_method :slurp do |body|
-    buf = ''
-    body.each {|part| buf << part }
-    buf
-  end
 end
 
 
 describe 'Rack::Cache::MetaStore' do
   describe 'Heap' do
-    it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
     before do
       @store = Rack::Cache::MetaStore::Heap.new
       @entity_store = Rack::Cache::EntityStore::Heap.new
     end
+    behaves_like 'A Rack::Cache::MetaStore Implementation'
   end
 
   describe 'Disk' do
-    it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
     before do
       @temp_dir = create_temp_directory
       @store = Rack::Cache::MetaStore::Disk.new("#{@temp_dir}/meta")
@@ -247,29 +248,30 @@ describe 'Rack::Cache::MetaStore' do
     after do
       remove_entry_secure @temp_dir
     end
+    behaves_like 'A Rack::Cache::MetaStore Implementation'
   end
 
   need_memcached 'metastore tests' do
     describe 'MemCached' do
-      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
-      before :each do
+      before do
         @temp_dir = create_temp_directory
         $memcached.flush
         @store = Rack::Cache::MetaStore::MemCached.new($memcached)
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
+      behaves_like 'A Rack::Cache::MetaStore Implementation'
     end
   end
 
   need_dalli 'metastore tests' do
     describe 'Dalli' do
-      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
-      before :each do
+      before do
         @temp_dir = create_temp_directory
         $dalli.flush_all
         @store = Rack::Cache::MetaStore::Dalli.new($dalli)
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
+      behaves_like 'A Rack::Cache::MetaStore Implementation'
     end
   end
 
@@ -289,12 +291,12 @@ describe 'Rack::Cache::MetaStore' do
     end
 
     describe 'GAEStore' do
-      it_should_behave_like 'A Rack::Cache::MetaStore Implementation'
       before :each do
         Rack::Cache::AppEngine::MC::Service.clear
         @store = Rack::Cache::MetaStore::GAEStore.new
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
+      behaves_like 'A Rack::Cache::MetaStore Implementation'
     end
 
   end

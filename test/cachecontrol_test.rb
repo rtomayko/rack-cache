@@ -11,7 +11,7 @@ describe 'Rack::Cache::CacheControl' do
   it 'takes a String and parses it into a Hash when created' do
     cache_control = Rack::Cache::CacheControl.new('max-age=600, foo')
     cache_control['max-age'].should.equal '600'
-    cache_control['foo'].should.be true
+    cache_control['foo'].should.be.true
   end
 
   it 'takes a String with a single name=value pair' do
@@ -29,17 +29,17 @@ describe 'Rack::Cache::CacheControl' do
   it 'takes a String with a single flag value' do
     cache_control = Rack::Cache::CacheControl.new('no-cache')
     cache_control.should.include 'no-cache'
-    cache_control['no-cache'].should.be true
+    cache_control['no-cache'].should.be.true
   end
 
   it 'takes a String with a bunch of all kinds of stuff' do
     cache_control =
       Rack::Cache::CacheControl.new('max-age=600,must-revalidate,min-fresh=3000,foo=bar,baz')
     cache_control['max-age'].should.equal '600'
-    cache_control['must-revalidate'].should.be true
+    cache_control['must-revalidate'].should.be.true
     cache_control['min-fresh'].should.equal '3000'
     cache_control['foo'].should.equal 'bar'
-    cache_control['baz'].should.be true
+    cache_control['baz'].should.be.true
   end
 
   it 'strips leading and trailing spaces from header value' do
@@ -80,7 +80,7 @@ describe 'Rack::Cache::CacheControl' do
 
   it 'responds to #max_age with nil when no max-age directive present' do
     cache_control = Rack::Cache::CacheControl.new('public')
-    cache_control.max_age.should.be nil
+    cache_control.max_age.should.be.nil
   end
 
   it 'responds to #shared_max_age with an integer when s-maxage directive present' do
@@ -90,7 +90,7 @@ describe 'Rack::Cache::CacheControl' do
 
   it 'responds to #shared_max_age with nil when no s-maxage directive present' do
     cache_control = Rack::Cache::CacheControl.new('public')
-    cache_control.shared_max_age.should.be nil
+    cache_control.shared_max_age.should.be.nil
   end
 
   it 'responds to #public? truthfully when public directive present' do
