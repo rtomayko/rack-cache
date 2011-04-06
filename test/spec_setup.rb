@@ -70,11 +70,7 @@ def need_memcached(forwhat)
 end
 
 def need_java(forwhat)
-  if RUBY_PLATFORM =~ /java/
-    yield
-  else
-    STDERR.puts "skipping app engine #{forwhat}"
-  end
+  yield if RUBY_PLATFORM =~ /java/
 end
 
 
