@@ -2,7 +2,7 @@ require 'pp'
 require 'tmpdir'
 require 'stringio'
 
-[ STDOUT, STDERR ].each { |io| io.sync = true }
+[STDOUT, STDERR].each { |io| io.sync = true }
 
 begin
   require 'bacon'
@@ -29,7 +29,7 @@ rescue LoadError => boom
   $memcached = false
   false
 rescue => boom
-  STDERR.puts "memcached not working. related tests will be skipped."
+  warn "memcached not working. related tests will be skipped."
   $memcached = false
   false
 end
@@ -46,7 +46,7 @@ rescue LoadError => boom
   $dalli = false
   false
 rescue => boom
-  STDERR.puts "dalli not working. related tests will be skipped."
+  warn "dalli not working. related tests will be skipped."
   $dalli = false
   false
 end
@@ -57,7 +57,7 @@ def need_dalli(forwhat)
   if have_dalli?
     yield
   else
-    STDERR.puts "skipping Dalli #{forwhat}"
+    warn "skipping Dalli #{forwhat}"
   end
 end
 
@@ -65,7 +65,7 @@ def need_memcached(forwhat)
   if have_memcached?
     yield
   else
-    STDERR.puts "skipping memcached #{forwhat}"
+    warn "skipping memcached #{forwhat}"
   end
 end
 
