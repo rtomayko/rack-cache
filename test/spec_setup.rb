@@ -19,13 +19,20 @@ $dalli = nil
 
 def have_memcached?(server=ENV['MEMCACHED'])
   return $memcached unless $memcached.nil?
-  v, $VERBOSE = $VERBOSE, nil # silence warnings from memcached
-  require 'memcached'
-  $VERBOSE = v
+
+  # silence warnings from memcached
+  begin
+    v, $VERBOSE = $VERBOSE, nil
+    require 'memcached'
+  ensure
+    $VERBOSE = v
+  end
+
   $memcached = Memcached.new(server)
   $memcached.set('ping', '')
   true
 rescue LoadError => boom
+  warn "memcached library not available. related tests will be skipped."
   $memcached = false
   false
 rescue => boom
@@ -43,6 +50,7 @@ def have_dalli?(server=ENV['MEMCACHED'])
   $dalli.set('ping', '')
   true
 rescue LoadError => boom
+  warn "dalli library not available. related tests will be skipped."
   $dalli = false
   false
 rescue => boom
@@ -54,19 +62,11 @@ end
 have_dalli?
 
 def need_dalli(forwhat)
-  if have_dalli?
-    yield
-  else
-    warn "skipping Dalli #{forwhat}"
-  end
+  yield if have_dalli?
 end
 
 def need_memcached(forwhat)
-  if have_memcached?
-    yield
-  else
-    warn "skipping memcached #{forwhat}"
-  end
+  yield if have_memcached?
 end
 
 def need_java(forwhat)
