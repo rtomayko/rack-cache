@@ -111,7 +111,7 @@ module Rack::Cache
     # returned must be marshalable.
     def persist_request(request)
       env = request.env.dup
-      env.reject! { |key,val| key =~ /[^0-9A-Z_]/ }
+      env.reject! { |key,val| key =~ /[^0-9A-Z_]/ || !val.respond_to?(:to_str) }
       env
     end
 

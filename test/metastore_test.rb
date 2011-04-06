@@ -108,6 +108,10 @@ shared 'A Rack::Cache::MetaStore Implementation' do
     @store.cache_key(request).should == 'tset/'
   end
 
+  it 'does not blow up when given a non-marhsalable object with an ALL_CAPS key' do
+    store_simple_entry('/bad', { 'SOME_THING' => Proc.new {} })
+  end
+
   # Abstract methods ===========================================================
 
   it 'stores a cache entry' do
