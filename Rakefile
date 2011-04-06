@@ -21,7 +21,7 @@ end
 
 desc 'Generate test coverage report'
 task :rcov do
-  sh "rcov -Ilib:test test/*_test.rb"
+  sh "rcov -I.:lib:test test/*_test.rb"
 end
 
 # DOC =======================================================================
