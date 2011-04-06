@@ -83,7 +83,10 @@ module Rack::Cache
 
       # tidy up response a bit
       response.not_modified! if not_modified?(response)
-      response.body = [] if @request.head?
+      if @request.head?
+        response.body.close if response.body.respond_to?(:close)
+        response.body = []
+      end
       response.to_a
     end
 

@@ -227,6 +227,7 @@ module Rack::Cache
     #
     # http://tools.ietf.org/html/rfc2616#section-10.3.5
     def not_modified!
+      body.close if body.respond_to?(:close)
       self.status = 304
       self.body = []
       NOT_MODIFIED_OMIT_HEADERS.each { |name| headers.delete(name) }
