@@ -222,7 +222,9 @@ module Rack::Cache
       end
 
       def read(key)
-        cache.get(key)
+        data = cache.get(key)
+        data.force_encoding('BINARY') if data.respond_to?(:force_encoding)
+        data
       end
 
       def write(body)
