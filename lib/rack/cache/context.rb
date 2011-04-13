@@ -215,6 +215,11 @@ module Rack::Cache
           next unless value = response.headers[name]
           entry.headers[name] = value
         end
+
+        # even though it's empty, be sure to close the response body from upstream
+        # because middleware use close to signal end of response
+        response.body.close if response.body.respond_to?(:close)
+
         response = entry
       else
         record :invalid
