@@ -1,3 +1,22 @@
+## 1.0.1 / April 2011
+
+  * Added lib/rack-cache.rb to match package name for auto-requiring machinery.
+
+  * Fixed a number of issues caused by Rack::Cache not closing the body received
+    from the application. Rack::Lock and other middleware use body.close to
+    signal the true end of request processing so failure to call this method
+    can result in strange issues (e.g.,
+    "ThreadError: deadlock; recursive locking")
+
+  * Fixed a bug where Rack::Cache would blow up writing the rack env to the meta
+    store when the env contained an all uppercase key whose value wasn't
+    marshalable. Passenger and some other stuff write such keys apparently.
+
+  * The test suite has moved from test-spec to bacon. This is a short term
+    solution to the problem of not being able to run tests under Ruby 1.9.x.
+    The test suite will be moved to basic Test::Unit style sometime in the
+    future.
+
 ## 1.0 / December 2010
 
   * Rack::Cache is 1.0 and will now maintain semantic versioning <http://semver.org/>
