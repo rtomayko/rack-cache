@@ -574,8 +574,14 @@ describe 'Rack::Cache::Context' do
     response.body.should.equal 'Hello World'
 
     # go in and play around with the cached metadata directly ...
-    cache.metastore.to_hash.values.length.should.equal 1
-    cache.metastore.to_hash.values.first.first[1]['Expires'] = Time.now.httpdate
+    # XXX find some other way to do this
+    hash = cache.metastore.to_hash
+    hash.values.length.should.equal 1
+    entries = Marshal.load(hash.values.first)
+    entries.length.should.equal 1
+    req, res = entries.first
+    res['Expires'] = (Time.now - 1).httpdate
+    hash[hash.keys.first] = Marshal.dump([[req, res]])
 
     # build subsequent request; should be found but miss due to freshness
     get '/'

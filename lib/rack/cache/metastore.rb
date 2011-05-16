@@ -176,13 +176,15 @@ module Rack::Cache
       end
 
       def read(key)
-        @hash.fetch(key, []).collect do |req,res|
-          [req.dup, res.dup]
+        if data = @hash[key]
+          Marshal.load(data)
+        else
+          []
         end
       end
 
       def write(key, entries)
-        @hash[key] = entries
+        @hash[key] = Marshal.dump(entries)
       end
 
       def purge(key)
