@@ -109,4 +109,19 @@ a refresh (e.g., clicking the "Refresh" button).
 
 ### `cache_key`
 
-TODO: Document custom cache keys
+A custom cache key generator, which can be anything that responds to :call.
+By default, this is the `Rack::Cache::Key` class, but you can implement your own
+generator. A cache key generator gets passed a `Rack::Request` object and generates
+the appropriate cache key.
+
+The `Rack::Cache::Key` class by default returns the fully qualified url of the request.
+
+In addition to setting the generator to an object, you can just pass a block instead, 
+which will act as the cache key generator:
+	
+	set :cache_key do |request|
+		request.fullpath.replace(/\//, '-')
+	end
+	
+For more options see the [Rack::Request documentation](http://rack.rubyforge.org/doc/classes/Rack/Request.html)
+	
