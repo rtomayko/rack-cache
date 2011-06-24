@@ -192,7 +192,7 @@ module Rack::Cache
               when 'false' ; false
               else value.to_sym
               end
-            options[k.to_sym] = value
+            options[key.to_sym] = value
           end
           options[:namespace] = uri.path.sub(/^\//, '')
           new server, options

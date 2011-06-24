@@ -185,6 +185,11 @@ describe 'Rack::Cache::EntityStore' do
       end
       behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
+    
+    it 'passes options from uri' do
+      memcached = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
+      memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+    end
   end
 
 
@@ -198,6 +203,11 @@ describe 'Rack::Cache::EntityStore' do
         @store = nil
       end
       behaves_like 'A Rack::Cache::EntityStore Implementation'
+      
+      it 'passes options from uri' do
+        dalli = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?compression=true")
+        dalli.cache.instance_variable_get(:@options)[:compression].should.equal true
+      end
     end
   end
 
