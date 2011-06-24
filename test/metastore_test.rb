@@ -267,7 +267,7 @@ describe 'Rack::Cache::MetaStore' do
     end
     
     it 'passes options from uri' do
-      memcached = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}/meta?show_backtraces=true")
+      memcached = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
       memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
     end
   end
@@ -284,7 +284,7 @@ describe 'Rack::Cache::MetaStore' do
     end
     
     it 'passes options from uri' do
-      dalli = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}/meta?compression=true")
+      dalli = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?compression=true")
       dalli.cache.instance_variable_get(:@options)[:compression].should.equal true
     end
   end
