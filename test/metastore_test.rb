@@ -265,6 +265,11 @@ describe 'Rack::Cache::MetaStore' do
       end
       behaves_like 'A Rack::Cache::MetaStore Implementation'
     end
+    
+    it 'passes options from uri' do
+      memcached = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
+      memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+    end
   end
 
   need_dalli 'metastore tests' do
@@ -276,6 +281,11 @@ describe 'Rack::Cache::MetaStore' do
         @entity_store = Rack::Cache::EntityStore::Heap.new
       end
       behaves_like 'A Rack::Cache::MetaStore Implementation'
+    end
+    
+    it 'passes options from uri' do
+      dalli = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?compression=true")
+      dalli.cache.instance_variable_get(:@options)[:compression].should.equal true
     end
   end
 
