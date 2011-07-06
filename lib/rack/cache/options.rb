@@ -8,6 +8,8 @@ module Rack::Cache
   # below are stored in the Rack Environment as "rack-cache.<option>", where
   # <option> is the option name.
   module Options
+    extend self
+
     def self.option_accessor(key)
       name = option_name(key)
       define_method(key) { || options[name] }
@@ -95,6 +97,10 @@ module Rack::Cache
     # default for compliance with RFC 2616.
     option_accessor :allow_revalidate
 
+    # Specifies whether the underlying entity store's native expiration should
+    # be used.
+    option_accessor :use_native_ttl
+
     # The underlying options Hash. During initialization (or outside of a
     # request), this is a default values Hash. During a request, this is the
     # Rack environment Hash. The default values Hash is merged in underneath
@@ -134,7 +140,8 @@ module Rack::Cache
         'rack-cache.default_ttl'      => 0,
         'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
         'rack-cache.allow_reload'     => false,
-        'rack-cache.allow_revalidate' => false
+        'rack-cache.allow_revalidate' => false,
+        'rack-cache.use_native_ttl'   => false,
       }
       self.options = options
     end
