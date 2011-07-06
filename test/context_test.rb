@@ -88,8 +88,8 @@ describe 'Rack::Cache::Context' do
       'HTTP_IF_MODIFIED_SINCE' => timestamp
     app.should.be.called
     response.status.should.equal 304
-    response.headers.should.not.include 'Content-Length'
-    response.headers.should.not.include 'Content-Type'
+    response.original_headers.should.not.include 'Content-Length'
+    response.original_headers.should.not.include 'Content-Type'
     response.body.should.empty
     cache.trace.should.include :miss
     cache.trace.should.include :store
@@ -107,8 +107,8 @@ describe 'Rack::Cache::Context' do
       'HTTP_IF_NONE_MATCH' => '12345'
     app.should.be.called
     response.status.should.equal 304
-    response.headers.should.not.include 'Content-Length'
-    response.headers.should.not.include 'Content-Type'
+    response.original_headers.should.not.include 'Content-Length'
+    response.original_headers.should.not.include 'Content-Type'
     response.headers.should.include 'ETag'
     response.body.should.empty
     cache.trace.should.include :miss
