@@ -337,6 +337,7 @@ module Rack::Cache
       attr_reader :cache
 
       def initialize(server="localhost:11211", options={})
+        options[:prefix_key] ||= options.delete(:namespace) if options.key?(:namespace)
         @cache =
           if server.respond_to?(:stats)
             server
