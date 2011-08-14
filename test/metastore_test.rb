@@ -270,6 +270,11 @@ describe 'Rack::Cache::MetaStore' do
       memcached = Rack::Cache::MetaStore::MemCached.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
       memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
     end
+
+    it 'takes namespace into account' do
+      memcached = Rack::Cache::MetaStore::MemCached.resolve URI.parse("memcached://#{ENV['MEMCACHED']}/meta_ns1?show_backtraces=true")
+      memcached.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'meta_ns1'
+    end
   end
 
   need_dalli 'metastore tests' do

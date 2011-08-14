@@ -190,6 +190,11 @@ describe 'Rack::Cache::EntityStore' do
       memcached = Rack::Cache::EntityStore::MemCached.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
       memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
     end
+    
+    it 'takes namespace into account' do
+      memcached = Rack::Cache::EntityStore::MemCached.resolve URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
+      memcached.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'obj_ns1'
+    end
   end
 
 
