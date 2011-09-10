@@ -110,6 +110,13 @@ frameworks are based entirely on manual purge and do not support validation at
 the cache level.
 
 
+<a class='hash' id='force-pass' href='#force-pass'>#</a>
+
+### Q: How do I bypass rack-cache on a per-request basis?
+
+Set the `rack-cache.force-pass` variable in the rack environment to `true`.
+
+
 <a class='hash' id='efficient-validation' href='#efficient-validation'>#</a>
 
 ### Q: What does "Efficient Validation" mean?
