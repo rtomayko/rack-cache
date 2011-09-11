@@ -52,8 +52,8 @@ Storage Configuration
 
 The MetaStore and EntityStore used for a particular request is determined by
 inspecting the `rack-cache.metastore` and `rack-cache.entitystore` Rack env
-variables. The value of these variables is a URI that identifies the storage
-type and location (URI formats are documented in the following section).
+variables. The value of these variables is a URI or name that identifies the 
+storage type and location (URI formats are documented in a following section).
 
 The `heap:/` storage is assumed if either storage type is not explicitly
 provided. This storage type has significant drawbacks for most types of
@@ -68,6 +68,23 @@ __Rack::Cache__ object is added to the Rack middleware pipeline as follows:
 
 Alternatively, the `rack-cache.metastore` and `rack-cache.entitystore`
 variables may be set in the Rack environment by an upstream component.
+
+Storage Registration
+--------------------
+
+If the needs for configuration your stores are more complex than the URIs allow,
+you may register a manually instantiated store.  You can do this directly on the
+`Rack::Cache::Storage.instance` singleton, and pass the name as the `:metastore`
+and `entitystore` values in the rack configuration:
+
+    Rack::Cache::Storage.instance.register_metastore :my_store,
+      Rack::Cache::MetaStore::Heap.new
+    Rack::Cache::Storage.instance.register_entitystore :my_store,
+      Rack::Cache::EntityStore::Heap.new
+
+    use Rack::Cache,
+      :metastore => :my_store,
+      :entitystore => :my_store
 
 Storage Implementations
 -----------------------
