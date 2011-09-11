@@ -5,6 +5,11 @@ task :default => :test
 CLEAN.include %w[coverage/ doc/api tags]
 CLOBBER.include %w[dist]
 
+desc "Install gem dependencies"
+task :setup do
+  sh "bundle install"
+end
+
 # SPECS =====================================================================
 
 desc 'Run specs with unit test style output'
