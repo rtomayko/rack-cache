@@ -1,13 +1,13 @@
 require 'rake/clean'
 
-task :default => :test
+task :default => [:setup, :test]
 
 CLEAN.include %w[coverage/ doc/api tags]
 CLOBBER.include %w[dist]
 
 desc "Install gem dependencies"
 task :setup do
-  sh "bundle install"
+  sh "bundle check >/dev/null || bundle install", :verbose => false
 end
 
 # SPECS =====================================================================
