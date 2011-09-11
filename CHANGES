@@ -1,3 +1,17 @@
+## 1.0.4 / master unreleased
+
+  * Add rack env rack-cache.force-pass option to bypass rack-cache on
+    per request basis
+
+  * Fix test failures due to MockResponse changes in recent Rack
+    version (issue #34)
+
+## 1.0.3 / August 2011
+
+  * Fix bug passing options to memcached and dalli
+
+  * Document cache_key
+
 ## 1.0.1 / April 2011
 
   * Added lib/rack-cache.rb to match package name for auto-requiring machinery.
