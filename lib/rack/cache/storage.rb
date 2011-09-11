@@ -14,13 +14,23 @@ module Rack::Cache
       @entitystores = {}
     end
 
-    def resolve_metastore_uri(uri)
-      @metastores[uri.to_s] ||= create_store(MetaStore, uri)
+    def register_metastore(name, storage_or_uri)
+      register_store(@metastores, MetaStore, name, storage_or_uri)
     end
 
-    def resolve_entitystore_uri(uri)
-      @entitystores[uri.to_s] ||= create_store(EntityStore, uri)
+    def resolve_metastore(uri_or_name)
+      resolve_store(@metastores, MetaStore, uri_or_name)
     end
+    alias_method :resolve_metastore_uri, :resolve_metastore
+
+    def register_entitystore(name, storage_or_uri)
+      register_store(@entitystores, EntityStore, name, storage_or_uri)
+    end
+
+    def resolve_entitystore(uri_or_name)
+      resolve_store(@entitystores, EntityStore, uri_or_name)
+    end
+    alias_method :resolve_entitystore_uri, :resolve_entitystore
 
     def clear
       @metastores.clear
@@ -49,6 +59,26 @@ module Rack::Cache
         else
           fail "Unknown storage provider: #{uri.to_s}"
         end
+      end
+    end
+
+    def register_store(stores_hash, type, name, storage_or_uri)
+      if stores_hash[name.to_s]
+        raise ArgumentError, "%s already registered: %s" % [type, name]
+      end
+
+      if storage_or_uri.is_a?(type)
+        stores_hash[name.to_s] = storage_or_uri
+      else
+        stores_hash[name.to_s] = create_store(type, storage_or_uri)
+      end
+    end
+
+    def resolve_store(stores_hash, type, uri_or_name)
+      if stores_hash[uri_or_name.to_s]
+        stores_hash[uri_or_name.to_s]
+      else
+        register_store(stores_hash, type, uri_or_name, create_store(type, uri_or_name))
       end
     end
 

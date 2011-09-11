@@ -29,15 +29,15 @@ module Rack::Cache
     # The configured MetaStore instance. Changing the rack-cache.metastore
     # value effects the result of this method immediately.
     def metastore
-      uri = options['rack-cache.metastore']
-      storage.resolve_metastore_uri(uri)
+      uri_or_name = options['rack-cache.metastore']
+      storage.resolve_metastore(uri_or_name)
     end
 
     # The configured EntityStore instance. Changing the rack-cache.entitystore
     # value effects the result of this method immediately.
     def entitystore
-      uri = options['rack-cache.entitystore']
-      storage.resolve_entitystore_uri(uri)
+      uri_or_name = options['rack-cache.entitystore']
+      storage.resolve_entitystore(uri_or_name)
     end
 
     # The Rack call interface. The receiver acts as a prototype and runs
