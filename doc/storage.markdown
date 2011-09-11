@@ -73,18 +73,32 @@ Storage Registration
 --------------------
 
 If the needs for configuration your stores are more complex than the URIs allow,
-you may register a manually instantiated store.  You can do this directly on the
-`Rack::Cache::Storage.instance` singleton, and pass the name as the `:metastore`
-and `entitystore` values in the rack configuration:
+you may register a manually instantiated store.  You can do this by calling the
+`register_metastore` and `register_entitystore` methods on the __Rack::Cache__ 
+instance when you set it up in your rack configuration.
 
-    Rack::Cache::Storage.instance.register_metastore :my_store,
+    use Rack::Cache do |rack_cache|
+      rack_cache.register_metastore, :my_metas,
+        ::Cache::MetaStore::Heap.new
+      rack_cache.register_entitystore, :my_entities,
+        ::Cache::EntityStore::Heap.new
+      rack_cache.use :metastore, :my_metas
+      rack_cache.use :entitystore, :my_entities
+    end
+
+You can also register storage instances directly on the`Rack::Cache::Storage.instance` 
+singleton, and pass the name as the `:metastore` and `entitystore` values in the rack 
+configuration: 
+
+    Rack::Cache::Storage.instance.register_metastore :my_metas,
       Rack::Cache::MetaStore::Heap.new
-    Rack::Cache::Storage.instance.register_entitystore :my_store,
+    Rack::Cache::Storage.instance.register_entitystore :my_entities,
       Rack::Cache::EntityStore::Heap.new
 
     use Rack::Cache,
-      :metastore => :my_store,
-      :entitystore => :my_store
+      :metastore => :my_metas,
+      :entitystore => :my_entities
+
 
 Storage Implementations
 -----------------------
