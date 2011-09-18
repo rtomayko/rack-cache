@@ -61,7 +61,7 @@ module Rack::Cache
 
       response =
         if @request.get? || @request.head?
-          if !@env['HTTP_EXPECT'] and !@env['rack-cache.force-pass']
+          if !@env['HTTP_EXPECT'] && !@env['rack-cache.force-pass']
             lookup
           else
             pass
