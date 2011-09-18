@@ -3,8 +3,8 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
 
   s.name = 'rack-cache'
-  s.version = '1.0.3'
-  s.date = '2011-08-27'
+  s.version = '1.1'
+  s.date = '2011-09-18'
 
   s.description = "HTTP Caching for Rack"
   s.summary     = "HTTP Caching for Rack"
@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
     CHANGES
     COPYING
     Gemfile
+    Gemfile.lock
     README
     Rakefile
     TODO
