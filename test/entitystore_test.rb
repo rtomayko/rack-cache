@@ -24,6 +24,15 @@ shared 'A Rack::Cache::EntityStore Implementation' do
     data.should.equal 'My wild love went riding,'
   end
 
+  it 'takes a ttl parameter for #write' do
+    key, size = @store.write(['My wild love went riding,'], 0)
+    key.should.not.be.nil
+    key.should.be.sha_like
+
+    data = @store.read(key)
+    data.should.equal 'My wild love went riding,'
+  end
+
   it 'correctly determines whether cached body exists for key with #exist?' do
     key, size = @store.write(['She rode to the devil,'])
     @store.should.exist key
