@@ -185,10 +185,20 @@ describe 'Rack::Cache::EntityStore' do
       end
       behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
-    
-    it 'passes options from uri' do
-      memcached = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?show_backtraces=true")
-      memcached.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+
+    describe 'options parsing' do
+      before do
+        uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
+        @memcached_metastore = Rack::Cache::MetaStore::MemCached.resolve uri
+      end
+
+      it 'passes options from uri' do
+        @memcached_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+      end
+
+      it 'takes namespace into account' do
+        @memcached_metastore.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'obj_ns1'
+      end
     end
   end
 
@@ -203,10 +213,20 @@ describe 'Rack::Cache::EntityStore' do
         @store = nil
       end
       behaves_like 'A Rack::Cache::EntityStore Implementation'
-      
+    end
+
+    describe 'options parsing' do
+      before do
+        uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
+        @dalli_metastore = Rack::Cache::MetaStore::Dalli.resolve uri
+      end
+
       it 'passes options from uri' do
-        dalli = Rack::Cache::EntityStore::Dalli.resolve URI.parse("memcached://#{ENV['MEMCACHED']}?compression=true")
-        dalli.cache.instance_variable_get(:@options)[:compression].should.equal true
+        @dalli_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+      end
+
+      it 'takes namespace into account' do
+        @dalli_metastore.cache.instance_variable_get(:@options)[:namespace].should.equal 'obj_ns1'
       end
     end
   end
