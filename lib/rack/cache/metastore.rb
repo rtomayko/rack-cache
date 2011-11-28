@@ -37,7 +37,7 @@ module Rack::Cache
       match = entries.detect{|req,res| requests_match?(res['Vary'], env, req)}
       return nil if match.nil?
 
-      req, res = match
+      _, res = match
       if body = entity_store.open(res['X-Content-Digest'])
         restore_response(res, body)
       else
