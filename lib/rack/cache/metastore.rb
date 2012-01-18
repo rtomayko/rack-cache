@@ -114,9 +114,7 @@ module Rack::Cache
     # necessary modifications in preparation for persistence. The Hash
     # returned must be marshalable.
     def persist_request(request)
-      env = request.env.dup
-      env.reject! { |key,val| key =~ /[^0-9A-Z_]/ || !val.respond_to?(:to_str) }
-      env
+      request.env.reject { |key,val| key =~ /[^0-9A-Z_]/ || !val.respond_to?(:to_str) }
     end
 
     # Converts a stored response hash into a Response object. The caller
