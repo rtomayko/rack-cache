@@ -1,6 +1,7 @@
 # coding: utf-8
 require "#{File.dirname(__FILE__)}/spec_setup"
 require 'rack/cache/entitystore'
+require 'rack/cache/metastore'
 
 class Object
   def sha_like?
@@ -209,6 +210,19 @@ describe 'Rack::Cache::EntityStore' do
         @memcached_metastore.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'obj_ns1'
       end
     end
+  end
+
+  need_mongodb 'entity store tests' do
+    describe 'Mongodb' do
+      before do
+        @store = Rack::Cache::EntityStore::Mongodb.new($mongodb)
+      end
+      after do
+        @store = nil
+      end
+      behaves_like 'A Rack::Cache::EntityStore Implementation'
+    end
+
   end
 
 

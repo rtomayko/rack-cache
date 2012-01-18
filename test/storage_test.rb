@@ -91,4 +91,18 @@ describe 'Rack::Cache::Storage' do
 
   end
 
+  if have_mongodb?
+
+    describe 'Mongo Store URIs' do
+      %w[mongodb:].each do |scheme|
+        it "resolves #{scheme} entity store URIs" do
+          uri = scheme + '//' + ENV['MONGODB'] + "/rackcache"
+          @storage.resolve_entitystore_uri(uri).
+            should.be.kind_of Rack::Cache::EntityStore
+        end
+      end
+    end
+
+  end
+
 end

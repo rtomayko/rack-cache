@@ -168,6 +168,98 @@ module Rack::Cache
     DISK = Disk
     FILE = Disk
 
+    # Base class for mongo entity stores.
+    class Mongodb < EntityStore
+
+      attr_reader :cache
+
+      extend Rack::Utils
+
+      def open(key)
+        data = read(key)
+        data && [data]
+      end
+
+      # Resolving the URI is almost the same as Memcached.
+      # other than needing a database to connect to. Mongo
+      # also needs a connection name, this is currently hard
+      # coded as 'entitystore' but should probably be an ENV
+      # variable.
+      def self.resolve(uri)
+        if uri.respond_to?(:scheme)
+          server = uri.to_s
+          options = parse_query(uri.query)
+          options.keys.each do |key|
+            value =
+              case value = options.delete(key)
+              when 'true' ; true
+              when 'false' ; false
+              else value.to_sym
+              end
+            options[key.to_sym] = value
+          end
+          options[:database] = uri.path.sub(/^\//, '')
+          new server, options
+        else
+          # if the object provided is not a URI, pass it straight through
+          # to the underlying implementation.
+          new uri
+        end
+      end
+
+      def initialize(server="localhost:27017", options={})
+        @cache =
+          if server.respond_to?(:collection)
+            server['entitystore']
+          else
+            # use from_uri to make connecting to the DB simpler. Probably should support
+            # connection pooling and stuff in here too.
+            require 'mongo'
+            ::Mongo::Connection.from_uri(server, options)[options[:database]]['entitystore']
+          end
+      end
+
+      def exist?(key)
+        # use find_one to return a single result and close the cursor
+        !cache.find_one({:key => key}).nil?
+      end
+
+      def read(key)
+        # as all data is being written in binary mode, check if nil, and
+        # return nil if so before converting to a useful format if there
+        # is a record returned.
+        data = cache.find_one({:key => key})
+        if data.nil?
+          nil
+        else
+          # need to call `.to_s` on a mongo binary field to make it useable.
+          data = data['string'].to_s if data
+          data.force_encoding('BINARY') if data.respond_to?(:force_encoding)
+        end
+      end
+
+      def write(body, ttl=nil)
+        buf = StringIO.new
+        key, size = slurp(body){|part| buf.write(part) }
+        # essentially the same as memcached so far, but encode all cached resources
+        # as BSON::Binary instances to ensure they don't break the db encoding
+        string = ::BSON::Binary.new(buf.string)
+        # Call the indexing facility to run in the background every 5 minutes - multiple
+        # calls to this do nothing, so it is safe to call on each write.
+        cache.ensure_index([['key', ::Mongo::ASCENDING]], {background:true})
+        # using `:upsert => true` allows us to override any existing record with that key
+        [key, size] if cache.update({:key => key}, {:key => key, :string => string, :expires => ttl}, {:upsert => true})
+      end
+
+      def purge(key)
+        cache.remove({:key => key})
+        nil
+      end
+    end
+
+    MONGO = Mongodb
+    MONGODB = Mongodb
+
     # Base class for memcached entity stores.
     class MemCacheBase < EntityStore
       # The underlying Memcached instance used to communicate with the

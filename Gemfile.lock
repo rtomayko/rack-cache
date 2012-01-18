@@ -1,16 +1,19 @@
 PATH
   remote: .
   specs:
-    rack-cache (1.0.3)
+    rack-cache (1.1)
       rack (>= 0.4)
 
 GEM
   remote: http://rubygems.org/
   specs:
     bacon (1.1.0)
+    bson (1.5.2)
     dalli (1.0.5)
     memcached (1.3)
-    rack (1.3.2)
+    mongo (1.5.2)
+      bson (= 1.5.2)
+    rack (1.4.0)
 
 PLATFORMS
   ruby
@@ -19,4 +22,5 @@ DEPENDENCIES
   bacon
   dalli
   memcached
+  mongo
   rack-cache!
