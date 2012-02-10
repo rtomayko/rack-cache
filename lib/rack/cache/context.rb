@@ -260,6 +260,7 @@ module Rack::Cache
 
     # Write the response to the cache.
     def store(response)
+      strip_ignore_headers(response)
       metastore.store(@request, response, entitystore)
       response.headers['Age'] = response.age.to_s
     rescue Exception => e
@@ -267,6 +268,13 @@ module Rack::Cache
       nil
     else
       record :store
+    end
+
+    # Remove all ignored response headers before writing to the cache.
+    def strip_ignore_headers(response)
+      ignore_headers.each do |name|
+        response.headers.delete(name)
+      end
     end
 
     def log_error(exception)
