@@ -272,7 +272,8 @@ module Rack::Cache
 
     # Remove all ignored response headers before writing to the cache.
     def strip_ignore_headers(response)
-      record :ignore if response.headers.reject! { |name, value| ignore_headers.include? name }
+      stripped_values = ignore_headers.map { |name| response.headers.delete(name) }
+      record :ignore if stripped_values.any?
     end
 
     def log_error(exception)
