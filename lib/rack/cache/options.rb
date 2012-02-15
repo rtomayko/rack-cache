@@ -78,6 +78,14 @@ module Rack::Cache
     # Default: 0
     option_accessor :default_ttl
 
+    # Set of response headers that are removed before storing them in the
+    # cache. These headers are only removed for cacheable responses.  For
+    # example, in most cases, it makes sense to prevent cookies from being
+    # stored in the cache.
+    #
+    # Default: ['Set-Cookie']
+    option_accessor :ignore_headers
+
     # Set of request headers that trigger "private" cache-control behavior
     # on responses that don't explicitly state whether the response is
     # public or private via a Cache-Control directive. Applications that use
@@ -138,6 +146,7 @@ module Rack::Cache
         'rack-cache.metastore'        => 'heap:/',
         'rack-cache.entitystore'      => 'heap:/',
         'rack-cache.default_ttl'      => 0,
+        'rack-cache.ignore_headers'   => ['Set-Cookie'],
         'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
         'rack-cache.allow_reload'     => false,
         'rack-cache.allow_revalidate' => false,
