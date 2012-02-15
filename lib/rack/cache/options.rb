@@ -100,6 +100,16 @@ module Rack::Cache
     # default for compliance with RFC 2616.
     option_accessor :allow_reload
 
+    # If you want to restrict the ability of a cache refresh you are able
+    # to supply a lambda to this option. It will recieve the current 
+    # Rack::[Cache::]Request as an argument. Unless it returns false the reload
+    # will be allowed.
+    #
+    # Example: check for existance of an "admin" cookie
+    # :allow_reload_check => lambda { |request| !request.cookies['admin'].blank? }
+    option_accessor :allow_reload_check
+
+
     # Specifies whether the client can force a cache revalidate by including
     # a Cache-Control "max-age=0" directive in the request. This is enabled by
     # default for compliance with RFC 2616.
@@ -149,6 +159,7 @@ module Rack::Cache
         'rack-cache.ignore_headers'   => ['Set-Cookie'],
         'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
         'rack-cache.allow_reload'     => false,
+        'rack-cache.allow_reload_check' => lambda { |request| true },
         'rack-cache.allow_revalidate' => false,
         'rack-cache.use_native_ttl'   => false,
       }

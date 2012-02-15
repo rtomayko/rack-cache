@@ -161,7 +161,7 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. When no matching cache entry is found, trigger #miss processing.
     def lookup
-      if @request.no_cache? && allow_reload?
+      if @request.no_cache? && allow_reload? && allow_reload_check.call(@request)
         record :reload
         fetch
       else
