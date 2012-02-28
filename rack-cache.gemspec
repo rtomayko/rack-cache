@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
     CHANGES
     COPYING
     Gemfile
-    Gemfile.lock
     README
     Rakefile
     TODO
