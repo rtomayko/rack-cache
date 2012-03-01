@@ -14,4 +14,5 @@ tags
 /doc/storage.html
 /doc/faq.html
 Gemfile.lock
-
+.bundle
+vendor

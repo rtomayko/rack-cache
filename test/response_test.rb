@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/spec_setup"
+require 'time'
 
 describe 'Rack::Cache::Response' do
   before do
