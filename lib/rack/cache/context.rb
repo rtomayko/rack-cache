@@ -79,7 +79,7 @@ module Rack::Cache
       if verbose?
         message = "cache: [%s %s] %s\n" %
           [@request.request_method, @request.fullpath, trace]
-        @env['rack.errors'].write(message)
+        log_info(message)
       end
 
       # tidy up response a bit
@@ -280,7 +280,20 @@ module Rack::Cache
     end
 
     def log_error(exception)
-      @env['rack.errors'].write("cache error: #{exception.message}\n#{exception.backtrace.join("\n")}\n")
+      message = "cache error: #{exception.message}\n#{exception.backtrace.join("\n")}\n"
+      log(:error, message)
+    end
+
+    def log_info(message)
+      log(:info, message)
+    end
+
+    def log(level, message)
+      if @env['rack.logger']
+        @env['rack.logger'].send(level, message)
+      else
+        @env['rack.errors'].write(message)
+      end
     end
   end
 end
