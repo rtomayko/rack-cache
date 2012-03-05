@@ -1,3 +1,12 @@
+## 1.2 / March 2012
+
+  * Fix a cookie leak vulnerability effecting large numbers of Rails 3.x installs:
+    https://github.com/rtomayko/rack-cache/pull/52
+
+  * Never 304 on PUT or POST requests.
+
+  * Misc bundler and test tooling fixes.
+
 ## 1.1 / September 2011
 
   * Allow (INM/IMS) validation requests through to backend on miss. Makes it
