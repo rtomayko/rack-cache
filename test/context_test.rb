@@ -913,4 +913,19 @@ describe 'Rack::Cache::Context' do
     response.body.should.equal 'Hello World'
     cache.trace.should.include :pass
   end
+
+  it 'logs to rack.logger if available' do
+    logger = Class.new do
+      attr_reader :logged_level
+
+      def info(message)
+        @logged_level = "info"
+      end
+    end.new
+
+    respond_with 200
+    get '/', 'rack.logger' => logger
+    response.should.be.ok
+    logger.logged_level.should.equal "info"
+  end
 end
