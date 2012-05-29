@@ -182,6 +182,26 @@ shared 'A Rack::Cache::MetaStore Implementation' do
     @store.lookup(@request, @entity_store).should.be.nil
   end
 
+  it 'gracefully degrades if the cache store stops working' do
+    @store = Class.new(Rack::Cache::MetaStore) do
+      def purge(*args); nil end
+      def read(*args); [] end
+      def write(*args); nil end
+    end.new
+    @entity_store = Class.new(Rack::Cache::EntityStore) do
+      def exists?(*args); false end
+      def open(*args); nil end
+      def read(*args); nil end
+      def write(*args); nil end
+      def purge(*args); nil end
+    end.new
+
+    request = mock_request('/test', {})
+    response = mock_response(200, {}, ['test'])
+    @store.store(request, response, @entity_store)
+    response.body.should == ['test']
+  end
+
   # Vary =======================================================================
 
   it 'does not return entries that Vary with #lookup' do

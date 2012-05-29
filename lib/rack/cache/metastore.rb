@@ -64,7 +64,7 @@ module Rack::Cache
         end
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
-        response.body = entity_store.open(digest)
+        response.body = entity_store.open(digest) || response.body
       end
 
       # read existing cache entries, remove non-varying, and add this one to
