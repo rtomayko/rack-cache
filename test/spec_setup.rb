@@ -149,6 +149,7 @@ module CacheContextHelpers
   def request(method, uri='/', opts={})
     opts = {
       'rack.run_once' => true,
+      'rack.multithread' => false,
       'rack.errors' => @errors,
       'rack-cache.storage' => @storage
     }.merge(opts)

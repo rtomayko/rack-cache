@@ -45,7 +45,7 @@ module Rack::Cache
     # each request in a dup object unless the +rack.run_once+ variable is
     # set in the environment.
     def call(env)
-      if env['rack.run_once']
+      if env['rack.run_once'] && !env['rack.multithread']
         call! env
       else
         clone.call! env
