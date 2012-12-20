@@ -1,7 +1,7 @@
 require 'rack/cache/options'
 require 'rack/cache/request'
 require 'rack/cache/response'
-require 'rack/cache/storage'
+require 'rack/cache/store'
 
 module Rack::Cache
   # Implements Rack's middleware interface and provides the context for all
@@ -23,22 +23,11 @@ module Rack::Cache
       initialize_options options
       yield self if block_given?
 
+      @store = Store.new(self.options['rack-cache.metastore'],
+                         self.options['rack-cache.entitystore'])
+
       @private_header_keys =
         private_headers.map { |name| "HTTP_#{name.upcase.tr('-', '_')}" }
-    end
-
-    # The configured MetaStore instance. Changing the rack-cache.metastore
-    # value effects the result of this method immediately.
-    def metastore
-      uri = options['rack-cache.metastore']
-      storage.resolve_metastore_uri(uri)
-    end
-
-    # The configured EntityStore instance. Changing the rack-cache.entitystore
-    # value effects the result of this method immediately.
-    def entitystore
-      uri = options['rack-cache.entitystore']
-      storage.resolve_entitystore_uri(uri)
     end
 
     # The Rack call interface. The receiver acts as a prototype and runs
@@ -146,7 +135,7 @@ module Rack::Cache
     # Invalidate POST, PUT, DELETE and all methods not understood by this cache
     # See RFC2616 13.10
     def invalidate
-      metastore.invalidate(@request, entitystore)
+      @store.invalidate(@request)
     rescue Exception => e
       log_error(e)
       pass
@@ -166,7 +155,7 @@ module Rack::Cache
         fetch
       else
         begin
-          entry = metastore.lookup(@request, entitystore)
+          entry = @store.lookup(@request)
         rescue Exception => e
           log_error(e)
           return pass
@@ -264,7 +253,7 @@ module Rack::Cache
     # Write the response to the cache.
     def store(response)
       strip_ignore_headers(response)
-      metastore.store(@request, response, entitystore)
+      @store.store(@request, response)
       response.headers['Age'] = response.age.to_s
     rescue Exception => e
       log_error(e)

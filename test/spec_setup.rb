@@ -11,64 +11,6 @@ rescue LoadError => boom
   require 'bacon'
 end
 
-# Set the MEMCACHED environment variable as follows to enable testing
-# of the MemCached meta and entity stores.
-ENV['MEMCACHED'] ||= 'localhost:11211'
-$memcached = nil
-$dalli = nil
-
-def have_memcached?(server=ENV['MEMCACHED'])
-  return $memcached unless $memcached.nil?
-
-  # silence warnings from memcached
-  begin
-    v, $VERBOSE = $VERBOSE, nil
-    require 'memcached'
-  ensure
-    $VERBOSE = v
-  end
-
-  $memcached = Memcached.new(server)
-  $memcached.set('ping', '')
-  true
-rescue LoadError => boom
-  warn "memcached library not available. related tests will be skipped."
-  $memcached = false
-  false
-rescue => boom
-  warn "memcached not working. related tests will be skipped."
-  $memcached = false
-  false
-end
-
-have_memcached?
-
-def have_dalli?(server=ENV['MEMCACHED'])
-  return $dalli unless $dalli.nil?
-  require 'dalli'
-  $dalli = Dalli::Client.new(server)
-  $dalli.set('ping', '')
-  true
-rescue LoadError => boom
-  warn "dalli library not available. related tests will be skipped."
-  $dalli = false
-  false
-rescue => boom
-  warn "dalli not working. related tests will be skipped."
-  $dalli = false
-  false
-end
-
-have_dalli?
-
-def need_dalli(forwhat)
-  yield if have_dalli?
-end
-
-def need_memcached(forwhat)
-  yield if have_memcached?
-end
-
 def need_java(forwhat)
   yield if RUBY_PLATFORM =~ /java/
 end
@@ -117,8 +59,6 @@ module CacheContextHelpers
     @request = nil
     @response = nil
     @responses = []
-
-    @storage = Rack::Cache::Storage.new
   end
 
   def teardown_cache_context

@@ -1,5 +1,5 @@
 require 'rack/cache/key'
-require 'rack/cache/storage'
+require 'moneta'
 
 module Rack::Cache
 
@@ -29,11 +29,6 @@ module Rack::Cache
     # Enable verbose trace logging. This option is currently enabled by
     # default but is likely to be disabled in a future release.
     option_accessor :verbose
-
-    # The storage resolver. Defaults to the Rack::Cache.storage singleton instance
-    # of Rack::Cache::Storage. This object is responsible for resolving metastore
-    # and entitystore URIs to an implementation instances.
-    option_accessor :storage
 
     # A URI specifying the meta-store implementation that should be used to store
     # request/response meta information. The following URIs schemes are
@@ -142,9 +137,8 @@ module Rack::Cache
       @default_options = {
         'rack-cache.cache_key'        => Key,
         'rack-cache.verbose'          => true,
-        'rack-cache.storage'          => Rack::Cache::Storage.instance,
-        'rack-cache.metastore'        => 'heap:/',
-        'rack-cache.entitystore'      => 'heap:/',
+        'rack-cache.metastore'        => Moneta.new(:Memory),
+        'rack-cache.entitystore'      => Moneta.new(:Memory),
         'rack-cache.default_ttl'      => 0,
         'rack-cache.ignore_headers'   => ['Set-Cookie'],
         'rack-cache.private_headers'  => ['Authorization', 'Cookie'],
