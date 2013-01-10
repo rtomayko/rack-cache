@@ -20,10 +20,9 @@ describe 'Rack::Cache::CacheControl' do
   end
 
   it 'takes a String with multiple name=value pairs' do
-    cache_control = Rack::Cache::CacheControl.new('max-age=600, max-stale=300, min-fresh=570')
+    cache_control = Rack::Cache::CacheControl.new('max-age=600,foo=bar')
     cache_control['max-age'].should.equal '600'
-    cache_control['max-stale'].should.equal '300'
-    cache_control['min-fresh'].should.equal '570'
+    cache_control['foo'].should.equal 'bar'
   end
 
   it 'takes a String with a single flag value' do
@@ -34,10 +33,9 @@ describe 'Rack::Cache::CacheControl' do
 
   it 'takes a String with a bunch of all kinds of stuff' do
     cache_control =
-      Rack::Cache::CacheControl.new('max-age=600,must-revalidate,min-fresh=3000,foo=bar,baz')
+      Rack::Cache::CacheControl.new('max-age=600,must-revalidate,foo=bar,baz')
     cache_control['max-age'].should.equal '600'
     cache_control['must-revalidate'].should.be.true
-    cache_control['min-fresh'].should.equal '3000'
     cache_control['foo'].should.equal 'bar'
     cache_control['baz'].should.be.true
   end
