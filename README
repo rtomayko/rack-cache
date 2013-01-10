@@ -16,7 +16,7 @@ validation (Last-Modified, ETag) information:
 
 For more information about Rack::Cache features and usage, see:
 
-http://tomayko.com/src/rack-cache/
+http://rtomayko.github.com/rack-cache/
 
 Rack::Cache is not overly optimized for performance. The main goal of the
 project is to provide a portable, easy-to-configure, and standards-based
@@ -95,7 +95,7 @@ Links
 -----
 
 Documentation:
-    http://tomayko.com/src/rack-cache/
+    http://rtomayko.github.com/rack-cache/
 
 Mailing List:
     http://groups.google.com/group/rack-cache
