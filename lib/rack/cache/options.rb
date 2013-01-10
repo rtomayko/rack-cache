@@ -95,14 +95,12 @@ module Rack::Cache
     # Default: ['Authorization', 'Cookie']
     option_accessor :private_headers
 
-    # Specifies whether the client can force a cache reload by including a
-    # Cache-Control "no-cache" directive in the request. This is enabled by
-    # default for compliance with RFC 2616.
+    # Specifies whether a client can force cache reload by including a
+    # Cache-Control "no-cache" directive in the request. Disabled by default.
     option_accessor :allow_reload
 
-    # Specifies whether the client can force a cache revalidate by including
-    # a Cache-Control "max-age=0" directive in the request. This is enabled by
-    # default for compliance with RFC 2616.
+    # Specifies whether a client can force cache revalidate by including a
+    # Cache-Control "max-age=0" directive in the request. Disabled by default.
     option_accessor :allow_revalidate
 
     # Specifies whether the underlying entity store's native expiration should
