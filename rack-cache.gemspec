@@ -68,7 +68,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'dalli'
 
   s.has_rdoc = true
-  s.homepage = "http://tomayko.com/src/rack-cache/"
+  s.homepage = "http://rtomayko.github.com/rack-cache/"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
   s.require_paths = %w[lib]
   s.rubygems_version = '1.1.1'
