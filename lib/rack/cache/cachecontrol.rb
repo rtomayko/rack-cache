@@ -125,6 +125,20 @@ module Rack
       end
       alias_method :s_maxage, :shared_max_age
 
+      # If a response includes a r-maxage directive, then for a reverse cache
+      # (but not for a private or proxy cache), the maximum age specified by
+      # this directive overrides the maximum age specified by either the max-age
+      # directive, the s-maxage directive, or the Expires header. The r-maxage
+      # directive also implies the semantics of the proxy-revalidate directive.
+      # i.e., that the reverse cache must not use the entry after it becomes
+      # stale to respond to a subsequent request without first revalidating it
+      # with the origin server. The r-maxage directive is always ignored by
+      # private and proxy caches.
+      def reverse_max_age
+        self['r-maxage'].to_i  if key?('r-maxage')
+      end
+      alias_method :r_maxage, :reverse_max_age
+
       # Because a cache MAY be configured to ignore a server's specified
       # expiration time, and because a client request MAY include a max-
       # stale directive (which has a similar effect), the protocol also

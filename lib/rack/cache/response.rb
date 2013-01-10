@@ -151,13 +151,14 @@ module Rack::Cache
 
     # The number of seconds after the time specified in the response's Date
     # header when the the response should no longer be considered fresh. First
-    # check for a s-maxage directive, then a max-age directive, and then fall
-    # back on an expires header; return nil when no maximum age can be
-    # established.
+    # check for a r-maxage directive, then a s-maxage directive, then a max-age
+    # directive, and then fall back on an expires header; return nil when no
+    # maximum age can be established.
     def max_age
-      cache_control.shared_max_age ||
-        cache_control.max_age ||
-        (expires && (expires - date))
+      cache_control.reverse_max_age ||
+        cache_control.shared_max_age ||
+          cache_control.max_age ||
+           (expires && (expires - date))
     end
 
     # The value of the Expires header as a Time object.
@@ -175,6 +176,12 @@ module Rack::Cache
     # to shared caches.
     def shared_max_age=(value)
       self.cache_control = cache_control.merge('s-maxage' => value.to_s)
+    end
+
+    # Like #shared_max_age= but sets the r-maxage directive, which applies only
+    # to reverse caches.
+    def reverse_max_age=(value)
+      self.cache_control = cache_control.merge('r-maxage' => value.to_s)
     end
 
     # The response's time-to-live in seconds, or nil when no freshness
