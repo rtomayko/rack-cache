@@ -212,10 +212,9 @@ module Rack::Cache
       request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
       etags = (cached_etags + request_etags).uniq
       @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
-        response = forward
+      response = forward
 
-
-        if response.status == 304
+      if response.status == 304
         record :valid
 
         # Check if the response validated which is not cached here
