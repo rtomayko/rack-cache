@@ -2,6 +2,7 @@ require 'rack/cache/options'
 require 'rack/cache/request'
 require 'rack/cache/response'
 require 'rack/cache/storage'
+require 'faraday'
 
 module Rack::Cache
   # Implements Rack's middleware interface and provides the context for all
@@ -159,7 +160,9 @@ module Rack::Cache
     # found and is fresh, use it as the response without forwarding any
     # request to the backend. When a matching cache entry is found but is
     # stale, attempt to #validate the entry with the backend using conditional
-    # GET. When no matching cache entry is found, trigger #miss processing.
+    # GET. If validation fails due to a timeout or connection error, serve the
+    # stale cache entry anyway. When no matching cache entry is found, trigger
+    # #miss processing.
     def lookup
       if @request.no_cache? && allow_reload?
         record :reload
@@ -178,7 +181,13 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate(entry)
+            begin
+              validate(entry)
+            rescue Timeout::Error, Faraday::Error::ConnectionFailed, Faraday::Error::TimeoutError
+              record :connnection_failed
+              entry.headers['Age'] = entry.age.to_s
+              entry
+            end
           end
         else
           record :miss
@@ -194,7 +203,7 @@ module Rack::Cache
       @env['REQUEST_METHOD'] = 'GET'
 
       # add our cached last-modified validator to the environment
-      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
+      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified if entry.last_modified
 
       # Add our cached etag validator to the environment.
       # We keep the etags from the client to handle the case when the client
@@ -203,10 +212,10 @@ module Rack::Cache
       request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
       etags = (cached_etags + request_etags).uniq
       @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
+        response = forward
 
-      response = forward
 
-      if response.status == 304
+        if response.status == 304
         record :valid
 
         # Check if the response validated which is not cached here
