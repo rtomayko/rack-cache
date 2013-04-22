@@ -349,13 +349,13 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
-  #New from clabrunda
   it 'returns a stale cache entry when max-age request directive is exceeded ' +
-         'when allow_revalidate option is set to true and the remote server returns a connection error' do
+         'when allow_revalidate and fault_tolerant options are set to true and ' +
+         'the remote server returns a connection error' do
     count = 0
     respond_with do |req,res|
       count+= 1
-      raise Faraday::Error::ConnectionFailed, 'Connection failed' if count == 2
+      raise Timeout::Error, 'Connection failed' if count == 2
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
       res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
@@ -368,6 +368,7 @@ describe 'Rack::Cache::Context' do
 
     get '/',
         'rack-cache.allow_revalidate' => true,
+        'rack-cache.fault_tolerant' => true,
         'HTTP_CACHE_CONTROL' => 'max-age=0'
     response.should.be.ok
     response.body.should.equal 'Hello World'
@@ -383,6 +384,28 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :stale
     cache.trace.should.include :invalid
     cache.trace.should.include :store
+  end
+
+  it 'allows an exception to be raised when a connection error occurs ' +
+         'while revalidating a cached entry if fault_tolerant is set to false (the default)' do
+    count = 0
+    respond_with do |req,res|
+      count += 1
+      raise Timeout::Error, 'Connection failed' if count == 2
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    lambda { get '/',
+                 'rack-cache.allow_revalidate' => true,
+                 'HTTP_CACHE_CONTROL' => 'max-age=0' }.should.raise(Timeout::Error)
+    cache.trace.should.include :stale
   end
 
   it 'does not revalidate fresh cache entry when enable_revalidate option is set false (default)' do

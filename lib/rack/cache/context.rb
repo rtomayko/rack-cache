@@ -2,7 +2,6 @@ require 'rack/cache/options'
 require 'rack/cache/request'
 require 'rack/cache/response'
 require 'rack/cache/storage'
-require 'faraday'
 
 module Rack::Cache
   # Implements Rack's middleware interface and provides the context for all
@@ -15,6 +14,8 @@ module Rack::Cache
 
     # The Rack application object immediately downstream.
     attr_reader :backend
+
+    EXCEPTION_CLASSES = Set.new %w(Timeout::Error Faraday::Error::ConnectionFailed Faraday::Error::TimeoutError)
 
     def initialize(backend, options={})
       @backend = backend
@@ -183,7 +184,7 @@ module Rack::Cache
             record :stale
             begin
               validate(entry)
-            rescue Timeout::Error, Faraday::Error::ConnectionFailed, Faraday::Error::TimeoutError
+            rescue lambda { |error| fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name) }
               record :connnection_failed
               entry.headers['Age'] = entry.age.to_s
               entry
@@ -193,6 +194,12 @@ module Rack::Cache
           record :miss
           fetch
         end
+      end
+    end
+
+    def match_connection_error
+      lambda do |error|
+        fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name)
       end
     end
 
