@@ -197,12 +197,6 @@ module Rack::Cache
       end
     end
 
-    def match_connection_error
-      lambda do |error|
-        fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name)
-      end
-    end
-
     # Validate that the cache entry is fresh. The original request is used
     # as a template for a conditional GET request with the backend.
     def validate(entry)
