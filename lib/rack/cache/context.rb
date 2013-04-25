@@ -15,6 +15,10 @@ module Rack::Cache
     # The Rack application object immediately downstream.
     attr_reader :backend
 
+    # Set of exceptions that indicate a network connection failure.
+    # TODO: Make these configurable, to work in a non-faraday environment.
+    EXCEPTION_CLASSES = Set.new %w(Timeout::Error Faraday::Error::ConnectionFailed Faraday::Error::TimeoutError)
+
     def initialize(backend, options={})
       @backend = backend
       @trace = []
@@ -159,7 +163,9 @@ module Rack::Cache
     # found and is fresh, use it as the response without forwarding any
     # request to the backend. When a matching cache entry is found but is
     # stale, attempt to #validate the entry with the backend using conditional
-    # GET. When no matching cache entry is found, trigger #miss processing.
+    # GET. If validation fails due to a timeout or connection error, serve the
+    # stale cache entry anyway. When no matching cache entry is found, trigger
+    # #miss processing.
     def lookup
       if @request.no_cache? && allow_reload?
         record :reload
@@ -178,7 +184,13 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate(entry)
+            begin
+              validate(entry)
+            rescue lambda { |error| fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name) }
+              record :connnection_failed
+              entry.headers['Age'] = entry.age.to_s
+              entry
+            end
           end
         else
           record :miss
@@ -194,7 +206,7 @@ module Rack::Cache
       @env['REQUEST_METHOD'] = 'GET'
 
       # add our cached last-modified validator to the environment
-      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
+      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified if entry.last_modified
 
       # Add our cached etag validator to the environment.
       # We keep the etags from the client to handle the case when the client
@@ -203,7 +215,6 @@ module Rack::Cache
       request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
       etags = (cached_etags + request_etags).uniq
       @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
-
       response = forward
 
       if response.status == 304

@@ -146,7 +146,7 @@ module Rack::Cache
 
     # The age of the response.
     def age
-      (headers['Age'] ||  [(now - date).to_i, 0].max).to_i
+      [headers['Age'].to_i, (now - date).to_i].max
     end
 
     # The number of seconds after the time specified in the response's Date
