@@ -24,7 +24,9 @@ caching solution for small to medium sized deployments. More sophisticated /
 high-performance caching systems (e.g., Varnish, Squid, httpd/mod-cache) may be
 more appropriate for large deployments with significant throughput requirements.
 
-Rack::Cache includes an option to enable fault tolerant caching, so that stale cached results can be returned if the downstream service is unavailable.  Just set `:fault_tolerant => true` in the options hash.
+Rack::Cache includes an option to enable fault tolerant caching, so that stale
+cached results can be returned if the downstream service is unavailable.  Just
+set `:fault_tolerant => true` in the options hash.
 
 Installation
 ------------
