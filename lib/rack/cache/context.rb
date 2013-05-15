@@ -214,7 +214,7 @@ module Rack::Cache
       cached_etags = entry.etag.to_s.split(/\s*,\s*/)
       request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
       etags = (cached_etags + request_etags).uniq
-      @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
+      @env['HTTP_IF_NONE_MATCH'] = etags.join(', ') unless etags.empty?
       response = forward
 
       if response.status == 304
