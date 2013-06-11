@@ -186,7 +186,8 @@ module Rack::Cache
             record :stale
             begin
               validate(entry)
-            rescue lambda { |error| fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name) }
+                #@request.env[:middleware_options]
+            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) }
               record :connnection_failed
               entry.headers['Age'] = entry.age.to_s
               entry
@@ -196,6 +197,14 @@ module Rack::Cache
           record :miss
           fetch
         end
+      end
+    end
+
+    def fault_tolerant_condition
+      if @request.env[:middleware_options].include?(:fallback_to_cache)
+        @request.env[:middleware_options][:fallback_to_cache]
+      else
+        fault_tolerant?
       end
     end
 
