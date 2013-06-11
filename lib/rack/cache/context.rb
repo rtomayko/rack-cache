@@ -201,7 +201,7 @@ module Rack::Cache
     end
 
     def fault_tolerant_condition
-      if @request.env[:middleware_options].include?(:fallback_to_cache)
+      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:fallback_to_cache)
         @request.env[:middleware_options][:fallback_to_cache]
       else
         fault_tolerant?
