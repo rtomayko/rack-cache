@@ -186,9 +186,11 @@ module Rack::Cache
             record :stale
             begin
               validate(entry)
-            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) }
+            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
               record :connnection_failed
-              entry.headers['Age'] = entry.age.to_s
+              age = entry.age.to_s
+              entry.headers['Age'] = age
+              record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
               entry
             end
           end
