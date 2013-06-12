@@ -466,7 +466,7 @@ describe 'Rack::Cache::Context' do
                  'rack-cache.allow_revalidate' => true,
                  'HTTP_CACHE_CONTROL' => 'max-age=0',
                  'rack-cache.fault_tolerant' => true,
-                 :middleware_options => {fallback_to_cache: false}}.should.raise(Timeout::Error)
+                 :middleware_options => {fallback_to_cache: false} }.should.raise(Timeout::Error)
     cache.trace.should.include :stale
   end
 

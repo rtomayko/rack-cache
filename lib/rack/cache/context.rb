@@ -186,7 +186,6 @@ module Rack::Cache
             record :stale
             begin
               validate(entry)
-                #@request.env[:middleware_options]
             rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) }
               record :connnection_failed
               entry.headers['Age'] = entry.age.to_s
