@@ -386,6 +386,44 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
+  it 'returns a stale cache entry when max-age request directive is exceeded ' +
+         'when allow_revalidate and per-request fault_tolerant options are set to true and ' +
+         'the remote server returns a connection error' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      raise Timeout::Error, 'Connection failed' if count == 2
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    get '/', # This tests if the per-request setting of the fallback to cache works
+        'rack-cache.allow_revalidate' => true,
+        'rack-cache.fault_tolerant' => false,
+        'HTTP_CACHE_CONTROL' => 'max-age=0',
+        :middleware_options => {fallback_to_cache: true}
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :stale
+    cache.trace.should.include :connnection_failed
+
+    # Once the server comes back, the request should be revalidated.
+    get '/',
+        'rack-cache.allow_revalidate' => true,
+        'HTTP_CACHE_CONTROL' => 'max-age=0'
+    response.should.be.ok
+    response.body.should.equal 'Goodbye World'
+    cache.trace.should.include :stale
+    cache.trace.should.include :invalid
+    cache.trace.should.include :store
+  end
+
   it 'allows an exception to be raised when a connection error occurs ' +
          'while revalidating a cached entry if fault_tolerant is set to false (the default)' do
     count = 0
@@ -405,6 +443,30 @@ describe 'Rack::Cache::Context' do
     lambda { get '/',
                  'rack-cache.allow_revalidate' => true,
                  'HTTP_CACHE_CONTROL' => 'max-age=0' }.should.raise(Timeout::Error)
+    cache.trace.should.include :stale
+  end
+
+  it 'allows an exception to be raised when a connection error occurs ' +
+         'while revalidating a cached entry if fault_tolerant is set to true but the per-request is false' do
+    count = 0
+    respond_with do |req,res|
+      count += 1
+      raise Timeout::Error, 'Connection failed' if count == 2
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :store
+
+    lambda { get '/',
+                 'rack-cache.allow_revalidate' => true,
+                 'HTTP_CACHE_CONTROL' => 'max-age=0',
+                 'rack-cache.fault_tolerant' => true,
+                 :middleware_options => {fallback_to_cache: false}}.should.raise(Timeout::Error)
     cache.trace.should.include :stale
   end
 
