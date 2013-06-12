@@ -200,6 +200,11 @@ module Rack::Cache
       end
     end
 
+    #This method is used in the lambda of lookup (a few line up) to test if in an error case the fallback to stale
+    #data should be performed.
+    #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
+    #If it is not present, then the global setting will be honored.
+    #Setting the per-request option to false overrides the global settings!
     def fault_tolerant_condition
       if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:fallback_to_cache)
         @request.env[:middleware_options][:fallback_to_cache]
