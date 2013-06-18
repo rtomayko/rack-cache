@@ -424,6 +424,121 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :store
   end
 
+  it 'retries on connection failures as configured in the middleware options and succeeds after 2 retries' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      raise Timeout::Error, 'Connection failed' if count < 3
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 3) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/', # This tests if the per-request setting of the fallback to cache works
+        'rack-cache.allow_revalidate' => true,
+        'rack-cache.fault_tolerant' => false,
+        'HTTP_CACHE_CONTROL' => 'max-age=0',
+        :middleware_options => {retries: 2}
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :miss
+    cache.trace.should.include "Retrying 1 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Retrying 2 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include :store
+  end
+
+  it 'retries on connection failures as configured in the middleware options and fails after 2 retries in cache miss case' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      raise Timeout::Error, 'Connection failed' if count < 4
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 3) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    lambda { Rack::Cache.new(@app, {})
+      get '/', # This tests if the per-request setting of the fallback to cache works
+          'rack-cache.allow_revalidate' => true,
+          'rack-cache.fault_tolerant' => false,
+          'HTTP_CACHE_CONTROL' => 'max-age=0',
+          :middleware_options => {retries: 2}
+    }.should.raise(Timeout::Error)
+    cache.trace.should.include :miss
+    cache.trace.should.include "Retrying 1 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Retrying 2 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Failed retry after 2 retries due to Timeout::Error: Connection failed"
+  end
+
+
+  it 'retries on connection failures as configured in the middleware options and fails after 3 retries in hit case' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      raise Timeout::Error, 'Connection failed' if (2..6).include? count
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/', # This tests if the per-request setting of the fallback to cache works
+        'rack-cache.allow_revalidate' => true,
+        'rack-cache.fault_tolerant' => false,
+        'HTTP_CACHE_CONTROL' => 'max-age=0',
+        :middleware_options => {fallback_to_cache: true}
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+
+    lambda { Rack::Cache.new(@app, {})
+      get '/', # This tests if the per-request setting of the fallback to cache works
+          'rack-cache.allow_revalidate' => true,
+          'rack-cache.fault_tolerant' => false,
+          'HTTP_CACHE_CONTROL' => 'max-age=0',
+          :middleware_options => {retries: 2}
+    }.should.raise(Timeout::Error)
+    cache.trace.should.include :stale
+    cache.trace.should.include "Retrying 1 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Retrying 2 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Failed retry after 2 retries due to Timeout::Error: Connection failed"
+  end
+
+  it 'retries on connection failures as configured in the middleware options and reverts to stale data after 3 retries in hit case' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      raise Timeout::Error, 'Connection failed' if (2..6).include? count
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/', # This tests if the per-request setting of the fallback to cache works
+        'rack-cache.allow_revalidate' => true,
+        'rack-cache.fault_tolerant' => false,
+        'HTTP_CACHE_CONTROL' => 'max-age=0',
+        :middleware_options => {fallback_to_cache: true}
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :miss
+    cache.trace.should.include :store
+
+    get '/', # This tests if the per-request setting of the fallback to cache works
+          'rack-cache.allow_revalidate' => true,
+          'rack-cache.fault_tolerant' => true,
+          'HTTP_CACHE_CONTROL' => 'max-age=0',
+          :middleware_options => {retries: 2}
+    response.should.be.ok
+    response.body.should.equal 'Hello World'
+    cache.trace.should.include :stale
+    cache.trace.should.include "Retrying 1 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Retrying 2 of 2 times due to Timeout::Error: Connection failed"
+    cache.trace.should.include "Failed retry after 2 retries due to Timeout::Error: Connection failed"
+    cache.trace.should.include :connnection_failed
+    cache.trace.should.include "Fail-over to stale cache data with age 0 due to Timeout::Error: Connection failed"
+  end
+
   it 'allows an exception to be raised when a connection error occurs ' +
          'while revalidating a cached entry if fault_tolerant is set to false (the default)' do
     count = 0
