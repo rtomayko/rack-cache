@@ -82,7 +82,7 @@ require 'rack/cache'
 
 module Rack
   class MockRequest
-    class <<self
+    class << self
       alias_method :new_env_for, :env_for
     end
     def self.env_for(uri="", opts={})
