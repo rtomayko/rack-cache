@@ -228,7 +228,7 @@ module Rack::Cache
       end
     end
 
-    #This method is used in the lambda of lookup (a few line up) to test if in an error case the fallback to stale
+    #This method is used in the lambda of lookup (a few lines up) to test if in an error case the fallback to stale
     #data should be performed.
     #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
     #If it is not present, then the global setting will be honored.
@@ -241,7 +241,7 @@ module Rack::Cache
       end
     end
 
-    #This method is used in the lambda of lookup (a few line up) to test if in an error case the fallback to stale
+    #This method is used in the lambda of lookup (a few lines up) to test if in an error case the fallback to stale
     #data should be performed.
     #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
     #If it is not present, then the global setting will be honored.
