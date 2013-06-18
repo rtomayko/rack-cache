@@ -220,7 +220,9 @@ module Rack::Cache
               record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
               retry
             else
-              record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+              if retries > 0
+                record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+              end
               raise
             end
           end
