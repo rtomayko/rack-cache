@@ -387,10 +387,10 @@ describe 'Rack::Cache::Context' do
   end
 
   it 'returns a stale cache entry when max-age request directive is exceeded ' +
-         'when allow_revalidate and per-request fault_tolerant options are set to true and ' +
-         'the remote server returns a connection error' do
+     'when allow_revalidate and per-request fault_tolerant options are set to true and ' +
+     'the remote server returns a connection error' do
     count = 0
-    respond_with do |req,res|
+    respond_with do |req, res|
       count+= 1
       raise Timeout::Error, 'Connection failed' if count == 2
       res['Cache-Control'] = 'max-age=10000'
