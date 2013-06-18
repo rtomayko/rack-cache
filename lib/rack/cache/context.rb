@@ -167,6 +167,11 @@ module Rack::Cache
     # stale cache entry anyway. When no matching cache entry is found, trigger
     # #miss processing.
     def lookup
+        retries = 0
+        if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
+          retries = @request.env[:middleware_options][:retries]
+        end
+        retry_counter = 0
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
@@ -177,10 +182,6 @@ module Rack::Cache
           log_error(e)
           return pass
         end
-        retries = 0
-        if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
-          retries = @request.env[:middleware_options][:retries]
-        end
         if entry
           if fresh_enough?(entry)
             record :fresh
@@ -188,7 +189,6 @@ module Rack::Cache
             entry
           else
             record :stale
-            retry_counter = 0
             begin
               begin
                 validate(entry)
@@ -198,6 +198,7 @@ module Rack::Cache
                   record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
                   retry
                 else
+                  record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
                   raise
                 end
               end
@@ -211,7 +212,18 @@ module Rack::Cache
           end
         else
           record :miss
-          fetch
+          begin
+            fetch
+          rescue lambda { |error| retry_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
+            if retry_counter < retries
+              retry_counter += 1
+              record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+              retry
+            else
+              record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+              raise
+            end
+          end
         end
       end
     end
