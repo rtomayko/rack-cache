@@ -214,7 +214,7 @@ module Rack::Cache
           record :miss
           begin
             fetch
-          rescue lambda { |error| retry_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
+          rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
             if retry_counter < retries
               retry_counter += 1
               record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
