@@ -167,11 +167,11 @@ module Rack::Cache
     # stale cache entry anyway. When no matching cache entry is found, trigger
     # #miss processing.
     def lookup
-        retries = 0
-        if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
-          retries = @request.env[:middleware_options][:retries]
-        end
-        retry_counter = 0
+      retries = 0
+      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
+        retries = @request.env[:middleware_options][:retries]
+      end
+      retry_counter = 0
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
