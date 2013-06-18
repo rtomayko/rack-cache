@@ -264,7 +264,7 @@ describe 'Rack::Cache::Context' do
      'when allow_reload is set true' do
     count = 0
     respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
-      count+= 1
+      count += 1
       res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
     end
 
@@ -290,7 +290,7 @@ describe 'Rack::Cache::Context' do
   it 'does not reload responses when allow_reload is set false (default)' do
     count = 0
     respond_with 200, 'Cache-Control' => 'max-age=10000' do |req,res|
-      count+= 1
+      count += 1
       res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
     end
 
@@ -323,7 +323,7 @@ describe 'Rack::Cache::Context' do
      'when allow_revalidate option is set true' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
       res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
@@ -354,7 +354,7 @@ describe 'Rack::Cache::Context' do
          'the remote server returns a connection error' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if count == 2
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -391,7 +391,7 @@ describe 'Rack::Cache::Context' do
      'the remote server returns a connection error' do
     count = 0
     respond_with do |req, res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if count == 2
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -427,7 +427,7 @@ describe 'Rack::Cache::Context' do
   it 'retries on connection failures as configured in the middleware options and succeeds after 2 retries' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if count < 3
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -450,7 +450,7 @@ describe 'Rack::Cache::Context' do
   it 'retries on connection failures as configured in the middleware options and fails after 2 retries in cache miss case' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if count < 4
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -474,7 +474,7 @@ describe 'Rack::Cache::Context' do
   it 'retries on connection failures as configured in the middleware options and fails after 3 retries in hit case' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if (2..6).include? count
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -507,7 +507,7 @@ describe 'Rack::Cache::Context' do
   it 'retries on connection failures as configured in the middleware options and reverts to stale data after 3 retries in hit case' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       raise Timeout::Error, 'Connection failed' if (2..6).include? count
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
@@ -588,7 +588,7 @@ describe 'Rack::Cache::Context' do
   it 'does not revalidate fresh cache entry when enable_revalidate option is set false (default)' do
     count = 0
     respond_with do |req,res|
-      count+= 1
+      count += 1
       res['Cache-Control'] = 'max-age=10000'
       res['ETag'] = count.to_s
       res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
@@ -951,7 +951,7 @@ describe 'Rack::Cache::Context' do
     count = 0
     respond_with do |req,res|
       res['Last-Modified'] = timestamp
-      case (count+=1)
+      case (count +=1)
       when 1 ; res.body = ['first response']
       when 2 ; res.body = ['second response']
       when 3
