@@ -167,6 +167,11 @@ module Rack::Cache
     # stale cache entry anyway. When no matching cache entry is found, trigger
     # #miss processing.
     def lookup
+      retries = 0
+      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
+        retries = @request.env[:middleware_options][:retries]
+      end
+      retry_counter = 0
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
@@ -185,17 +190,56 @@ module Rack::Cache
           else
             record :stale
             begin
-              validate(entry)
-            rescue lambda { |error| fault_tolerant? && EXCEPTION_CLASSES.include?(error.class.name) }
+              begin
+                validate(entry)
+              rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
+                if retry_counter < retries
+                  retry_counter += 1
+                  record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+                  retry
+                else
+                  record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+                  raise
+                end
+              end
+            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
               record :connnection_failed
-              entry.headers['Age'] = entry.age.to_s
+              age = entry.age.to_s
+              entry.headers['Age'] = age
+              record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
               entry
             end
           end
         else
           record :miss
-          fetch
+          begin
+            fetch
+          rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
+            if retry_counter < retries
+              retry_counter += 1
+              record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+              retry
+            else
+              if retries > 0
+                record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+              end
+              raise
+            end
+          end
         end
+      end
+    end
+
+    #This method is used in the lambda of lookup (a few lines up) to test if in an error case the fallback to stale
+    #data should be performed.
+    #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
+    #If it is not present, then the global setting will be honored.
+    #Setting the per-request option to false overrides the global settings!
+    def fault_tolerant_condition
+      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:fallback_to_cache)
+        @request.env[:middleware_options][:fallback_to_cache]
+      else
+        fault_tolerant?
       end
     end
 

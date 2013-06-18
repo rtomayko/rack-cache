@@ -80,6 +80,20 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'rack/cache'
 
+module Rack
+  class MockRequest
+    class << self
+      alias_method :new_env_for, :env_for
+    end
+    def self.env_for(uri="", opts={})
+      middleware_opts = opts.delete(:middleware_options)
+      ret_env = self.new_env_for(uri, opts)
+      ret_env[:middleware_options] = middleware_opts unless middleware_opts.nil?
+      ret_env
+    end
+  end
+end
+
 # Methods for constructing downstream applications / response
 # generators.
 module CacheContextHelpers
