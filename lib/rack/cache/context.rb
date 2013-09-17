@@ -168,7 +168,7 @@ module Rack::Cache
     # #miss processing.
     def lookup
       retries = 0
-      if retry_defined
+      if retries_defined?
         retries = @request.env[:middleware_options][:retries]
       end
       retry_counter = 0
@@ -351,8 +351,8 @@ module Rack::Cache
       end
     end
 
-    def retry_defined
-      @request.env.include?(:middleware_options) && !@request.env[:middleware_options].nil? && @request.env[:middleware_options].include?(:retries)
+    def retries_defined?
+      @request.env[:middleware_options] && @request.env[:middleware_options][:retries]
     end
   end
 end
