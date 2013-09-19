@@ -1,3 +1,4 @@
+.bundle
 \[.
 tags
 .vimrc
@@ -14,4 +15,3 @@ tags
 /doc/storage.html
 /doc/faq.html
 Gemfile.lock
-
