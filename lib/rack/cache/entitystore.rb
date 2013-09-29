@@ -291,6 +291,46 @@ module Rack::Cache
 
     MEMCACHED = MEMCACHE
 
+    class RailsStore < EntityStore
+      def self.resolve(uri)
+        new
+      end
+
+      def initialize(store = Rails.cache)
+        @store = store
+      end
+
+      def exist?(key)
+        @store.exist?(key)
+      end
+
+      def open(key)
+        @store.read(key)
+      end
+
+      def purge(key)
+        @store.delete(key)
+        nil
+      end
+
+      def read(key)
+        body = open(key)
+        body.join if body
+      end
+
+      def write(body, ttl=nil)
+        buf = []
+        key, size = slurp(body) { |part| buf << part }
+        # A ttl value of 0 means "forever" to rack-cache, but means "never" to
+        # ActiveSupport::Cache. So, disregard values of 0.
+        if ttl && ttl != 0
+          options = {:expires_in => ttl}
+        end
+        @store.write(key, buf, options)
+        [key, size]
+      end
+    end
+
     class GAEStore < EntityStore
       attr_reader :cache
 

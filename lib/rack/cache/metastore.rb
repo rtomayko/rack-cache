@@ -380,6 +380,33 @@ module Rack::Cache
       end
     MEMCACHED = MEMCACHE
 
+    class RailsStore < MetaStore
+      def self.resolve(uri)
+        new
+      end
+
+      def initialize(store = Rails.cache)
+        @store = store
+      end
+
+      def purge(key)
+        @store.delete(key)
+        nil
+      end
+
+      def read(key)
+        if data = @store.read(key)
+          Marshal.load(data)
+        else
+          []
+        end
+      end
+
+      def write(key, value)
+        @store.write(key, Marshal.dump(value))
+      end
+    end
+
     class GAEStore < MetaStore
       attr_reader :cache
 
