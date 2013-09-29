@@ -265,4 +265,16 @@ describe 'Rack::Cache::EntityStore' do
       behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
   end
+
+  describe 'RailsStore' do
+    before do
+      @store = Rack::Cache::EntityStore::RailsStore.new(
+          ActiveSupport::Cache::MemoryStore.new)
+    end
+    after do
+      @store = nil
+    end
+
+    behaves_like 'A Rack::Cache::EntityStore Implementation'
+  end
 end

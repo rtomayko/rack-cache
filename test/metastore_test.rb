@@ -355,4 +355,14 @@ describe 'Rack::Cache::MetaStore' do
 
   end
 
+  describe 'RailsStore' do
+    before do
+      @rails_cache = ActiveSupport::Cache::MemoryStore.new
+      @store = Rack::Cache::MetaStore::RailsStore.new(@rails_cache)
+      @entity_store = Rack::Cache::EntityStore::RailsStore.new(@rails_cache)
+    end
+
+    behaves_like 'A Rack::Cache::MetaStore Implementation'
+  end
+
 end

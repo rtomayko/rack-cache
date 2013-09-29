@@ -1,4 +1,5 @@
 require 'rack'
+require 'rack/cache/railtie' if defined?(Rails)
 
 # = HTTP Caching For Rack
 #

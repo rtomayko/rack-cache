@@ -1,6 +1,7 @@
 require 'pp'
 require 'tmpdir'
 require 'stringio'
+require 'active_support/cache'
 
 [STDOUT, STDERR].each { |io| io.sync = true }
 
