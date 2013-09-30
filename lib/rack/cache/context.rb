@@ -165,10 +165,10 @@ module Rack::Cache
     # stale, attempt to #validate the entry with the backend using conditional
     # GET. If validation fails due to a timeout or connection error, serve the
     # stale cache entry anyway. When no matching cache entry is found, trigger
-    # #miss processing.
+    # miss processing.
     def lookup
       retries = 0
-      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:retries)
+      if retries_defined?
         retries = @request.env[:middleware_options][:retries]
       end
       retry_counter = 0
@@ -349,6 +349,11 @@ module Rack::Cache
       else
         @env['rack.errors'].write(message)
       end
+    end
+
+    # Has the consumer asked us to retry and if so how many times?
+    def retries_defined?
+      @request.env[:middleware_options] && @request.env[:middleware_options][:retries]
     end
   end
 end
