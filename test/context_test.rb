@@ -490,6 +490,24 @@ describe 'Rack::Cache::Context' do
     cache.trace.should.include :miss
   end
 
+  it 'does not retry on connection failures if no middleware options are configured and fails in cache miss case' do
+    count = 0
+    respond_with do |req,res|
+      count += 1
+      raise Timeout::Error, 'Connection failed' if count < 4
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 3) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    lambda { Rack::Cache.new(@app, {})
+      get '/', # This tests if the per-request setting of the fallback to cache works
+          'rack-cache.allow_revalidate' => true,
+          'rack-cache.fault_tolerant' => false,
+          'HTTP_CACHE_CONTROL' => 'max-age=0'
+    }.should.raise(Timeout::Error)
+    cache.trace.should.include :miss
+  end
 
   it 'retries on connection failures as configured in the middleware options and fails after 3 retries in hit case' do
     count = 0
