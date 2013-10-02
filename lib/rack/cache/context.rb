@@ -15,6 +15,10 @@ module Rack::Cache
     # The Rack application object immediately downstream.
     attr_reader :backend
 
+    # Set of exceptions that indicate a network connection failure.
+    # TODO: Make these configurable, to work in a non-faraday environment.
+    EXCEPTION_CLASSES = Set.new %w(Timeout::Error Faraday::Error::ConnectionFailed Faraday::Error::TimeoutError)
+
     def initialize(backend, options={})
       @backend = backend
       @trace = []
@@ -159,8 +163,15 @@ module Rack::Cache
     # found and is fresh, use it as the response without forwarding any
     # request to the backend. When a matching cache entry is found but is
     # stale, attempt to #validate the entry with the backend using conditional
-    # GET. When no matching cache entry is found, trigger #miss processing.
+    # GET. If validation fails due to a timeout or connection error, serve the
+    # stale cache entry anyway. When no matching cache entry is found, trigger
+    # miss processing.
     def lookup
+      retries = 0
+      if retries_defined?
+        retries = @request.env[:middleware_options][:retries]
+      end
+      retry_counter = 0
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
@@ -178,12 +189,57 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate(entry)
+            begin
+              begin
+                validate(entry)
+              rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
+                if retry_counter < retries
+                  retry_counter += 1
+                  record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+                  retry
+                else
+                  record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+                  raise
+                end
+              end
+            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
+              record :connnection_failed
+              age = entry.age.to_s
+              entry.headers['Age'] = age
+              record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
+              entry
+            end
           end
         else
           record :miss
-          fetch
+          begin
+            fetch
+          rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
+            if retry_counter < retries
+              retry_counter += 1
+              record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+              retry
+            else
+              if retries > 0
+                record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+              end
+              raise
+            end
+          end
         end
+      end
+    end
+
+    #This method is used in the lambda of lookup (a few lines up) to test if in an error case the fallback to stale
+    #data should be performed.
+    #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
+    #If it is not present, then the global setting will be honored.
+    #Setting the per-request option to false overrides the global settings!
+    def fault_tolerant_condition
+      if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:fallback_to_cache)
+        @request.env[:middleware_options][:fallback_to_cache]
+      else
+        fault_tolerant?
       end
     end
 
@@ -194,7 +250,7 @@ module Rack::Cache
       @env['REQUEST_METHOD'] = 'GET'
 
       # add our cached last-modified validator to the environment
-      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
+      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified if entry.last_modified
 
       # Add our cached etag validator to the environment.
       # We keep the etags from the client to handle the case when the client
@@ -202,8 +258,7 @@ module Rack::Cache
       cached_etags = entry.etag.to_s.split(/\s*,\s*/)
       request_etags = @request.env['HTTP_IF_NONE_MATCH'].to_s.split(/\s*,\s*/)
       etags = (cached_etags + request_etags).uniq
-      @env['HTTP_IF_NONE_MATCH'] = etags.empty? ? nil : etags.join(', ')
-
+      @env['HTTP_IF_NONE_MATCH'] = etags.join(', ') unless etags.empty?
       response = forward
 
       if response.status == 304
@@ -294,6 +349,11 @@ module Rack::Cache
       else
         @env['rack.errors'].write(message)
       end
+    end
+
+    # Has the consumer asked us to retry and if so how many times?
+    def retries_defined?
+      @request.env[:middleware_options] && @request.env[:middleware_options][:retries]
     end
   end
 end
