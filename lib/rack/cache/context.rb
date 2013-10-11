@@ -353,6 +353,7 @@ module Rack::Cache
       Rack::Cache.network_failure_exceptions.include?(error.class.name)
     end
 
+    # Sends a method and wraps it with a retry loop if retries are requested
     def send_with_retries(method, *args)
       retries = requested_retries
       retry_counter = 0
