@@ -24,10 +24,6 @@ module Rack::Cache
     # The Rack application object immediately downstream.
     attr_reader :backend
 
-    # Set of exceptions that indicate a network connection failure.
-    # TODO: Make these configurable, to work in a non-faraday environment.
-    EXCEPTION_CLASSES = Set.new %w(Timeout::Error Faraday::Error::ConnectionFailed Faraday::Error::TimeoutError)
-
     def initialize(backend, options={})
       @backend = backend
       @trace = []
