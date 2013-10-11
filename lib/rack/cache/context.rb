@@ -6,6 +6,15 @@ require 'rack/cache/storage'
 module Rack::Cache
   # Implements Rack's middleware interface and provides the context for all
   # cache logic, including the core logic engine.
+
+  # The list of exceptions indicating a network failure.
+  def self.network_failure_exceptions
+    # TODO: Make these configurable, to work in a non-faraday environment.
+    @network_failure_exceptions ||= Set.new(
+      %w(Timeout::Error Faraday::Error::ConnectionFailed Faraday::Error::TimeoutError)
+    )
+  end
+  
   class Context
     include Rack::Cache::Options
 
@@ -167,11 +176,6 @@ module Rack::Cache
     # stale cache entry anyway. When no matching cache entry is found, trigger
     # miss processing.
     def lookup
-      retries = 0
-      if retries_defined?
-        retries = @request.env[:middleware_options][:retries]
-      end
-      retry_counter = 0
       if @request.no_cache? && allow_reload?
         record :reload
         fetch
@@ -189,44 +193,25 @@ module Rack::Cache
             entry
           else
             record :stale
-            begin
-              begin
-                validate(entry)
-              rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
-                if retry_counter < retries
-                  retry_counter += 1
-                  record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
-                  retry
-                else
-                  record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
-                  raise
-                end
-              end
-            rescue lambda { |error| fault_tolerant_condition && EXCEPTION_CLASSES.include?(error.class.name) } => e
-              record :connnection_failed
-              age = entry.age.to_s
-              entry.headers['Age'] = age
-              record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
-              entry
-            end
+            validate_with_retires_and_stale_cache_failover(entry)
           end
         else
           record :miss
-          begin
-            fetch
-          rescue lambda { |error| (retries > 0) && EXCEPTION_CLASSES.include?(error.class.name) } => e
-            if retry_counter < retries
-              retry_counter += 1
-              record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
-              retry
-            else
-              if retries > 0
-                record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
-              end
-              raise
-            end
-          end
+          send_with_retries(:fetch)
         end
+      end
+    end
+    
+    # Returns stale cache on timeout or connection error.
+    def validate_with_retires_and_stale_cache_failover(entry)
+      begin
+        send_with_retries(:validate, entry)
+      rescue lambda { |error| fault_tolerant_condition? && network_failure_exception?(error) } => e
+        record :connnection_failed
+        age = entry.age.to_s
+        entry.headers['Age'] = age
+        record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
+        entry
       end
     end
 
@@ -235,7 +220,7 @@ module Rack::Cache
     #If the per-request parameter :fallback_to_cache is in the middleware options then it will be used to decide.
     #If it is not present, then the global setting will be honored.
     #Setting the per-request option to false overrides the global settings!
-    def fault_tolerant_condition
+    def fault_tolerant_condition?
       if @request.env.include?(:middleware_options) && @request.env[:middleware_options].include?(:fallback_to_cache)
         @request.env[:middleware_options][:fallback_to_cache]
       else
@@ -350,10 +335,41 @@ module Rack::Cache
         @env['rack.errors'].write(message)
       end
     end
+    
+    private
 
-    # Has the consumer asked us to retry and if so how many times?
+    # How many times has the consumer requested retries.
+    def requested_retries
+      retries_defined? ? @request.env[:middleware_options][:retries].to_i : 0
+    end
+
+    # Whether the consumer asked us to retry.
     def retries_defined?
       @request.env[:middleware_options] && @request.env[:middleware_options][:retries]
+    end
+
+    # Whether the error is a known network failure exception or not.
+    def network_failure_exception?(error)
+      Rack::Cache.network_failure_exceptions.include?(error.class.name)
+    end
+
+    # Sends a method and wraps it with a retry loop if retries are requested
+    def send_with_retries(method, *args)
+      retries = requested_retries
+      retry_counter = 0
+
+      begin
+        send(method, *args)
+      rescue lambda { |error| (retries > 0) && network_failure_exception?(error) } => e
+        if retry_counter < retries
+          retry_counter += 1
+          record "Retrying #{retry_counter} of #{retries} times due to #{e.class.name}: #{e.to_s}"
+          retry
+        else
+          record "Failed retry after #{retries} retries due to #{e.class.name}: #{e.to_s}"
+          raise
+        end
+      end
     end
   end
 end
