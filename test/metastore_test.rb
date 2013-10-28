@@ -251,6 +251,12 @@ shared 'A Rack::Cache::MetaStore Implementation' do
 
     @store.read(key).length.should.equal 2
   end
+
+  it 'takes a ttl parameter for #write' do
+    @store.write('/test', [[{},{}],[{},{}]], 0)
+    tuples = @store.read('/test')
+    tuples.should.equal [ [{},{}], [{},{}] ]
+  end
 end
 
 
