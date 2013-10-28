@@ -253,6 +253,12 @@ module RackCacheMetaStoreImplementation
 
         @store.read(key).length.must_equal 2
       end
+
+      it 'takes a ttl parameter for #write' do
+        @store.write('/test', [[{},{}],[{},{}]], 0)
+        tuples = @store.read('/test')
+        tuples.must_equal [ [{},{}], [{},{}] ]
+      end
     end
   end
 end
