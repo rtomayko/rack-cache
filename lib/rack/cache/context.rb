@@ -189,17 +189,17 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate_with_retires_and_stale_cache_failover(entry)
+            validate_with_retries_and_stale_cache_failover(entry)
           end
         else
           record :miss
-          send_with_retries(:fetch)
+          fetch_with_retries
         end
       end
     end
     
     # Returns stale cache on timeout or connection error.
-    def validate_with_retires_and_stale_cache_failover(entry)
+    def validate_with_retries_and_stale_cache_failover(entry)
       begin
         send_with_retries(:validate, entry)
       rescue lambda { |error| fault_tolerant_condition? && network_failure_exception?(error) } => e
@@ -209,6 +209,11 @@ module Rack::Cache
         record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e.to_s}"
         entry
       end
+    end
+
+    # Calls fetch wrapped with retries.
+    def fetch_with_retries
+      send_with_retries(:fetch)
     end
 
     #This method is used in the lambda of lookup (a few lines up) to test if in an error case the fallback to stale
