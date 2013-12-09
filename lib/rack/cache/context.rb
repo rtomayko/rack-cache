@@ -60,14 +60,18 @@ module Rack::Cache
       @env = env
       @request = Request.new(@env.dup.freeze)
       response =
-        if @request.get? || @request.head? || @request.options?
+        if @request.get? || @request.head?
           if !@env['HTTP_EXPECT'] && !@env['rack-cache.force-pass']
             lookup
           else
             pass
           end
         else
-          invalidate
+          unless @request.options?
+            invalidate
+          else
+            pass
+          end
         end
 
       # log trace and set X-Rack-Cache tracing header
