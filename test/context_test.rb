@@ -27,7 +27,7 @@ describe 'Rack::Cache::Context' do
 
   it "passes on options requests" do
     respond_with 200
-    request "OPTIONS", '/'
+    request "options", '/'
 
     app.should.be.called
     response.should.be.ok
