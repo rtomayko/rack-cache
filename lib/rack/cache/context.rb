@@ -59,9 +59,8 @@ module Rack::Cache
       @default_options.each { |k,v| env[k] ||= v }
       @env = env
       @request = Request.new(@env.dup.freeze)
-
       response =
-        if @request.get? || @request.head?
+        if @request.get? || @request.head? || @request.options?
           if !@env['HTTP_EXPECT'] && !@env['rack-cache.force-pass']
             lookup
           else

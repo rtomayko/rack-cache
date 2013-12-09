@@ -37,6 +37,16 @@ describe 'Rack::Cache::Context' do
     end
   end
 
+  it "doesnt invalidate on options requests" do
+    respond_with 200
+    request "options", '/'
+
+    app.should.be.called
+    response.should.be.ok
+    cache.trace.should.not.include :invalidate
+    cache.trace.should.not.include :pass
+  end
+
   it 'does not cache with Authorization request header and non public response' do
     respond_with 200, 'ETag' => '"FOO"'
     get '/', 'HTTP_AUTHORIZATION' => 'basic foobarbaz'
