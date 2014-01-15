@@ -65,7 +65,6 @@ describe 'Rack::Cache::Context' do
   it 'does not cache with Cookie header and non public response' do
     respond_with 200, 'ETag' => '"FOO"'
     get '/', 'HTTP_COOKIE' => 'foo=bar'
-
     app.should.be.called
     response.should.be.ok
     response.headers['Cache-Control'].should.equal 'private'
@@ -258,6 +257,14 @@ describe 'Rack::Cache::Context' do
     response.should.be.ok
     cache.trace.should.include :store
     response.headers.should.include 'Age'
+  end
+
+  it 'stores private responses when private_cache is set to true' do
+    respond_with 200, 'Cache-Control' => 'max-age=10000, private'
+
+    get '/', 'rack-cache.private_cache' => true
+    response.should.be.ok
+    cache.trace.should.include :store
   end
 
   it 'reloads responses when cache hits but no-cache request directive present ' +

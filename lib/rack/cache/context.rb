@@ -270,7 +270,7 @@ module Rack::Cache
         record :invalid
       end
 
-      store(response) if response.cacheable?
+      store(response) if response.cacheable?(private_cache?)
 
       response
     end
@@ -297,7 +297,7 @@ module Rack::Cache
         response.ttl = default_ttl
       end
 
-      store(response) if response.cacheable?
+      store(response) if response.cacheable?(private_cache?)
 
       response
     end
