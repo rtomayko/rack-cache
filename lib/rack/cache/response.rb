@@ -93,15 +93,16 @@ module Rack::Cache
       ttl && ttl > 0
     end
 
-    # Determine if the response is worth caching under any circumstance. Responses
-    # marked "private" with an explicit Cache-Control directive are considered
-    # uncacheable
+    # Determine if the response is worth caching under any circumstance.
+    # Responses marked "private" with an explicit Cache-Control directive
+    # or any configured private header are uncacheable unless private_cache is enabled
     #
     # Responses with neither a freshness lifetime (Expires, max-age) nor cache
     # validator (Last-Modified, ETag) are considered uncacheable.
-    def cacheable?
+    def cacheable?(private_cache = false)
       return false unless CACHEABLE_RESPONSE_CODES.include?(status)
-      return false if cache_control.no_store? || cache_control.private?
+      return false if cache_control.no_store?
+      return false if !private_cache && cache_control.private?
       validateable? || fresh?
     end
 
