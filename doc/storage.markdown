@@ -52,8 +52,8 @@ Storage Configuration
 
 The MetaStore and EntityStore used for a particular request is determined by
 inspecting the `rack-cache.metastore` and `rack-cache.entitystore` Rack env
-variables. The value of these variables is a URI that identifies the storage
-type and location (URI formats are documented in the following section).
+variables. The value of these variables is a URI or name that identifies the 
+storage type and location (URI formats are documented in a following section).
 
 The `heap:/` storage is assumed if either storage type is not explicitly
 provided. This storage type has significant drawbacks for most types of
@@ -68,6 +68,37 @@ __Rack::Cache__ object is added to the Rack middleware pipeline as follows:
 
 Alternatively, the `rack-cache.metastore` and `rack-cache.entitystore`
 variables may be set in the Rack environment by an upstream component.
+
+Storage Registration
+--------------------
+
+If the needs for configuration your stores are more complex than the URIs allow,
+you may register a manually instantiated store.  You can do this by calling the
+`register_metastore` and `register_entitystore` methods on the __Rack::Cache__ 
+instance when you set it up in your rack configuration.
+
+    use Rack::Cache do |rack_cache|
+      rack_cache.register_metastore, :my_metas,
+        ::Cache::MetaStore::Heap.new
+      rack_cache.register_entitystore, :my_entities,
+        ::Cache::EntityStore::Heap.new
+      rack_cache.use :metastore, :my_metas
+      rack_cache.use :entitystore, :my_entities
+    end
+
+You can also register storage instances directly on the`Rack::Cache::Storage.instance` 
+singleton, and pass the name as the `:metastore` and `entitystore` values in the rack 
+configuration: 
+
+    Rack::Cache::Storage.instance.register_metastore :my_metas,
+      Rack::Cache::MetaStore::Heap.new
+    Rack::Cache::Storage.instance.register_entitystore :my_entities,
+      Rack::Cache::EntityStore::Heap.new
+
+    use Rack::Cache,
+      :metastore => :my_metas,
+      :entitystore => :my_entities
+
 
 Storage Implementations
 -----------------------
