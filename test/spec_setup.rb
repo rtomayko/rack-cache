@@ -1,6 +1,7 @@
 require 'pp'
 require 'tmpdir'
 require 'stringio'
+require 'uri'
 
 [STDOUT, STDERR].each { |io| io.sync = true }
 
@@ -14,8 +15,28 @@ end
 # Set the MEMCACHED environment variable as follows to enable testing
 # of the MemCached meta and entity stores.
 ENV['MEMCACHED'] ||= 'localhost:11211'
+ENV['MONGODB'] ||= 'localhost:27017'
 $memcached = nil
 $dalli = nil
+$mongodb = nil
+
+def have_mongodb?(server=ENV['MONGODB'])
+  return $mongodb unless $mongodb.nil?
+  require 'mongo'
+  $mongodb = Mongo::Connection.from_uri("mongodb://" + server)['rackcache']
+  $mongodb['test'].insert({:ping => ' '})
+  true
+rescue LoadError => boom
+  warn "mongo library not available. related tests will be skipped."
+  $mongodb = false
+  false
+rescue => boom
+  warn "mongo not working. related tests will be skipped."
+  $mongodb = false
+  false
+end
+
+have_mongodb?
 
 def have_memcached?(server=ENV['MEMCACHED'])
   return $memcached unless $memcached.nil?
@@ -60,6 +81,10 @@ rescue => boom
 end
 
 have_dalli?
+
+def need_mongodb(forwhat)
+  yield if have_mongodb?
+end
 
 def need_dalli(forwhat)
   yield if have_dalli?

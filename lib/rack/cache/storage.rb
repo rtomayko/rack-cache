@@ -44,6 +44,8 @@ module Rack::Cache
         case
         when defined?(::Dalli) && uri.kind_of?(::Dalli::Client)
           type.const_get(:Dalli).resolve(uri)
+        when defined?(::Mongo) && uri.kind_of?(::Mongo::DB)
+          type.const_get(:Mongodb).resolve(uri)
         when defined?(::Memcached) && uri.respond_to?(:stats)
           type.const_get(:MemCached).resolve(uri)
         else

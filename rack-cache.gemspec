@@ -66,6 +66,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'memcached'
   s.add_development_dependency 'dalli'
+  s.add_development_dependency 'mongo'
 
   s.has_rdoc = true
   s.homepage = "http://rtomayko.github.com/rack-cache/"
