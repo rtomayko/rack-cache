@@ -190,4 +190,19 @@ describe 'Rack::Cache::Response' do
         ['Accept-Language', 'User-Agent', 'X-Foo']
     end
   end
+
+  describe '#expires' do
+    it 'returns nil if there is no Expires header' do
+      @res.headers['Expires'] = nil
+      @res.expires.should.be.nil
+    end
+    it 'returns a Time if the Expires header is parseable' do
+      @res.headers['Expires'] = "Mon, 30 Jun 2014 20:10:46 GMT"
+      @res.expires.should.equal Time.httpdate(@res.headers['Expires'])
+    end
+    it 'returns nil if the Expires header is not parseable' do
+      @res.headers['Expires'] = "Jun, 30 Mon 2014 20:10:46 GMT"
+      @res.expires.should.be.nil
+    end
+  end
 end
