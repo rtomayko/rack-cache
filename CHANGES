@@ -1,3 +1,7 @@
+## 1.3.1 / December 2014
+  
+  * Fix for Ruby 2.0 compatibilty
+
 ## 1.2 / March 2012
 
   * Fix a cookie leak vulnerability effecting large numbers of Rails 3.x installs:
