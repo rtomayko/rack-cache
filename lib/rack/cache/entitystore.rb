@@ -120,7 +120,7 @@ module Rack::Cache
       end
 
       def write(body, ttl=nil)
-        filename = ['buf', $$, Thread.current.object_id].join('-')
+        filename = ['buf', $$].join('-')
         temp_file = storage_path(filename)
         key, size =
           File.open(temp_file, 'wb') { |dest|
