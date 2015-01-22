@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
 
   s.summary     = "HTTP Caching for Rack"
   s.description = "Rack::Cache is suitable as a quick drop-in component to enable HTTP caching for Rack-based applications that produce freshness (Expires, Cache-Control) and/or validation (Last-Modified, ETag) information."
+  s.license     = "MIT"
 
   s.authors = ["Ryan Tomayko"]
   s.email = "r@tomayko.com"
