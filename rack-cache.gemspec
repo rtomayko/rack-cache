@@ -72,4 +72,5 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
   s.require_paths = %w[lib]
   s.rubygems_version = '1.1.1'
+  s.license = 'MIT'
 end
