@@ -25,6 +25,14 @@ module Rack::Cache
         parts << ":" << @request.port.to_s
       end
 
+      if @request.env['HTTP_ACCEPT_ENCODING']
+        parts << @request.env['HTTP_ACCEPT_ENCODING']
+      end
+
+      if @request.env['HTTP_ACCEPT']
+        parts << @request.env['HTTP_ACCEPT']
+      end
+
       parts << @request.script_name
       parts << @request.path_info
 
