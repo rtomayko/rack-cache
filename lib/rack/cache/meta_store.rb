@@ -81,7 +81,7 @@ module Rack::Cache
       headers.delete 'Age'
 
       entries.unshift [stored_env, headers]
-      if request.env['rack-cache.use_native_ttl']
+      if request.env['rack-cache.use_native_ttl'] && response.fresh?
         write key, entries, response.ttl
       else
         write key, entries
