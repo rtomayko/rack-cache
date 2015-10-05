@@ -6,8 +6,8 @@ Gem::Specification.new 'rack-cache', '1.2.0' do |s|
   s.authors = ["Ryan Tomayko"]
   s.email = "r@tomayko.com"
 
-  s.files = `git ls-files lib/ README COPYING`.split("\n")
-  s.extra_rdoc_files = %w[README COPYING TODO CHANGES]
+  s.files = `git ls-files lib/ README.md COPYING`.split("\n")
+  s.extra_rdoc_files = %w[README.md COPYING TODO CHANGES]
 
   s.add_dependency 'rack', '>= 0.4'
 
@@ -15,8 +15,10 @@ Gem::Specification.new 'rack-cache', '1.2.0' do |s|
   s.add_development_dependency 'memcached'
   s.add_development_dependency 'dalli'
   s.add_development_dependency 'bump'
+  s.add_development_dependency 'rake'
 
   s.has_rdoc = true
+  s.license = "MIT"
   s.homepage = "https://github.com/rtomayko/rack-cache"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Rack::Cache", "--main", "Rack::Cache"]
 end
