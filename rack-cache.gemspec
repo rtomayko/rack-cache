@@ -1,4 +1,4 @@
-Gem::Specification.new 'rack-cache', '1.2.0' do |s|
+Gem::Specification.new 'rack-cache', '1.3.0' do |s|
   s.summary     = "HTTP Caching for Rack"
   s.description = "Rack::Cache is suitable as a quick drop-in component to enable HTTP caching for Rack-based applications that produce freshness (Expires, Cache-Control) and/or validation (Last-Modified, ETag) information."
   s.required_ruby_version = '>= 2.0.0'
@@ -6,8 +6,8 @@ Gem::Specification.new 'rack-cache', '1.2.0' do |s|
   s.authors = ["Ryan Tomayko"]
   s.email = "r@tomayko.com"
 
-  s.files = `git ls-files lib/ README.md COPYING`.split("\n")
-  s.extra_rdoc_files = %w[README.md COPYING TODO CHANGES]
+  s.files = `git ls-files lib/ README.md MIT-LICENSE`.split("\n")
+  s.extra_rdoc_files = %w[README.md MIT-LICENSE CHANGES]
 
   s.add_dependency 'rack', '>= 0.4'
 
