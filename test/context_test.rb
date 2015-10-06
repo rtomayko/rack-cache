@@ -900,14 +900,14 @@ describe 'Rack::Cache::Context' do
     cache.trace.must_include :store
 
     get '/' do |cache|
-      cache.meta_def(:metastore) { raise Timeout::Error }
+      cache.expects(:metastore).raises Timeout::Error
     end
     assert response.ok?
     response.body.must_equal 'Hello World'
     cache.trace.must_include :pass
 
     post '/' do |cache|
-      cache.meta_def(:metastore) { raise Timeout::Error }
+      cache.expects(:metastore).raises Timeout::Error
     end
     assert response.ok?
     response.body.must_equal 'Hello World'
