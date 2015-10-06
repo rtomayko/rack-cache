@@ -1,15 +1,11 @@
+require 'bundler/setup'
 require 'pp'
 require 'tmpdir'
 require 'stringio'
 
 [STDOUT, STDERR].each { |io| io.sync = true }
 
-begin
-  require 'bacon'
-rescue LoadError => boom
-  require 'rubygems' rescue nil
-  require 'bacon'
-end
+require 'bacon'
 
 # Set the MEMCACHED environment variable as follows to enable testing
 # of the MemCached meta and entity stores.
@@ -72,11 +68,6 @@ end
 def need_java(forwhat)
   yield if RUBY_PLATFORM =~ /java/
 end
-
-
-# Setup the load path ..
-$LOAD_PATH.unshift File.dirname(File.dirname(__FILE__)) + '/lib'
-$LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'rack/cache'
 
