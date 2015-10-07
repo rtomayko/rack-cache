@@ -8,10 +8,9 @@ task :default => :test
 CLEAN.include %w[coverage/ doc/api tags]
 CLOBBER.include %w[dist]
 
-desc 'Run specs with unit test style output'
-task :test => FileList['test/*_test.rb'] do |t|
-  suite = t.prerequisites
-  sh "bundle exec bacon -q -I.:lib:test #{suite.join(' ')}", :verbose => false
+desc 'Run tests'
+task :test do
+  sh "bundle exec mtest test"
 end
 
 desc 'Generate test coverage report'

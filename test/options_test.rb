@@ -19,59 +19,59 @@ describe 'Rack::Cache::Options' do
   describe '#set' do
     it 'sets a Symbol option as rack-cache.symbol' do
       @options.set :bar, 'baz'
-      @options.options['rack-cache.bar'].should.equal 'baz'
+      @options.options['rack-cache.bar'].must_equal 'baz'
     end
     it 'sets a String option as string' do
       @options.set 'foo.bar', 'bling'
-      @options.options['foo.bar'].should.equal 'bling'
+      @options.options['foo.bar'].must_equal 'bling'
     end
     it 'sets all key/value pairs when given a Hash' do
       @options.set :foo => 'bar', :bar => 'baz', 'foo.bar' => 'bling'
-      @options.foo.should.equal 'bar'
-      @options.options['rack-cache.bar'].should.equal 'baz'
-      @options.options['foo.bar'].should.equal 'bling'
+      @options.foo.must_equal 'bar'
+      @options.options['rack-cache.bar'].must_equal 'baz'
+      @options.options['foo.bar'].must_equal 'bling'
     end
   end
 
   it 'makes options declared with option_accessor available as attributes' do
     @options.set :foo, 'bar'
-    @options.foo.should.equal 'bar'
+    @options.foo.must_equal 'bar'
   end
 
   it 'allows setting multiple options via assignment' do
     @options.options = { :foo => 'bar', :bar => 'baz', 'foo.bar' => 'bling' }
-    @options.foo.should.equal 'bar'
-    @options.options['foo.bar'].should.equal 'bling'
-    @options.options['rack-cache.bar'].should.equal 'baz'
+    @options.foo.must_equal 'bar'
+    @options.options['foo.bar'].must_equal 'bling'
+    @options.options['rack-cache.bar'].must_equal 'baz'
   end
 
   it "allows storing the value as a block" do
     block = Proc.new { "bar block" }
     @options.set(:foo, &block)
-    @options.options['rack-cache.foo'].should.equal block
+    @options.options['rack-cache.foo'].must_equal block
   end
 
   it 'allows the cache key generator to be configured' do
-    @options.should.respond_to :cache_key
-    @options.should.respond_to :cache_key=
+    assert @options.respond_to? :cache_key
+    assert @options.respond_to? :cache_key=
   end
 
   it 'allows the meta store to be configured' do
-    @options.should.respond_to :metastore
-    @options.should.respond_to :metastore=
-    @options.metastore.should.not.be.nil
+    assert @options.respond_to? :metastore
+    assert @options.respond_to? :metastore=
+    refute @options.metastore.nil?
   end
 
   it 'allows the entity store to be configured' do
-    @options.should.respond_to :entitystore
-    @options.should.respond_to :entitystore=
-    @options.entitystore.should.not.be.nil
+    assert @options.respond_to? :entitystore
+    assert @options.respond_to? :entitystore=
+    refute @options.entitystore.nil?
   end
 
   it 'allows log verbosity to be configured' do
-    @options.should.respond_to :verbose
-    @options.should.respond_to :verbose=
-    @options.should.respond_to :verbose?
-    @options.verbose.should.not.be.nil
+    assert @options.respond_to? :verbose
+    assert @options.respond_to? :verbose=
+    assert @options.respond_to? :verbose?
+    refute @options.verbose.nil?
   end
 end
