@@ -254,11 +254,21 @@ module Rack::Cache
           end
       end
 
-      def exist?(key)
-        cache.append(key, '')
-        true
-      rescue ::Memcached::NotStored
-        false
+      if RUBY_PLATFORM =~ /java/
+        # see https://github.com/aurorafeint/jruby-memcached/issues/13
+        def exist?(key)
+          cache.get(key, false)
+          true
+        rescue ::Memcached::NotFound
+          false
+        end
+      else
+        def exist?(key)
+          cache.append(key, '')
+          true
+        rescue ::Memcached::NotStored
+          false
+        end
       end
 
       def read(key)

@@ -1,8 +1,11 @@
 language: ruby
 sudo: false
 cache: bundler
+services: memcached
 
 rvm:
   - 2.0.0
   - 2.1.7
   - 2.2.3
+  - jruby
+

@@ -12,7 +12,11 @@ Gem::Specification.new 'rack-cache', '1.3.0' do |s|
   s.add_dependency 'rack', '>= 0.4'
 
   s.add_development_dependency 'bacon'
-  s.add_development_dependency 'memcached'
+  if RUBY_PLATFORM =~ /java/
+    s.add_development_dependency 'jruby-memcached'
+  else
+    s.add_development_dependency 'memcached'
+  end
   s.add_development_dependency 'dalli'
   s.add_development_dependency 'bump'
   s.add_development_dependency 'rake'

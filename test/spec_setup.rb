@@ -69,6 +69,10 @@ def need_java(forwhat)
   yield if RUBY_PLATFORM =~ /java/
 end
 
+def not_java(forwhat)
+  yield unless RUBY_PLATFORM =~ /java/
+end
+
 require 'rack/cache'
 
 # Methods for constructing downstream applications / response

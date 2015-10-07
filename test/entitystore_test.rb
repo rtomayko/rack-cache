@@ -195,18 +195,20 @@ describe 'Rack::Cache::EntityStore' do
       behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
 
-    describe 'options parsing' do
-      before do
-        uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
-        @memcached_metastore = Rack::Cache::MetaStore::MemCached.resolve uri
-      end
+    not_java 'uses an implementation detail of the memcached gem' do
+      describe 'options parsing' do
+        before do
+          uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
+          @memcached_metastore = Rack::Cache::MetaStore::MemCached.resolve uri
+        end
 
-      it 'passes options from uri' do
-        @memcached_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
-      end
+        it 'passes options from uri' do
+          @memcached_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+        end
 
-      it 'takes namespace into account' do
-        @memcached_metastore.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'obj_ns1'
+        it 'takes namespace into account' do
+          @memcached_metastore.cache.instance_variable_get(:@options)[:prefix_key].should.equal 'obj_ns1'
+        end
       end
     end
   end
@@ -224,18 +226,20 @@ describe 'Rack::Cache::EntityStore' do
       behaves_like 'A Rack::Cache::EntityStore Implementation'
     end
 
-    describe 'options parsing' do
-      before do
-        uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
-        @dalli_metastore = Rack::Cache::MetaStore::Dalli.resolve uri
-      end
+    not_java 'uses an implementation detail of the memcached gem' do
+      describe 'options parsing' do
+        before do
+          uri = URI.parse("memcached://#{ENV['MEMCACHED']}/obj_ns1?show_backtraces=true")
+          @dalli_metastore = Rack::Cache::MetaStore::Dalli.resolve uri
+        end
 
-      it 'passes options from uri' do
-        @dalli_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
-      end
+        it 'passes options from uri' do
+          @dalli_metastore.cache.instance_variable_get(:@options)[:show_backtraces].should.equal true
+        end
 
-      it 'takes namespace into account' do
-        @dalli_metastore.cache.instance_variable_get(:@options)[:namespace].should.equal 'obj_ns1'
+        it 'takes namespace into account' do
+          @dalli_metastore.cache.instance_variable_get(:@options)[:namespace].should.equal 'obj_ns1'
+        end
       end
     end
   end
