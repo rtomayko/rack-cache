@@ -5,7 +5,7 @@ require 'stringio'
 
 [STDOUT, STDERR].each { |io| io.sync = true }
 
-require 'bacon'
+require 'maxitest/autorun'
 
 # Set the MEMCACHED environment variable as follows to enable testing
 # of the MemCached meta and entity stores.
@@ -197,7 +197,7 @@ module TestHelpers
 
 end
 
-class Bacon::Context
+Minitest::Test.class_eval do
   include TestHelpers
   include CacheContextHelpers
 end

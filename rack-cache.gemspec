@@ -11,7 +11,7 @@ Gem::Specification.new 'rack-cache', '1.3.0' do |s|
 
   s.add_dependency 'rack', '>= 0.4'
 
-  s.add_development_dependency 'bacon'
+  s.add_development_dependency 'maxitest'
   s.add_development_dependency 'memcached'
   s.add_development_dependency 'dalli'
   s.add_development_dependency 'bump'
