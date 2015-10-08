@@ -257,8 +257,15 @@ module RackCacheMetaStoreImplementation
   end
 end
 
+describe Rack::Cache::MetaStore do
+  {read: [1], write: [1,2], purge: [1]}.each do |method, args|
+    it "has not implemented #{method}" do
+      assert_raises NotImplementedError do
+        Rack::Cache::MetaStore.new.send(method, *args)
+      end
+    end
+  end
 
-describe 'Rack::Cache::MetaStore' do
   describe 'Heap' do
     before do
       @store = Rack::Cache::MetaStore::Heap.new
@@ -337,13 +344,11 @@ describe 'Rack::Cache::MetaStore' do
     module Rack::Cache::AppEngine
       module MC
         class << (Service = {})
-
           def contains(key); include?(key); end
           def get(key); self[key]; end;
           def put(key, value, ttl = nil)
             self[key] = value
           end
-
         end
       end
     end
@@ -356,7 +361,5 @@ describe 'Rack::Cache::MetaStore' do
       end
       include RackCacheMetaStoreImplementation
     end
-
   end
-
 end
