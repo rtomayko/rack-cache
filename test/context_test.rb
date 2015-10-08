@@ -29,18 +29,18 @@ describe 'Rack::Cache::Context' do
     respond_with 200
     request "options", '/'
 
-    app.should.be.called
-    response.should.be.ok
-    cache.trace.should.include :pass
+    assert app.called?
+    assert response.ok?
+    cache.trace.must_include :pass
   end
 
   it "doesnt invalidate on options requests" do
     respond_with 200
     request "options", '/'
 
-    app.should.be.called
-    response.should.be.ok
-    cache.trace.should.not.include :invalidate
+    assert app.called?
+    assert response.ok?
+    cache.trace.wont_include :invalidate
   end
 
   %w[post put delete].each do |request_method|

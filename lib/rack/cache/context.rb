@@ -68,10 +68,10 @@ module Rack::Cache
             pass
           end
         else
-          unless @request.options?
-            invalidate
-          else
+          if @request.options?
             pass
+          else
+            invalidate
           end
         end
 
