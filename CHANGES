@@ -1,3 +1,7 @@
+## 1.4.1
+
+  * Ignore invalid Expires date as per RFC
+
 ## 1.4.0
 
   * Not invalidating the cache for preflight CORS request
