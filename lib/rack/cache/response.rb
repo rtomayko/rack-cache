@@ -164,6 +164,8 @@ module Rack::Cache
     # The value of the Expires header as a Time object.
     def expires
       headers['Expires'] && Time.httpdate(headers['Expires'])
+    rescue ArgumentError
+      nil
     end
 
     # The number of seconds after which the response should no longer
