@@ -184,6 +184,7 @@ describe 'Rack::Cache::Response' do
       @res.vary_header_names.must_equal \
         ['Accept-Language', 'User-Agent', 'X-Foo']
     end
+
     it 'parses multiple header name values separated by commas' do
       @res.headers['Vary'] = 'Accept-Language,User-Agent,    X-Foo'
       @res.vary_header_names.must_equal \
@@ -194,15 +195,17 @@ describe 'Rack::Cache::Response' do
   describe '#expires' do
     it 'returns nil if there is no Expires header' do
       @res.headers['Expires'] = nil
-      @res.expires.should.be.nil
+      @res.expires.must_equal nil
     end
+
     it 'returns a Time if the Expires header is parseable' do
       @res.headers['Expires'] = "Mon, 30 Jun 2014 20:10:46 GMT"
-      @res.expires.should.equal Time.httpdate(@res.headers['Expires'])
+      @res.expires.must_equal Time.at(1404159046)
     end
+
     it 'returns nil if the Expires header is not parseable' do
       @res.headers['Expires'] = "Jun, 30 Mon 2014 20:10:46 GMT"
-      @res.expires.should.be.nil
+      @res.expires.must_equal nil
     end
   end
 end
