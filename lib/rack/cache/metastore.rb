@@ -148,20 +148,20 @@ module Rack::Cache
     # pairs. An empty Array must be returned if nothing is cached for
     # the specified key.
     def read(key)
-      raise NotImplemented
+      raise NotImplementedError
     end
 
     # Store an Array of request/response pairs for the given key. Concrete
     # implementations should not attempt to filter or concatenate the
     # list in any way.
     def write(key, negotiations)
-      raise NotImplemented
+      raise NotImplementedError
     end
 
     # Remove all cached entries at the key specified. No error is raised
     # when the key does not exist.
     def purge(key)
-      raise NotImplemented
+      raise NotImplementedError
     end
 
   private
