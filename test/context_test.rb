@@ -764,13 +764,13 @@ describe 'Rack::Cache::Context' do
     respond_with do |req,res|
       res.status = 200
       res.body = []
-      req.request_method.should.equal 'GET'
-      req.env['rack.methodoverride.original_method'].should.equal 'HEAD'
+      req.request_method.must_equal 'GET'
+      req.env['rack.methodoverride.original_method'].must_equal 'HEAD'
     end
 
     head '/'
-    app.should.be.called
-    response.body.should.equal ''
+    assert app.called?
+    response.body.must_equal ''
   end
 
   it 'passes HEAD requests through directly on pass' do
