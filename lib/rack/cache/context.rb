@@ -195,7 +195,7 @@ module Rack::Cache
     # as a template for a conditional GET request with the backend.
     def validate(entry)
       # send no head requests because we want content
-      @env['REQUEST_METHOD'] = 'GET'
+      convert_head_to_get!
 
       # add our cached last-modified validator to the environment
       @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
@@ -244,7 +244,7 @@ module Rack::Cache
     # caching of the response when the backend returns a 304.
     def fetch
       # send no head requests because we want content
-      @env['REQUEST_METHOD'] = 'GET'
+      convert_head_to_get!
 
       response = forward
 
@@ -297,6 +297,14 @@ module Rack::Cache
         @env['rack.logger'].send(level, message)
       else
         @env['rack.errors'].write(message)
+      end
+    end
+
+    # send no head requests because we want content
+    def convert_head_to_get!
+      if @env['REQUEST_METHOD'] == 'HEAD'
+        @env['REQUEST_METHOD'] = 'GET'
+        @env['rack.methodoverride.original_method'] = 'HEAD'
       end
     end
   end

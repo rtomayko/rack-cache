@@ -760,6 +760,19 @@ describe 'Rack::Cache::Context' do
     count.must_equal 3
   end
 
+  it 'stores HEAD as original_method on HEAD requests' do
+    respond_with do |req,res|
+      res.status = 200
+      res.body = []
+      req.request_method.should.equal 'GET'
+      req.env['rack.methodoverride.original_method'].should.equal 'HEAD'
+    end
+
+    head '/'
+    app.should.be.called
+    response.body.should.equal ''
+  end
+
   it 'passes HEAD requests through directly on pass' do
     respond_with do |req,res|
       res.status = 200
