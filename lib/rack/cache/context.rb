@@ -151,7 +151,7 @@ module Rack::Cache
     # See RFC2616 13.10
     def invalidate
       metastore.invalidate(@request, entitystore)
-    rescue Exception => e
+    rescue => e
       log_error(e)
       pass
     else
@@ -171,7 +171,7 @@ module Rack::Cache
       else
         begin
           entry = metastore.lookup(@request, entitystore)
-        rescue Exception => e
+        rescue => e
           log_error(e)
           return pass
         end
@@ -270,7 +270,7 @@ module Rack::Cache
       strip_ignore_headers(response)
       metastore.store(@request, response, entitystore)
       response.headers['Age'] = response.age.to_s
-    rescue Exception => e
+    rescue => e
       log_error(e)
       nil
     else
