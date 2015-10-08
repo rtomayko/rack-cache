@@ -1,4 +1,4 @@
-Gem::Specification.new 'rack-cache', '1.3.0' do |s|
+Gem::Specification.new 'rack-cache', '1.3.1' do |s|
   s.summary     = "HTTP Caching for Rack"
   s.description = "Rack::Cache is suitable as a quick drop-in component to enable HTTP caching for Rack-based applications that produce freshness (Expires, Cache-Control) and/or validation (Last-Modified, ETag) information."
   s.required_ruby_version = '>= 1.9.3'
