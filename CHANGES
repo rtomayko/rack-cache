@@ -1,3 +1,7 @@
+## 1.5.0
+
+  * only catch StandardError and not Exception
+
 ## 1.4.3
 
   * After overriding the REQUEST_METHOD, store the original request method in "rack.methodoverride.original_method"
