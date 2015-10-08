@@ -68,7 +68,11 @@ module Rack::Cache
             pass
           end
         else
-          invalidate
+          unless @request.options?
+            invalidate
+          else
+            pass
+          end
         end
 
       # log trace and set X-Rack-Cache tracing header

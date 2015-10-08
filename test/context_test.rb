@@ -25,6 +25,24 @@ describe 'Rack::Cache::Context' do
     response.headers.wont_include 'Age'
   end
 
+  it "passes on options requests" do
+    respond_with 200
+    request "options", '/'
+
+    app.should.be.called
+    response.should.be.ok
+    cache.trace.should.include :pass
+  end
+
+  it "doesnt invalidate on options requests" do
+    respond_with 200
+    request "options", '/'
+
+    app.should.be.called
+    response.should.be.ok
+    cache.trace.should.not.include :invalidate
+  end
+
   %w[post put delete].each do |request_method|
     it "invalidates on #{request_method} requests" do
       respond_with 200
