@@ -43,7 +43,7 @@ module Rack::Cache
       return nil if @request.query_string.nil?
 
       @request.query_string.split(/[&;] */n).
-        map { |p| unescape(p).split('=', 2) }.
+        map { |p| p.split('=', 2).map{ |s| unescape(s) } }.
         sort.
         map { |k,v| "#{escape(k)}=#{escape(v)}" }.
         join('&')
