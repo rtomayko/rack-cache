@@ -19,6 +19,16 @@ describe 'A Rack::Cache::Key' do
     new_key(request).must_include('a=first&z=last')
   end
 
+  it "handles badly encoded params" do
+    request = mock_request('/test?%D0%BA=%D1')
+    new_key(request).must_include('%D0%BA=%D1')
+  end
+
+  it "doesn't confuse encoded equals sign with query string separator" do
+    request = mock_request('/test?weird%3Dkey=whatever')
+    new_key(request).must_include('weird%3Dkey=whatever')
+  end
+
   it "includes the scheme" do
     request = mock_request(
       '/test',
