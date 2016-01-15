@@ -3,6 +3,7 @@ tags
 .vimrc
 .idea
 /dist
+/pkg
 /coverage
 /doc/api
 /doc/*.png
