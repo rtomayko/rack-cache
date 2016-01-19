@@ -38,7 +38,11 @@ module Rack::Cache
     # value effects the result of this method immediately.
     def entitystore
       uri = options['rack-cache.entitystore']
-      storage.resolve_entitystore_uri(uri)
+      if uri.nil?
+        return nil
+      else
+        storage.resolve_entitystore_uri(uri)
+      end
     end
 
     # The Rack call interface. The receiver acts as a prototype and runs

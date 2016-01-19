@@ -38,13 +38,20 @@ module Rack::Cache
       return nil if match.nil?
 
       _, res = match
-      if body = entity_store.open(res['X-Content-Digest'])
-        restore_response(res, body)
+
+      if entity_store.nil?
+        body = ['']
       else
-        # TODO the metastore referenced an entity that doesn't exist in
-        # the entitystore. we definitely want to return nil but we should
-        # also purge the entry from the meta-store when this is detected.
+        body = entity_store.open(res['X-Content-Digest'])
+        if body.nil?
+          # TODO the metastore referenced an entity that doesn't exist in
+          # the entitystore. we definitely want to return nil but we should
+          # also purge the entry from the meta-store when this is detected.
+          return nil
+        end
       end
+
+      restore_response(res, body)
     end
 
     # Write a cache entry to the store under the given key. Existing
@@ -57,14 +64,18 @@ module Rack::Cache
       # write the response body to the entity store if this is the
       # original response.
       if response.headers['X-Content-Digest'].nil?
-        if request.env['rack-cache.use_native_ttl'] && response.fresh?
-          digest, size = entity_store.write(response.body, response.ttl)
-        else
-          digest, size = entity_store.write(response.body)
+        unless entity_store.nil?
+          if request.env['rack-cache.use_native_ttl'] && response.fresh?
+            digest, size = entity_store.write(response.body, response.ttl)
+          else
+            digest, size = entity_store.write(response.body)
+          end
+
+          response.body = entity_store.open(digest) || response.body
         end
+
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
-        response.body = entity_store.open(digest) || response.body
       end
 
       # read existing cache entries, remove non-varying, and add this one to
