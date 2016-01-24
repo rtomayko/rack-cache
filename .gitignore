@@ -2,6 +2,7 @@
 tags
 .vimrc
 /dist
+/pkg
 /coverage
 /doc/api
 /doc/*.png
