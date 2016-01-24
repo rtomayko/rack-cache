@@ -64,7 +64,7 @@ module Rack::Cache
       # write the response body to the entity store if this is the
       # original response.
       if response.headers['X-Content-Digest'].nil?
-        unless entity_store.nil?
+        if entity_store
           if request.env['rack-cache.use_native_ttl'] && response.fresh?
             digest, size = entity_store.write(response.body, response.ttl)
           else
