@@ -38,7 +38,9 @@ module Rack::Cache
       return nil if match.nil?
 
       _, res = match
-      if body = entity_store.open(res['X-Content-Digest'])
+
+      body = entity_store.open(res['X-Content-Digest'])
+      if body || entity_store.is_a?(Rack::Cache::EntityStore::Dummy)
         restore_response(res, body)
       else
         # TODO the metastore referenced an entity that doesn't exist in
@@ -122,6 +124,7 @@ module Rack::Cache
     # Converts a stored response hash into a Response object. The caller
     # is responsible for loading and passing the body if needed.
     def restore_response(hash, body=nil)
+      body = [] if body.nil?
       status = hash.delete('X-Status').to_i
       Rack::Cache::Response.new(status, hash, body)
     end

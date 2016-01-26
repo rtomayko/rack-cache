@@ -336,6 +336,38 @@ module Rack::Cache
     GAECACHE = GAEStore
     GAE = GAEStore
 
+    # Dummy Entity Store that does not persist entities
+    class Dummy < EntityStore
+      def exist?(key)
+        true
+      end
+
+      def read(key)
+        nil
+      end
+
+      def open(key)
+        nil
+      end
+
+      def write(body, ttl=nil)
+        key=''
+        size = 0
+        [key, size]
+      end
+
+      def purge(key)
+        nil
+      end
+
+      def self.resolve(uri)
+        new
+      end
+    end
+
+    NIL = Dummy
+    DUMMY = Dummy
+
   end
 
 end

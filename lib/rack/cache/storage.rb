@@ -38,6 +38,9 @@ module Rack::Cache
         else
           fail "Unknown storage provider: #{uri.to_s}"
         end
+      elsif uri.nil?
+        # hack to support setting entitystore to nil, which doesn't persist request bodies
+        type.const_get('NIL').resolve(uri)
       else
         # hack in support for passing a Dalli::Client or Memcached object
         # as the storage URI.
