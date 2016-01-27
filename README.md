@@ -90,39 +90,20 @@ use Rack::Cache,
 run app
 ```
 
-Using the Noop backend for the entity store
--------------------------------------------
+Noop entity store
+-----------------
 
-The Noop backend can be used for the entity store if you're not interested in the bodies of cached 
-responses. This backend does not actually persist response bodies, so no memory or disk space has 
-to be allocated for them (the metastore backend still needs those resources). 
-
-Be careful: when using this backend, responses retrieved from the cache always have an empty body. You must 
-check if the response comes from the cache (by looking at the presence of 'fresh' or 'valid' in the 
-```X-Rack-Cache``` HTTP header) and in this case you should ignore the response body.
- 
-There are two ways of configuring rack-cache to use this backend:
+Does not persist response bodies (no disk/memory used).<br/>
+Responses from the cache will have an empty body.<br/>
+Clients must ignore these empty cached response (check for X-Rack-Cache response header).
  
 ```Ruby
 require 'rack/cache'
 
 use Rack::Cache,
- :verbose => true,
- :metastore   => "file:/var/cache/rack/meta", # you can use any backend here
- :entitystore => nil
-
-run app
-```
-
-or
-
-```Ruby
-require 'rack/cache'
-
-use Rack::Cache,
- :verbose => true,
- :metastore   => "file:/var/cache/rack/meta", # you can use any backend here
- :entitystore => "noop://"
+ verbose: true,
+ metastore: <any backend>
+ entitystore: "noop:/"
 
 run app
 ```
