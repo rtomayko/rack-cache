@@ -41,9 +41,9 @@ and use as follows:
 require 'rack/cache'
 
 use Rack::Cache,
-  :metastore   => 'file:/var/cache/rack/meta',
-  :entitystore => 'file:/var/cache/rack/body',
-  :verbose     => true
+  metastore:    'file:/var/cache/rack/meta',
+  entitystore:  'file:/var/cache/rack/body',
+  verbose:      true
 
 run app
 ```
@@ -59,9 +59,9 @@ Add this to your `config/environment.rb`:
 
 ```Ruby
 config.middleware.use Rack::Cache,
-   :verbose => true,
-   :metastore   => 'file:/var/cache/rack/meta',
-   :entitystore => 'file:/var/cache/rack/body'
+   verbose:     true,
+   metastore:   'file:/var/cache/rack/meta',
+   entitystore: 'file:/var/cache/rack/body'
 ```
 
 You should now see `Rack::Cache` listed in the middleware pipeline:
@@ -83,9 +83,9 @@ require 'dalli'
 require 'rack/cache'
 
 use Rack::Cache,
-  :verbose => true,
-  :metastore   => "memcached://localhost:11211/meta",
-  :entitystore => "memcached://localhost:11211/body"
+  verbose:  true,
+  metastore:    "memcached://localhost:11211/meta",
+  entitystore:  "memcached://localhost:11211/body"
 
 run app
 ```
