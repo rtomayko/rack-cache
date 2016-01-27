@@ -1,6 +1,6 @@
 require_relative 'test_helper'
-require 'rack/cache/cachecontrol'
-require 'rack/cache/metastore'
+require 'rack/cache/cache_control'
+require 'rack/cache/meta_store'
 
 describe Rack::Cache::CacheControl do
   it 'takes no args and initializes with an empty set of values' do

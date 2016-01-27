@@ -295,7 +295,7 @@ module Rack::Cache
       attr_reader :cache
 
       def initialize(options = {})
-        require 'rack/cache/appengine'
+        require 'rack/cache/app_engine'
         @cache = Rack::Cache::AppEngine::MemCache.new(options)
       end
 

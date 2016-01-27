@@ -1,7 +1,7 @@
 # coding: utf-8
 require_relative 'test_helper'
-require 'rack/cache/entitystore'
-require 'rack/cache/metastore'
+require 'rack/cache/entity_store'
+require 'rack/cache/meta_store'
 
 module RackCacheEntityStoreImplementation
   def self.included(base)
@@ -218,7 +218,6 @@ describe Rack::Cache::EntityStore do
       end
     end
   end
-
 
   need_dalli 'entity store tests' do
     describe 'Dalli' do
