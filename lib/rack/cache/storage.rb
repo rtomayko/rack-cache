@@ -40,7 +40,7 @@ module Rack::Cache
         end
       elsif uri.nil?
         # hack to support setting entitystore to nil, which doesn't persist request bodies
-        type.const_get('NIL').resolve(uri)
+        type.const_get(uri.inspect.upcase).resolve(uri)
       else
         # hack in support for passing a Dalli::Client or Memcached object
         # as the storage URI.
