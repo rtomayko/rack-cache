@@ -336,8 +336,8 @@ module Rack::Cache
     GAECACHE = GAEStore
     GAE = GAEStore
 
-    # Dummy Entity Store backend that does not persist entities.
-    # When this entity store is used (by setting the entitystore option to nil or to a 'dummy:' URL),
+    # Noop Entity Store backend that does not persist entities.
+    # When this entity store is used (by setting the entitystore option to nil or to a 'noop:' URL),
     # response bodies will not be persisted. Responses retrieved from the cache will have an empty body.
     #
     # This backend is only useful for use cases in which the bodies of responses retrieved from the cache are of
@@ -345,7 +345,7 @@ module Rack::Cache
     # the X-Rack-Cache header in the response) and in this case ignore the response body.
     #
     # Using this backend means that no space must be allocated in disk or memory to store response bodies.
-    class Dummy < EntityStore
+    class Noop < EntityStore
       def exist?(key)
         true
       end
@@ -373,8 +373,8 @@ module Rack::Cache
       end
     end
 
-    NIL = Dummy
-    DUMMY = Dummy
+    NIL = Noop
+    NOOP = Noop
 
   end
 

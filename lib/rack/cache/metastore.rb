@@ -40,7 +40,8 @@ module Rack::Cache
       _, res = match
 
       body = entity_store.open(res['X-Content-Digest'])
-      if body || entity_store.is_a?(Rack::Cache::EntityStore::Dummy)
+      # It is not an error to get a nil body from a Noop backend, because it doesn't persist bodies.
+      if body || entity_store.is_a?(Rack::Cache::EntityStore::Noop)
         restore_response(res, body)
       else
         # TODO the metastore referenced an entity that doesn't exist in
