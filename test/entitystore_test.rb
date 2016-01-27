@@ -284,13 +284,13 @@ describe 'Rack::Cache::EntityStore' do
     it 'accepts bodies with #write' do
       key, size = @store.write(['My wild love went riding,'])
       refute key.nil?
-      assert key.sha_like?
+      assert key.length == 40 && key =~ /^[0-9a-z]+$/
     end
 
     it 'takes a ttl parameter for #write' do
       key, size = @store.write(['My wild love went riding,'], 0)
       refute key.nil?
-      assert key.sha_like?
+      assert key.length == 40 && key =~ /^[0-9a-z]+$/
     end
 
     it 'always responds to #exist? with true, regardless of the content having been saved before' do
