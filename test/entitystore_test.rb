@@ -299,12 +299,12 @@ describe 'Rack::Cache::EntityStore' do
       assert @store.exist? '938jasddj83jasdh4438021ksdfjsdfjsdsf'
     end
 
-    it 'always responds to #read with nil' do
+    it 'always responds to #read with an empty String' do
       key, size = @store.write(['And asked him to pay.'])
       data = @store.read(key)
-      data.must_equal nil
+      data.must_equal ''
       data = @store.read('938jasddj83jasdh4438021ksdfjsdfjsdsf')
-      data.must_equal nil
+      data.must_equal ''
     end
 
     it 'gives a 40 character SHA1 hex digest from #write' do
@@ -315,18 +315,24 @@ describe 'Rack::Cache::EntityStore' do
       key.must_equal '90a4c84d51a277f3dafc34693ca264531b9f51b6'
     end
 
-    it 'always responds to #open with nil' do
+    it 'always responds to #open with empty array' do
       key, size = @store.write(['And asked him to pay.'])
       data = @store.open(key)
-      data.must_equal nil
-      data = @store.read('938jasddj83jasdh4438021ksdfjsdfjsdsf')
-      data.must_equal nil
+      data.must_equal []
+      data = @store.open('938jasddj83jasdh4438021ksdfjsdfjsdsf')
+      data.must_equal []
+    end
+
+    it 'returns a Rack compatible body from #open' do
+      key, size = @store.write(['Some shells for her hair.'])
+      body = @store.open(key)
+      assert body.respond_to? :each
+      body.must_equal []
     end
 
     it 'responds to #purge and returns nil' do
       key, size = @store.write(['My wild love went riding,'])
       @store.purge(key).must_equal nil
-      @store.read(key).must_equal nil
     end
   end
 end

@@ -38,10 +38,7 @@ module Rack::Cache
       return nil if match.nil?
 
       _, res = match
-
-      body = entity_store.open(res['X-Content-Digest'])
-      # It is not an error to get a nil body from a Noop backend, because it doesn't persist bodies.
-      if body || entity_store.is_a?(Rack::Cache::EntityStore::Noop)
+      if body = entity_store.open(res['X-Content-Digest'])
         restore_response(res, body)
       else
         # TODO the metastore referenced an entity that doesn't exist in
@@ -67,7 +64,8 @@ module Rack::Cache
         end
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
-        response.body = entity_store.open(digest) || response.body
+        # If the entitystore backend is a Noop, do not try to read the body from the backend, it always returns an empty array
+        response.body = entity_store.open(digest) || response.body unless entity_store.is_a? Rack::Cache::EntityStore::Noop
       end
 
       # read existing cache entries, remove non-varying, and add this one to
@@ -125,7 +123,6 @@ module Rack::Cache
     # Converts a stored response hash into a Response object. The caller
     # is responsible for loading and passing the body if needed.
     def restore_response(hash, body=nil)
-      body = [] if body.nil?
       status = hash.delete('X-Status').to_i
       Rack::Cache::Response.new(status, hash, body)
     end

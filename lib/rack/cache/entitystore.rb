@@ -351,11 +351,11 @@ module Rack::Cache
       end
 
       def read(key)
-        nil
+        ''
       end
 
       def open(key)
-        nil
+        []
       end
 
       def write(body, ttl=nil)
