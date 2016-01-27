@@ -359,8 +359,7 @@ module Rack::Cache
       end
 
       def write(body, ttl=nil)
-        key=''
-        size = 0
+        key, size = slurp(body) { |part| part }
         [key, size]
       end
 
