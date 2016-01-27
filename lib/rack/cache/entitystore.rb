@@ -336,6 +336,45 @@ module Rack::Cache
     GAECACHE = GAEStore
     GAE = GAEStore
 
+    # Noop Entity Store backend that does not persist entities.
+    # When this entity store is used (by setting the entitystore option to nil or to a 'noop:' URL),
+    # response bodies will not be persisted. Responses retrieved from the cache will have an empty body.
+    #
+    # This backend is only useful for use cases in which the bodies of responses retrieved from the cache are of
+    # no interest. The code making the request MUST check if the response comes from the cache (e.g. looking at
+    # the X-Rack-Cache header in the response) and in this case ignore the response body.
+    #
+    # Using this backend means that no space must be allocated in disk or memory to store response bodies.
+    class Noop < EntityStore
+      def exist?(key)
+        true
+      end
+
+      def read(key)
+        ''
+      end
+
+      def open(key)
+        []
+      end
+
+      def write(body, ttl=nil)
+        key, size = slurp(body) { |part| part }
+        [key, size]
+      end
+
+      def purge(key)
+        nil
+      end
+
+      def self.resolve(uri)
+        new
+      end
+    end
+
+    NIL = Noop
+    NOOP = Noop
+
   end
 
 end

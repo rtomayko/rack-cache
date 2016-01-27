@@ -64,7 +64,8 @@ module Rack::Cache
         end
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
-        response.body = entity_store.open(digest) || response.body
+        # If the entitystore backend is a Noop, do not try to read the body from the backend, it always returns an empty array
+        response.body = entity_store.open(digest) || response.body unless entity_store.is_a? Rack::Cache::EntityStore::Noop
       end
 
       # read existing cache entries, remove non-varying, and add this one to
@@ -121,7 +122,7 @@ module Rack::Cache
 
     # Converts a stored response hash into a Response object. The caller
     # is responsible for loading and passing the body if needed.
-    def restore_response(hash, body=nil)
+    def restore_response(hash, body=[])
       status = hash.delete('X-Status').to_i
       Rack::Cache::Response.new(status, hash, body)
     end

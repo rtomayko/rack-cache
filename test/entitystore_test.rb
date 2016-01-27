@@ -272,5 +272,70 @@ describe Rack::Cache::EntityStore do
       end
       include RackCacheEntityStoreImplementation
     end
+
+  end
+
+  describe 'Noop' do
+    before {@store = Rack::Cache::EntityStore::Noop.new}
+
+    it 'responds to all required messages' do
+      %w[read open write exist?].each do |message|
+        assert @store.respond_to? message
+      end
+    end
+
+    it 'accepts bodies with #write' do
+      key, size = @store.write(['My wild love went riding,'])
+      refute key.nil?
+      assert key.length == 40 && key =~ /^[0-9a-z]+$/
+    end
+
+    it 'takes a ttl parameter for #write' do
+      key, size = @store.write(['My wild love went riding,'], 0)
+      refute key.nil?
+      assert key.length == 40 && key =~ /^[0-9a-z]+$/
+    end
+
+    it 'always responds to #exist? with true, regardless of the content having been saved before' do
+      key, size = @store.write(['She rode to the devil,'])
+      assert @store.exist? key
+      assert @store.exist? '938jasddj83jasdh4438021ksdfjsdfjsdsf'
+    end
+
+    it 'always responds to #read with an empty String' do
+      key, size = @store.write(['And asked him to pay.'])
+      data = @store.read(key)
+      data.must_equal ''
+      data = @store.read('938jasddj83jasdh4438021ksdfjsdfjsdsf')
+      data.must_equal ''
+    end
+
+    it 'gives a 40 character SHA1 hex digest from #write' do
+      key, size = @store.write(['she rode to the sea;'])
+      refute key.nil?
+      key.length.must_equal 40
+      key.must_match /^[0-9a-z]+$/
+      key.must_equal '90a4c84d51a277f3dafc34693ca264531b9f51b6'
+    end
+
+    it 'always responds to #open with empty array' do
+      key, size = @store.write(['And asked him to pay.'])
+      data = @store.open(key)
+      data.must_equal []
+      data = @store.open('938jasddj83jasdh4438021ksdfjsdfjsdsf')
+      data.must_equal []
+    end
+
+    it 'returns a Rack compatible body from #open' do
+      key, size = @store.write(['Some shells for her hair.'])
+      body = @store.open(key)
+      assert body.respond_to? :each
+      body.must_equal []
+    end
+
+    it 'responds to #purge and returns nil' do
+      key, size = @store.write(['My wild love went riding,'])
+      @store.purge(key).must_equal nil
+    end
   end
 end
