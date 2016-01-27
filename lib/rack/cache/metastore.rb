@@ -122,7 +122,7 @@ module Rack::Cache
 
     # Converts a stored response hash into a Response object. The caller
     # is responsible for loading and passing the body if needed.
-    def restore_response(hash, body=nil)
+    def restore_response(hash, body=[])
       status = hash.delete('X-Status').to_i
       Rack::Cache::Response.new(status, hash, body)
     end
