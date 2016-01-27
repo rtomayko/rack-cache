@@ -13,7 +13,7 @@ class MockOptions
   end
 end
 
-describe 'Rack::Cache::Options' do
+describe Rack::Cache::Options do
   before { @options = MockOptions.new }
 
   describe '#set' do
@@ -21,10 +21,12 @@ describe 'Rack::Cache::Options' do
       @options.set :bar, 'baz'
       @options.options['rack-cache.bar'].must_equal 'baz'
     end
+
     it 'sets a String option as string' do
       @options.set 'foo.bar', 'bling'
       @options.options['foo.bar'].must_equal 'bling'
     end
+
     it 'sets all key/value pairs when given a Hash' do
       @options.set :foo => 'bar', :bar => 'baz', 'foo.bar' => 'bling'
       @options.foo.must_equal 'bar'

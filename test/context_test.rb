@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 require 'rack/cache/context'
 
-describe 'Rack::Cache::Context' do
+describe Rack::Cache::Context do
   before { setup_cache_context }
   after  { teardown_cache_context }
 

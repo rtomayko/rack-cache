@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 require 'rack/cache/storage'
 
-describe 'Rack::Cache::Storage' do
+describe Rack::Cache::Storage do
   before do
     @storage = Rack::Cache::Storage.new
   end
@@ -9,22 +9,27 @@ describe 'Rack::Cache::Storage' do
   it "fails when an unknown URI scheme is provided" do
     lambda { @storage.resolve_metastore_uri('foo:/') }.must_raise
   end
+
   it "creates a new MetaStore for URI if none exists" do
     @storage.resolve_metastore_uri('heap:/').
       must_be_kind_of Rack::Cache::MetaStore
   end
+
   it "returns an existing MetaStore instance for URI that exists" do
     store = @storage.resolve_metastore_uri('heap:/')
     @storage.resolve_metastore_uri('heap:/').must_equal store
   end
+
   it "creates a new EntityStore for URI if none exists" do
     @storage.resolve_entitystore_uri('heap:/').
       must_be_kind_of Rack::Cache::EntityStore
   end
+
   it "returns an existing EntityStore instance for URI that exists" do
     store = @storage.resolve_entitystore_uri('heap:/')
     @storage.resolve_entitystore_uri('heap:/').must_equal store
   end
+
   it "clears all URI -> store mappings with #clear" do
     meta = @storage.resolve_metastore_uri('heap:/')
     entity = @storage.resolve_entitystore_uri('heap:/')
@@ -50,6 +55,7 @@ describe 'Rack::Cache::Storage' do
     before do
       @temp_dir = create_temp_directory
     end
+
     after do
       remove_entry_secure @temp_dir
       @temp_dir = nil
@@ -60,6 +66,7 @@ describe 'Rack::Cache::Storage' do
         @storage.resolve_metastore_uri(uri + @temp_dir).
           must_be_kind_of Rack::Cache::MetaStore
       end
+
       it "resolves #{uri} entity store URIs" do
         @storage.resolve_entitystore_uri(uri + @temp_dir).
           must_be_kind_of Rack::Cache::EntityStore
@@ -76,19 +83,19 @@ describe 'Rack::Cache::Storage' do
           @storage.resolve_metastore_uri(uri).
             must_be_kind_of Rack::Cache::MetaStore
         end
+
         it "resolves #{scheme} entity store URIs" do
           uri = scheme + '//' + ENV['MEMCACHED']
           @storage.resolve_entitystore_uri(uri).
             must_be_kind_of Rack::Cache::EntityStore
         end
       end
+
       it 'supports namespaces in memcached: URIs' do
         uri = "memcached://" + ENV['MEMCACHED'] + "/namespace"
         @storage.resolve_metastore_uri(uri).
            must_be_kind_of Rack::Cache::MetaStore
       end
     end
-
   end
-
 end

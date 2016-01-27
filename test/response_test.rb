@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-describe 'Rack::Cache::Response' do
+describe Rack::Cache::Response do
   before do
     @now = Time.httpdate(Time.now.httpdate)
     @one_hour_ago = Time.httpdate((Time.now - (60**2)).httpdate)

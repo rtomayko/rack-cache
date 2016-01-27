@@ -3,12 +3,6 @@ require_relative 'test_helper'
 require 'rack/cache/entitystore'
 require 'rack/cache/metastore'
 
-class Object
-  def sha_like?
-    length == 40 && self =~ /^[0-9a-z]+$/
-  end
-end
-
 module RackCacheEntityStoreImplementation
   def self.included(base)
     base.class_eval do
@@ -20,8 +14,7 @@ module RackCacheEntityStoreImplementation
 
       it 'stores bodies with #write' do
         key, size = @store.write(['My wild love went riding,'])
-        refute key.nil?
-        assert key.sha_like?
+        assert_sha_like key
 
         data = @store.read(key)
         data.must_equal 'My wild love went riding,'
@@ -29,8 +22,7 @@ module RackCacheEntityStoreImplementation
 
       it 'takes a ttl parameter for #write' do
         key, size = @store.write(['My wild love went riding,'], 0)
-        refute key.nil?
-        assert key.sha_like?
+        assert_sha_like key
 
         data = @store.read(key)
         data.must_equal 'My wild love went riding,'
@@ -96,15 +88,23 @@ module RackCacheEntityStoreImplementation
   end
 end
 
-describe 'Rack::Cache::EntityStore' do
+describe Rack::Cache::EntityStore do
+  def assert_sha_like(object)
+    assert object
+    object.length.must_equal 40
+    object.must_match /^[0-9a-z]+$/
+  end
 
   describe 'Heap' do
     before { @store = Rack::Cache::EntityStore::Heap.new }
+
     include RackCacheEntityStoreImplementation
+
     it 'takes a Hash to ::new' do
       @store = Rack::Cache::EntityStore::Heap.new('foo' => ['bar'])
       @store.read('foo').must_equal 'bar'
     end
+
     it 'uses its own Hash with no args to ::new' do
       @store.read('foo').must_equal nil
     end
@@ -115,6 +115,7 @@ describe 'Rack::Cache::EntityStore' do
       @temp_dir = create_temp_directory
       @store = Rack::Cache::EntityStore::Disk.new(@temp_dir)
     end
+
     after do
       @store = nil
       remove_entry_secure @temp_dir
@@ -126,6 +127,7 @@ describe 'Rack::Cache::EntityStore' do
       @store = Rack::Cache::EntityStore::Disk.new(path)
       assert File.directory? path
     end
+
     it 'produces a body that responds to #to_path' do
       key, size = @store.write(['Some shells for her hair.'])
       body = @store.open(key)
@@ -133,8 +135,9 @@ describe 'Rack::Cache::EntityStore' do
       path = "#{@temp_dir}/#{key[0..1]}/#{key[2..-1]}"
       body.to_path.must_equal path
     end
+
     it 'spreads data over a 36² hash radius' do
-      (<<-PROSE).each_line { |line| assert @store.write([line]).first.sha_like? }
+      (<<-PROSE).each_line { |line| assert_sha_like @store.write([line]).first }
         My wild love went riding,
         She rode all the day;
         She rode to the devil,

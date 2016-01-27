@@ -1,9 +1,7 @@
 require_relative 'test_helper'
 require 'rack/cache/key'
 
-describe 'A Rack::Cache::Key' do
-  # Helper Methods =============================================================
-
+describe Rack::Cache::Key do
   def mock_request(*args)
     uri, opts = args
     env = Rack::MockRequest.env_for(uri, opts || {})

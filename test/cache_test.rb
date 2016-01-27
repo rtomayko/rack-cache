@@ -1,11 +1,11 @@
 require_relative 'test_helper'
 
-def dumb_app(env)
-  body = block_given? ? [yield] : ['Hi']
-  [ 200, {'Content-Type' => 'text/plain'}, body ]
-end
-
 describe Rack::Cache do
+  def dumb_app(_env)
+    body = block_given? ? [yield] : ['Hi']
+    [ 200, {'Content-Type' => 'text/plain'}, body ]
+  end
+
   before { @app = method(:dumb_app) }
 
   it 'takes a backend and returns a middleware component' do

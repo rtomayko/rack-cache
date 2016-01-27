@@ -2,7 +2,7 @@ require_relative 'test_helper'
 require 'rack/cache/cachecontrol'
 require 'rack/cache/metastore'
 
-describe 'Rack::Cache::CacheControl' do
+describe Rack::Cache::CacheControl do
   it 'takes no args and initializes with an empty set of values' do
     cache_control = Rack::Cache::CacheControl.new
     assert cache_control.empty?
