@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/spec_setup"
+require_relative 'test_helper'
 
 describe 'Rack::Cache::Response' do
   before do

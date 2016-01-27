@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/spec_setup"
+require_relative 'test_helper'
 require 'rack/cache/key'
 
 describe 'A Rack::Cache::Key' do
