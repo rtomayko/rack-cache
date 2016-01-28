@@ -2,7 +2,7 @@ require 'time'
 require 'set'
 require 'rack/response'
 require 'rack/utils'
-require 'rack/cache/cachecontrol'
+require 'rack/cache/cache_control'
 
 module Rack::Cache
 

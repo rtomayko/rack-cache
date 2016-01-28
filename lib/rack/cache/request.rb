@@ -1,5 +1,5 @@
 require 'rack/request'
-require 'rack/cache/cachecontrol'
+require 'rack/cache/cache_control'
 
 module Rack::Cache
 
