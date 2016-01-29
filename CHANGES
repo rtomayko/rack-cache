@@ -1,3 +1,9 @@
+## 1.6.0
+
+  * Noop backend
+  * No longer read responses from cache when we already have them
+  * renamed files from entitystore -> entity_store (metastore/cachecontrol/appengine) and added warns for old ones
+
 ## 1.5.1
 
   * fix key generation for query strings that include encoded equals
