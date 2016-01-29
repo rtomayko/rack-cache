@@ -38,6 +38,13 @@ describe Rack::Cache::Storage do
     @storage.resolve_entitystore_uri('heap:/').object_id.wont_equal entity.object_id
   end
 
+  describe 'Noop Store URIs' do
+    it "resolves Noop meta store URIs" do
+      @storage.resolve_entitystore_uri('noop:/').
+        must_be_kind_of Rack::Cache::EntityStore::Noop
+    end
+  end
+
   describe 'Heap Store URIs' do
     %w[heap:/ mem:/].each do |uri|
       it "resolves #{uri} meta store URIs" do
