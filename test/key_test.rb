@@ -48,12 +48,12 @@ describe Rack::Cache::Key do
 
   it "includes accept" do
     request = mock_request('/test', 'HTTP_ACCEPT' => 'application/json')
-    new_key(request).should.include('application/json')
+    new_key(request).must_include('application/json')
   end
 
   it "includes accept encoding" do
     request = mock_request('/test', 'HTTP_ACCEPT_ENCODING' => 'gzip, deflate')
-    new_key(request).should.include('gzip, deflate')
+    new_key(request).must_include('gzip, deflate')
   end
 
   it "sorts the query string by key/value after decoding" do
