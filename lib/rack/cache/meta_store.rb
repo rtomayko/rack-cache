@@ -64,6 +64,8 @@ module Rack::Cache
         end
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
+        # If the entitystore backend is a Noop, do not try to read the body from the backend, it always returns an empty array
+        response.body = entity_store.open(digest) || response.body unless entity_store.is_a? Rack::Cache::EntityStore::Noop
       end
 
       # read existing cache entries, remove non-varying, and add this one to

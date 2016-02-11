@@ -33,7 +33,7 @@ module RackCacheMetaStoreImplementation
         @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
         body = @response.body
         cache_key = @store.store(@request, @response, @entity_store)
-        @response.body.object_id.must_equal body.object_id
+        @response.body.object_id.wont_equal body.object_id
         cache_key
       end
 
