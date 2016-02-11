@@ -15,7 +15,6 @@ module RackCacheMetaStoreImplementation
 
       def mock_response(status, headers, body)
         headers ||= {}
-        body = Array(body).compact
         Rack::Cache::Response.new(status, headers, body)
       end
 
@@ -27,13 +26,16 @@ module RackCacheMetaStoreImplementation
 
       # Stores an entry for the given request args, returns a url encoded cache key
       # for the request.
-      def store_simple_entry(*request_args)
-        path, headers = request_args
+      def store_simple_entry(path=nil, headers=nil, body=['test'])
         @request = mock_request(path || '/test', headers || {})
-        @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, ['test'])
+        @response = mock_response(200, {'Cache-Control' => 'max-age=420'}, body)
         body = @response.body
         cache_key = @store.store(@request, @response, @entity_store)
+
+        # atm we always read back the body from the cache, this is a workaround to deal with
+        # bodies that can only be read once
         @response.body.object_id.wont_equal body.object_id
+
         cache_key
       end
 
@@ -119,6 +121,21 @@ module RackCacheMetaStoreImplementation
       it 'stores a cache entry' do
         cache_key = store_simple_entry
         refute @store.read(cache_key).empty?
+      end
+
+      it 'can handle objects that can only be read once' do
+        io = StringIO.new("TEST")
+        store_simple_entry nil, nil, io
+
+        # was stored correctly in entity store
+        key = @response.headers.fetch('X-Content-Digest')
+        @entity_store.read(key).must_equal "TEST"
+
+        # io is closed, so that file descriptors are released
+        assert io.closed?
+
+        # renderd body is the same content as the cache
+        @response.body.to_a.must_equal ["TEST"]
       end
 
       it 'sets the X-Content-Digest response header before storing' do

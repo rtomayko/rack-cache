@@ -64,8 +64,18 @@ module Rack::Cache
         end
         response.headers['X-Content-Digest'] = digest
         response.headers['Content-Length'] = size.to_s unless response.headers['Transfer-Encoding']
+
         # If the entitystore backend is a Noop, do not try to read the body from the backend, it always returns an empty array
-        response.body = entity_store.open(digest) || response.body unless entity_store.is_a? Rack::Cache::EntityStore::Noop
+        unless entity_store.is_a? Rack::Cache::EntityStore::Noop
+          # A stream body can only be read once and is currently closed by #write.
+          # (To avoid having to keep giant objects in memory when writing to disk cache
+          # the body is never converted to a single string)
+          # We cannot always reply on body to be re-readable,
+          # so we have to read it from the cache.
+          # BUG: if the cache was unable to store a stream, the stream will be closed
+          #      and rack will try to read it again, resulting in hard to track down exception
+          response.body = entity_store.open(digest) || response.body
+        end
       end
 
       # read existing cache entries, remove non-varying, and add this one to
