@@ -342,6 +342,7 @@ module Rack::Cache
     # Does not persist response bodies (no disk/memory used).
     # Responses from the cache will have an empty body.
     # Clients must ignore these empty cached response (check for X-Rack-Cache response header).
+    # Atm cannot handle streamed responses, patch needed.
     #
     class Noop < EntityStore
       def exist?(key)

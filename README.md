@@ -95,7 +95,8 @@ Noop entity store
 
 Does not persist response bodies (no disk/memory used).<br/>
 Responses from the cache will have an empty body.<br/>
-Clients must ignore these empty cached response (check for X-Rack-Cache response header).
+Clients must ignore these empty cached response (check for X-Rack-Cache response header).<br/>
+Atm cannot handle streamed responses, patch needed.
  
 ```Ruby
 require 'rack/cache'
