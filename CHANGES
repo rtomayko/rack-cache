@@ -1,3 +1,8 @@
+## 1.6.1
+
+  * Revert 'No longer read responses from cache when we already have them'
+
+
 ## 1.6.0
 
   * Noop backend
