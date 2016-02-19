@@ -127,9 +127,10 @@ For more options see the [Rack::Request documentation](http://rack.rubyforge.org
 
 ### `use_native_ttl`
 
-Passes on the expiration timestamp to the cache store. This may be necessary
-with some stores to keep them from filling up, e.g. if using a Redis backend and
-the `volatile-ttl` expiration policy.
+Passes on the expiration timestamp to cache stores that support it, like
+Memcache and Redis. This may be necessary with some stores to keep them from
+filling up, e.g. if using a Redis backend and the `volatile-ttl` expiration
+policy.
 
 If using `memcached`, it will speed up misses slightly as the middleware won't
 need to fetch metadata and check timestamps.
