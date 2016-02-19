@@ -114,6 +114,12 @@ module RackCacheMetaStoreImplementation
         store_simple_entry('/bad', { 'SOME_THING' => Proc.new {} })
       end
 
+      it 'supports a ttl parameter for #write' do
+        @store.write('/test', [[{},{}],[{},{}]], 0)
+        tuples = @store.read('/test')
+        tuples.must_equal [ [{},{}], [{},{}] ]
+      end
+
       # Abstract methods ===========================================================
 
       it 'stores a cache entry' do
@@ -254,10 +260,30 @@ module RackCacheMetaStoreImplementation
         @store.read(key).length.must_equal 2
       end
 
-      it 'takes a ttl parameter for #write' do
-        @store.write('/test', [[{},{}],[{},{}]], 0)
-        tuples = @store.read('/test')
-        tuples.must_equal [ [{},{}], [{},{}] ]
+      # TTL ====================================================================
+
+      context 'logging writes' do
+        write_intercept = Module.new do
+          attr_reader :last_write
+
+          def write(*args)
+            @last_write = args
+            super
+          end
+        end
+
+        before do
+          @entity_store.extend(write_intercept)
+          @store.extend(write_intercept)
+        end
+
+        it 'passes a TTL to the stores is use_native_ttl is truthy' do
+          req1 = mock_request('/test', { 'rack-cache.use_native_ttl' => true })
+          res1 = mock_response(200, {'Cache-Control' => 'max-age=42'}, ['foo'])
+          @store.store(req1, res1, @entity_store)
+          @entity_store.last_write.must_equal [['foo'], 42]
+          @store.last_write[2].must_equal 42
+        end
       end
     end
   end
