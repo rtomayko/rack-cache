@@ -329,6 +329,7 @@ module Rack::Cache
         cache.get(key) || []
       end
 
+      # Default TTL to zero, interpreted as "don't expire" by Memcached.
       def write(key, entries, ttl = 0)
         key = hexdigest(key)
         cache.set(key, entries, ttl)
@@ -363,6 +364,7 @@ module Rack::Cache
         []
       end
 
+      # Default TTL to zero, interpreted as "don't expire" by Memcached.
       def write(key, entries, ttl = 0)
         key = hexdigest(key)
         cache.set(key, entries, ttl)
