@@ -91,7 +91,11 @@ module Rack::Cache
       headers.delete 'Age'
 
       entries.unshift [stored_env, headers]
-      write key, entries
+      if request.env['rack-cache.use_native_ttl'] && response.fresh?
+        write key, entries, response.ttl
+      else
+        write key, entries
+      end
       key
     end
 
@@ -165,7 +169,7 @@ module Rack::Cache
     # Store an Array of request/response pairs for the given key. Concrete
     # implementations should not attempt to filter or concatenate the
     # list in any way.
-    def write(key, negotiations)
+    def write(key, negotiations, ttl = nil)
       raise NotImplementedError
     end
 
@@ -198,7 +202,7 @@ module Rack::Cache
         end
       end
 
-      def write(key, entries)
+      def write(key, entries, ttl = nil)
         @hash[key] = Marshal.dump(entries)
       end
 
@@ -236,7 +240,7 @@ module Rack::Cache
         []
       end
 
-      def write(key, entries)
+      def write(key, entries, ttl = nil)
         tries = 0
         begin
           path = key_path(key)
@@ -335,9 +339,10 @@ module Rack::Cache
         cache.get(key) || []
       end
 
-      def write(key, entries)
+      # Default TTL to zero, interpreted as "don't expire" by Memcached.
+      def write(key, entries, ttl = 0)
         key = hexdigest(key)
-        cache.set(key, entries)
+        cache.set(key, entries, ttl)
       end
 
       def purge(key)
@@ -369,9 +374,10 @@ module Rack::Cache
         []
       end
 
-      def write(key, entries)
+      # Default TTL to zero, interpreted as "don't expire" by Memcached.
+      def write(key, entries, ttl = 0)
         key = hexdigest(key)
-        cache.set(key, entries)
+        cache.set(key, entries, ttl)
       end
 
       def purge(key)
