@@ -1,7 +1,10 @@
+## 1.7.0
+
+  * Meta stores now receive a third ttl argument to write when use_native_ttl is used.
+
 ## 1.6.1
 
   * Revert 'No longer read responses from cache when we already have them'
-
 
 ## 1.6.0
 
