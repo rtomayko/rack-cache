@@ -280,26 +280,14 @@ module RackCacheMetaStoreImplementation
       # TTL ====================================================================
 
       context 'logging writes' do
-        write_intercept = Module.new do
-          attr_reader :last_write
-
-          def write(*args)
-            @last_write = args
-            super
-          end
-        end
-
-        before do
-          @entity_store.extend(write_intercept)
-          @store.extend(write_intercept)
-        end
-
         it 'passes a TTL to the stores is use_native_ttl is truthy' do
-          req1 = mock_request('/test', { 'rack-cache.use_native_ttl' => true })
-          res1 = mock_response(200, {'Cache-Control' => 'max-age=42'}, ['foo'])
-          @store.store(req1, res1, @entity_store)
-          @entity_store.last_write.must_equal [['foo'], 42]
-          @store.last_write[2].must_equal 42
+          request = mock_request('/test', { 'rack-cache.use_native_ttl' => true })
+          response = mock_response(200, {'Cache-Control' => 'max-age=42'}, ['foo'])
+
+          @entity_store.expects(:write).with(['foo'], 42).returns ['foobar']
+          @store.expects(:write).with(anything, anything, 42).returns ['foobar']
+
+          @store.store(request, response, @entity_store)
         end
       end
     end
