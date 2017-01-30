@@ -198,7 +198,7 @@ module Rack::Cache
       convert_head_to_get!
 
       # add our cached last-modified validator to the environment
-      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified
+      @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified if entry.last_modified
 
       # Add our cached etag validator to the environment.
       # We keep the etags from the client to handle the case when the client
