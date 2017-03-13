@@ -55,9 +55,12 @@ caching.
 Using with Rails
 ----------------
 
-Add this to your `config/environment.rb`:
+Either of these but not both:
 
 ```Ruby
+# config/application.rb
+config.action_dispatch.rack_cache = true
+# or
 config.middleware.use Rack::Cache,
    verbose:     true,
    metastore:   'file:/var/cache/rack/meta',
@@ -68,9 +71,7 @@ You should now see `Rack::Cache` listed in the middleware pipeline:
 
     rake middleware
 
-See the following for more information:
-
-    http://snippets.aktagon.com/snippets/302-how-to-setup-and-use-rack-cache-with-rails
+[more information](http://snippets.aktagon.com/snippets/302-how-to-setup-and-use-rack-cache-with-rails)
 
 Using with Dalli
 ----------------
