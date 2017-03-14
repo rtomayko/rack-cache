@@ -81,7 +81,7 @@ describe Rack::Cache::CacheControl do
 
   it 'responds to #max_age with nil when no max-age directive present' do
     cache_control = Rack::Cache::CacheControl.new('public')
-    cache_control.max_age.must_equal nil
+    cache_control.max_age.must_be_nil
   end
 
   it 'responds to #shared_max_age with an integer when s-maxage directive present' do
@@ -91,7 +91,7 @@ describe Rack::Cache::CacheControl do
 
   it 'responds to #shared_max_age with nil when no s-maxage directive present' do
     cache_control = Rack::Cache::CacheControl.new('public')
-    cache_control.shared_max_age.must_equal nil
+    cache_control.shared_max_age.must_be_nil
   end
 
   it 'responds to #reverse_max_age with an integer when r-maxage directive present' do
@@ -101,7 +101,7 @@ describe Rack::Cache::CacheControl do
 
   it 'responds to #reverse_max_age with nil when no r-maxage directive present' do
     cache_control = Rack::Cache::CacheControl.new('public')
-    cache_control.reverse_max_age.must_equal nil
+    cache_control.reverse_max_age.must_be_nil
   end
 
   it 'responds to #public? truthfully when public directive present' do
