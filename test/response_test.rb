@@ -89,7 +89,7 @@ describe Rack::Cache::Response do
       @res.max_age.must_equal 60 ** 2
     end
     it 'gives a #max_age of nil when no freshness information available' do
-      @res.max_age.must_equal nil
+      @res.max_age.must_be_nil
     end
   end
 
@@ -138,14 +138,14 @@ describe Rack::Cache::Response do
 
   describe '#ttl' do
     it 'is nil when no Expires or Cache-Control headers present' do
-      @res.ttl.must_equal nil
+      @res.ttl.must_be_nil
     end
     it 'uses the Expires header when no max-age is present' do
       @res.headers['Expires'] = (@res.now + (60**2)).httpdate
       @res.ttl.must_be_close_to(60**2, 1)
     end
     it 'returns negative values when Expires is in part' do
-      @res.ttl.must_equal nil
+      @res.ttl.must_be_nil
       @res.headers['Expires'] = @one_hour_ago.httpdate
       @res.ttl.must_be :<, 0
     end
@@ -157,7 +157,7 @@ describe Rack::Cache::Response do
 
   describe '#vary' do
     it 'is nil when no Vary header is present' do
-      @res.vary.must_equal nil
+      @res.vary.must_be_nil
     end
     it 'returns the literal value of the Vary header' do
       @res.headers['Vary'] = 'Foo Bar Baz'
@@ -195,7 +195,7 @@ describe Rack::Cache::Response do
   describe '#expires' do
     it 'returns nil if there is no Expires header' do
       @res.headers['Expires'] = nil
-      @res.expires.must_equal nil
+      @res.expires.must_be_nil
     end
 
     it 'returns a Time if the Expires header is parseable' do
@@ -205,7 +205,7 @@ describe Rack::Cache::Response do
 
     it 'returns nil if the Expires header is not parseable' do
       @res.headers['Expires'] = "Jun, 30 Mon 2014 20:10:46 GMT"
-      @res.expires.must_equal nil
+      @res.expires.must_be_nil
     end
   end
 end

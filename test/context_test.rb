@@ -112,7 +112,7 @@ describe Rack::Cache::Context do
     assert response.ok?
     cache.trace.must_include :store
     cache.trace.must_include :ignore
-    response.headers['Set-Cookie'].must_equal nil
+    response.headers['Set-Cookie'].must_be_nil
   end
 
   it 'does remove all configured ignore_headers from a cacheable response' do
@@ -123,8 +123,8 @@ describe Rack::Cache::Context do
     assert response.ok?
     cache.trace.must_include :store
     cache.trace.must_include :ignore
-    response.headers['Set-Cookie'].must_equal nil
-    response.headers['x-strip-me'].must_equal nil
+    response.headers['Set-Cookie'].must_be_nil
+    response.headers['x-strip-me'].must_be_nil
   end
 
   it 'does not remove Set-Cookie response header from a private response' do

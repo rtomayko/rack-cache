@@ -80,7 +80,7 @@ module RackCacheMetaStoreImplementation
 
       it 'returns nil from #purge' do
         @store.write('/test', [[{},{}]])
-        @store.purge('/test').must_equal nil
+        @store.purge('/test').must_be_nil
         @store.read('/test').must_equal []
       end
 
@@ -159,7 +159,7 @@ module RackCacheMetaStoreImplementation
 
       it 'does not find an entry with #lookup when none exists' do
         req = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
-        @store.lookup(req, @entity_store).must_equal nil
+        @store.lookup(req, @entity_store).must_be_nil
       end
 
       it "canonizes urls for cache keys" do
@@ -169,14 +169,14 @@ module RackCacheMetaStoreImplementation
         miss_req = mock_request('/test?p=x', {})
 
         @store.lookup(hits_req, @entity_store).wont_equal nil
-        @store.lookup(miss_req, @entity_store).must_equal nil
+        @store.lookup(miss_req, @entity_store).must_be_nil
       end
 
       it 'does not find an entry with #lookup when the body does not exist' do
         store_simple_entry
         refute @response.headers['X-Content-Digest'].nil?
         @entity_store.purge(@response.headers['X-Content-Digest'])
-        @store.lookup(@request, @entity_store).must_equal nil
+        @store.lookup(@request, @entity_store).must_be_nil
       end
 
       it 'restores response headers properly with #lookup' do
@@ -204,7 +204,7 @@ module RackCacheMetaStoreImplementation
       it 'succeeds quietly when #invalidate called with no matching entries' do
         req = mock_request('/test', {})
         @store.invalidate(req, @entity_store)
-        @store.lookup(@request, @entity_store).must_equal nil
+        @store.lookup(@request, @entity_store).must_be_nil
       end
 
       it 'gracefully degrades if the cache store stops working' do
@@ -235,7 +235,7 @@ module RackCacheMetaStoreImplementation
         res = mock_response(200, {'Vary' => 'Foo Bar'}, ['test'])
         @store.store(req1, res, @entity_store)
 
-        @store.lookup(req2, @entity_store).must_equal nil
+        @store.lookup(req2, @entity_store).must_be_nil
       end
 
       it 'stores multiple responses for each Vary combination' do

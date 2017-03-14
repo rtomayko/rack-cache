@@ -54,7 +54,7 @@ module RackCacheEntityStoreImplementation
       end
 
       it 'returns nil from #read when key does not exist' do
-        @store.read('87fe0a1ae82a518592f6b12b0183e950b4541c62').must_equal nil
+        @store.read('87fe0a1ae82a518592f6b12b0183e950b4541c62').must_be_nil
       end
 
       it 'returns a Rack compatible body from #open' do
@@ -67,7 +67,7 @@ module RackCacheEntityStoreImplementation
       end
 
       it 'returns nil from #open when key does not exist' do
-        @store.open('87fe0a1ae82a518592f6b12b0183e950b4541c62').must_equal nil
+        @store.open('87fe0a1ae82a518592f6b12b0183e950b4541c62').must_be_nil
       end
 
       it 'can store largish bodies with binary data' do
@@ -81,8 +81,8 @@ module RackCacheEntityStoreImplementation
 
       it 'deletes stored entries with #purge' do
         key, size = @store.write(['My wild love went riding,'])
-        @store.purge(key).must_equal nil
-        @store.read(key).must_equal nil
+        @store.purge(key).must_be_nil
+        @store.read(key).must_be_nil
       end
     end
   end
@@ -106,7 +106,7 @@ describe Rack::Cache::EntityStore do
     end
 
     it 'uses its own Hash with no args to ::new' do
-      @store.read('foo').must_equal nil
+      @store.read('foo').must_be_nil
     end
   end
 
@@ -334,7 +334,7 @@ describe Rack::Cache::EntityStore do
 
     it 'responds to #purge and returns nil' do
       key, size = @store.write(['My wild love went riding,'])
-      @store.purge(key).must_equal nil
+      @store.purge(key).must_be_nil
     end
   end
 end
