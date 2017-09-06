@@ -54,9 +54,13 @@ describe Rack::Cache::Response do
   end
 
   describe '#date' do
-    it 'uses the Date header if present' do
+    it 'uses the Date header if present and parseable' do
       @res = Rack::Cache::Response.new(200, {'Date' => @one_hour_ago.httpdate}, [])
       @res.date.must_equal @one_hour_ago
+    end
+    it 'returns the current time if present but not parseable' do
+      @res = Rack::Cache::Response.new(200, {'Date' => "Jun, 30 Mon 2014 20:10:46 GMT"}, [])
+      @res.date.to_i.must_be_close_to Time.now.to_i, 1
     end
     it 'uses the current time when no Date header present' do
       @res = Rack::Cache::Response.new(200, {}, [])
