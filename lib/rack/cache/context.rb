@@ -70,7 +70,7 @@ module Rack::Cache
       @request = Request.new(@env.dup.freeze)
 
       response =
-        if @request.get? || @request.head?
+        if @request.get? || @request.head? || @request.report?
           if !@env['HTTP_EXPECT'] && !@env['rack-cache.force-pass']
             lookup
           else
@@ -92,7 +92,7 @@ module Rack::Cache
       end
 
       # tidy up response a bit
-      if (@request.get? || @request.head?) && not_modified?(response)
+      if (@request.get? || @request.head? || @request.report?) && not_modified?(response)
         response.not_modified!
       end
 
@@ -237,7 +237,11 @@ module Rack::Cache
     # as a template for a conditional GET request with the backend.
     def validate(entry)
       # send no head requests because we want content
-      @env['REQUEST_METHOD'] = 'GET'
+      if @request.report?
+        @env['REQUEST_METHOD'] = 'POST' 
+      else
+        @env['REQUEST_METHOD'] = 'GET'
+      end
 
       # add our cached last-modified validator to the environment
       @env['HTTP_IF_MODIFIED_SINCE'] = entry.last_modified if entry.last_modified
@@ -285,7 +289,11 @@ module Rack::Cache
     # caching of the response when the backend returns a 304.
     def fetch
       # send no head requests because we want content
-      @env['REQUEST_METHOD'] = 'GET'
+      if @request.report?
+        @env['REQUEST_METHOD'] = 'POST' 
+      else
+        @env['REQUEST_METHOD'] = 'GET'
+      end
 
       response = forward
 
