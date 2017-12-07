@@ -111,5 +111,5 @@ run app
 ```
 
 License: MIT<br/>
-[![Build Status](https://travis-ci.org/rtomayko/rack-cache.png)](https://travis-ci.org/rtomayko/rack-cache)
+[![Build Status](https://travis-ci.org/rtomayko/rack-cache.svg)](https://travis-ci.org/rtomayko/rack-cache)
 
