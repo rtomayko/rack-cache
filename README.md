@@ -55,16 +55,15 @@ caching.
 Using with Rails
 ----------------
 
-Either of these but not both:
-
 ```Ruby
 # config/application.rb
 config.action_dispatch.rack_cache = true
 # or
-config.middleware.use Rack::Cache,
+config.action_dispatch.rack_cache = {
    verbose:     true,
    metastore:   'file:/var/cache/rack/meta',
    entitystore: 'file:/var/cache/rack/body'
+}
 ```
 
 You should now see `Rack::Cache` listed in the middleware pipeline:
