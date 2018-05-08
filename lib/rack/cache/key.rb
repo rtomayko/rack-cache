@@ -40,7 +40,7 @@ module Rack::Cache
     # Build a normalized query string by alphabetizing all keys/values
     # and applying consistent escaping.
     def query_string
-      return nil if @request.query_string.nil?
+      return nil if @request.query_string.to_s.empty?
 
       @request.query_string.split(/[&;] */n).
         map { |p| p.split('=', 2).map{ |s| unescape(s) } }.

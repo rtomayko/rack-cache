@@ -46,6 +46,11 @@ describe Rack::Cache::Key do
     new_key(request).must_include('/test')
   end
 
+  it "does not include question mark if there is no query string" do
+    request = mock_request('/test')
+    new_key(request).wont_include('?')
+  end
+
   it "sorts the query string by key/value after decoding" do
     request = mock_request('/test?x=q&a=b&%78=c')
     new_key(request).must_match(/\?a=b&x=c&x=q$/)
