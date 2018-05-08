@@ -1,3 +1,7 @@
+## 1.7.2
+
+  * fix key generation for requests with no query strings
+
 ## 1.7.0
 
   * Meta stores now receive a third ttl argument to write when use_native_ttl is used.
