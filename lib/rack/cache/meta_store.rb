@@ -41,9 +41,9 @@ module Rack::Cache
       if body = entity_store.open(res['X-Content-Digest'])
         restore_response(res, body)
       else
-        # TODO the metastore referenced an entity that doesn't exist in
-        # the entitystore. we definitely want to return nil but we should
-        # also purge the entry from the meta-store when this is detected.
+        # the metastore referenced an entity that doesn't exist in
+        # the entitystore, purge the entry from the meta-store
+        purge(key)
       end
     end
 

@@ -1,6 +1,10 @@
+## next
+
+  * Meta stores will purge keys when no entity store entries are found
+
 ## 1.7.2
 
-  * fix key generation for requests with no query strings
+  * Fix key generation for requests with no query strings
 
 ## 1.7.0
 
