@@ -179,6 +179,17 @@ module RackCacheMetaStoreImplementation
         @store.lookup(@request, @entity_store).must_be_nil
       end
 
+      it 'purges meta store entry when the body does not exist' do
+        store_simple_entry
+        @entity_store.purge(@response.headers['X-Content-Digest'])
+        mock = MiniTest::Mock.new
+        mock.expect :call, nil, [@store.cache_key(@request)]
+        @store.stub(:purge, mock) do
+          @store.lookup(@request, @entity_store)
+        end
+        mock.verify
+      end
+
       it 'restores response headers properly with #lookup' do
         store_simple_entry
         response = @store.lookup(@request, @entity_store)
