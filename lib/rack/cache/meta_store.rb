@@ -43,7 +43,11 @@ module Rack::Cache
       else
         # the metastore referenced an entity that doesn't exist in
         # the entitystore, purge the entry from the meta-store
-        purge(key)
+        begin
+          purge(key)
+        rescue NotImplementedError
+          warn_once('purge') { "WARNING: Future releases may require purge implementation for #{self.class.name}" }
+        end
       end
     end
 
@@ -155,6 +159,19 @@ module Rack::Cache
         key = "HTTP_#{header.upcase.tr('-', '_')}"
         env1[key] == env2[key]
       end
+    end
+
+    @@warned_keys = { }
+    # Log a warning message once. For example, deprecation messages.
+    # Warnings will be displayed once per key and self.class combination.
+    # The warning message is only retrieved from the block if a warning
+    # should be displayed.
+    def warn_once(key)
+      lookup_key = "#{self.class.name}:#{key}"
+      return if @@warned_keys[lookup_key]
+      warn yield if block_given?
+      @@warned_keys[lookup_key] = true
+      nil
     end
 
   protected
