@@ -43,7 +43,15 @@ module Rack::Cache
       else
         # the metastore referenced an entity that doesn't exist in
         # the entitystore, purge the entry from the meta-store
-        purge(key)
+        begin
+          purge(key)
+        rescue NotImplementedError
+          @@warned_on_purge ||= begin
+            warn "WARNING: Future releases may require purge implementation for #{self.class.name}"
+            true
+          end
+          nil
+        end
       end
     end
 

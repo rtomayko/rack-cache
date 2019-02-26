@@ -190,6 +190,15 @@ module RackCacheMetaStoreImplementation
         mock.verify
       end
 
+      it 'warns once if purge is not implemented' do
+        store_simple_entry
+        assert @response.headers['X-Content-Digest']
+        @entity_store.purge(@response.headers['X-Content-Digest'])
+        def @store.purge(key); raise NotImplementedError; end
+        @store.lookup(@request, @entity_store).must_be_nil
+        @store.lookup(@request, @entity_store).must_be_nil
+      end
+
       it 'restores response headers properly with #lookup' do
         store_simple_entry
         response = @store.lookup(@request, @entity_store)
