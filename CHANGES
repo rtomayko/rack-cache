@@ -1,4 +1,8 @@
-## next
+## 1.9.0
+
+  * make purge not raise when not implemented
+
+## 1.8.0
 
   * Meta stores will purge keys when no entity store entries are found
 
