@@ -192,7 +192,7 @@ module RackCacheMetaStoreImplementation
 
       it 'warns once if purge is not implemented' do
         store_simple_entry
-        refute @response.headers['X-Content-Digest'].nil?
+        assert @response.headers['X-Content-Digest']
         @entity_store.purge(@response.headers['X-Content-Digest'])
         def @store.purge(key); raise NotImplementedError; end
         @store.lookup(@request, @entity_store).must_be_nil

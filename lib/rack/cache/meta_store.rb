@@ -46,7 +46,11 @@ module Rack::Cache
         begin
           purge(key)
         rescue NotImplementedError
-          warn_once('purge') { "WARNING: Future releases may require purge implementation for #{self.class.name}" }
+          @@warned_on_purge ||= begin
+            warn "WARNING: Future releases may require purge implementation for #{self.class.name}"
+            true
+          end
+          nil
         end
       end
     end
@@ -159,19 +163,6 @@ module Rack::Cache
         key = "HTTP_#{header.upcase.tr('-', '_')}"
         env1[key] == env2[key]
       end
-    end
-
-    @@warned_keys = { }
-    # Log a warning message once. For example, deprecation messages.
-    # Warnings will be displayed once per key and self.class combination.
-    # The warning message is only retrieved from the block if a warning
-    # should be displayed.
-    def warn_once(key)
-      lookup_key = "#{self.class.name}:#{key}"
-      return if @@warned_keys[lookup_key]
-      warn yield if block_given?
-      @@warned_keys[lookup_key] = true
-      nil
     end
 
   protected
