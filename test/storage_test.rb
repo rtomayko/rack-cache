@@ -10,6 +10,17 @@ describe Rack::Cache::Storage do
     lambda { @storage.resolve_metastore_uri('foo:/') }.must_raise
   end
 
+  it "passes options to the underlying stores" do
+    @storage
+      .resolve_metastore_uri('heap:/', foo: 'bar')
+      .instance_variable_get('@options')[:foo]
+      .must_equal('bar')
+    @storage
+      .resolve_entitystore_uri('heap:/', foo: 'bar')
+      .instance_variable_get('@options')[:foo]
+      .must_equal('bar')
+  end
+
   it "creates a new MetaStore for URI if none exists" do
     @storage.resolve_metastore_uri('heap:/').
       must_be_kind_of Rack::Cache::MetaStore

@@ -198,8 +198,9 @@ module Rack::Cache
     # Concrete MetaStore implementation that uses a simple Hash to store
     # request/response pairs on the heap.
     class Heap < MetaStore
-      def initialize(hash={})
+      def initialize(hash={}, options = {})
         @hash = hash
+        @options = options
       end
 
       def read(key)
@@ -223,8 +224,8 @@ module Rack::Cache
         @hash
       end
 
-      def self.resolve(uri)
-        new
+      def self.resolve(uri, options = {})
+        new({}, options)
       end
     end
 

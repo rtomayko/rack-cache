@@ -14,12 +14,12 @@ module Rack::Cache
       @entitystores = {}
     end
 
-    def resolve_metastore_uri(uri)
-      @metastores[uri.to_s] ||= create_store(MetaStore, uri)
+    def resolve_metastore_uri(uri, options = {})
+      @metastores[uri.to_s] ||= create_store(MetaStore, uri, options)
     end
 
-    def resolve_entitystore_uri(uri)
-      @entitystores[uri.to_s] ||= create_store(EntityStore, uri)
+    def resolve_entitystore_uri(uri, options = {})
+      @entitystores[uri.to_s] ||= create_store(EntityStore, uri, options)
     end
 
     def clear
@@ -30,12 +30,13 @@ module Rack::Cache
 
   private
 
-    def create_store(type, uri)
+    def create_store(type, uri, options = {})
       if uri.respond_to?(:scheme) || uri.respond_to?(:to_str)
         uri = URI.parse(uri) unless uri.respond_to?(:scheme)
         if type.const_defined?(uri.scheme.upcase)
           klass = type.const_get(uri.scheme.upcase)
-          klass.resolve(uri)
+          return klass.resolve(uri) if klass.method(:resolve).arity == 1
+          klass.resolve(uri, options)
         else
           fail "Unknown storage provider: #{uri.to_s}"
         end
