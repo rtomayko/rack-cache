@@ -5,6 +5,7 @@ require 'stringio'
 
 [STDOUT, STDERR].each { |io| io.sync = true }
 
+require 'maxitest/global_must'
 require 'maxitest/autorun'
 require 'mocha/setup'
 

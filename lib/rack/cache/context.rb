@@ -19,6 +19,7 @@ module Rack::Cache
       @backend = backend
       @trace = []
       @env = nil
+      @options = options
 
       initialize_options options
       yield self if block_given?
@@ -31,14 +32,14 @@ module Rack::Cache
     # value effects the result of this method immediately.
     def metastore
       uri = options['rack-cache.metastore']
-      storage.resolve_metastore_uri(uri)
+      storage.resolve_metastore_uri(uri, @options)
     end
 
     # The configured EntityStore instance. Changing the rack-cache.entitystore
     # value effects the result of this method immediately.
     def entitystore
       uri = options['rack-cache.entitystore']
-      storage.resolve_entitystore_uri(uri)
+      storage.resolve_entitystore_uri(uri, @options)
     end
 
     # The Rack call interface. The receiver acts as a prototype and runs

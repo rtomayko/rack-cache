@@ -5,6 +5,16 @@ describe Rack::Cache::Context do
   before { setup_cache_context }
   after  { teardown_cache_context }
 
+  it 'passes options to the underlying stores' do
+    app = CacheContextHelpers::FakeApp.new(200, {}, ['foo'])
+    context = Rack::Cache::Context.new(app, foo: 'bar')
+    entity_options = context.entitystore.instance_variable_get('@options')
+    meta_options = context.metastore.instance_variable_get('@options')
+
+    entity_options[:foo].must_equal('bar')
+    meta_options[:foo].must_equal('bar')
+  end
+
   it 'passes on non-GET/HEAD requests' do
     respond_with 200
     post '/'

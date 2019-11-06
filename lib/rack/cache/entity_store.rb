@@ -33,10 +33,10 @@ module Rack::Cache
 
     # Stores entity bodies on the heap using a Hash object.
     class Heap < EntityStore
-
       # Create the store with the specified backing Hash.
-      def initialize(hash={})
+      def initialize(hash={}, options = {})
         @hash = hash
+        @options = options
       end
 
       # Determine whether the response body with the specified key (SHA1)
@@ -71,8 +71,8 @@ module Rack::Cache
         nil
       end
 
-      def self.resolve(uri)
-        new
+      def self.resolve(uri, options = {})
+        new({}, options)
       end
     end
 
