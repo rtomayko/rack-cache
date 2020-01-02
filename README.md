@@ -97,7 +97,7 @@ Does not persist response bodies (no disk/memory used).<br/>
 Responses from the cache will have an empty body.<br/>
 Clients must ignore these empty cached response (check for X-Rack-Cache response header).<br/>
 Atm cannot handle streamed responses, patch needed.
- 
+
 ```Ruby
 require 'rack/cache'
 
@@ -109,6 +109,18 @@ use Rack::Cache,
 run app
 ```
 
+Ignoring tracking parameters in cache keys
+-----------------
+
+It's fairly common to include tracking parameters which don't affect the content
+of the page. Since Rack::Cache uses the full URL as part of the cache key, this
+can cause unneeded churn in your cache. If you're using the default key class
+`Rack::Cache::Key`, you can configure a proc to ignore certain keys/values like
+so:
+
+```Ruby
+Rack::Cache::Key.query_string_ignore = proc { |k, v| k =~ /^(trk|utm)_/ }
+```
+
 License: MIT<br/>
 [![Build Status](https://travis-ci.org/rtomayko/rack-cache.svg)](https://travis-ci.org/rtomayko/rack-cache)
-
