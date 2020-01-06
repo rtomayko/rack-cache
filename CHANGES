@@ -1,3 +1,7 @@
+## 1.11.0
+
+ * Add a proc to allow ignoring parts of the query string in the key
+
 ## 1.10.0
 
   * Pass Options To Underlying Storage Driver
