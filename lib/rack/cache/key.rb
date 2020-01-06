@@ -57,12 +57,12 @@ module Rack::Cache
     def query_string
       return nil if @request.query_string.to_s.empty?
 
-      @request.query_string.split(/[&;] */n).
-        map { |p| p.split('=', 2).map{ |s| unescape(s) } }.
-        sort.
-        reject(&self.class.query_string_ignore).
-        map { |k,v| "#{escape(k)}=#{escape(v)}" }.
-        join('&')
+      parts = @request.query_string.split(/[&;] */n)
+      parts.map! { |p| p.split('=', 2).map!{ |s| unescape(s) } }
+      parts.sort!
+      parts.reject!(&self.class.query_string_ignore)
+      parts.map! { |k,v| "#{escape(k)}=#{escape(v)}" }
+      parts.join('&')
     end
   end
 end
