@@ -60,4 +60,17 @@ describe Rack::Cache::Key do
     request = mock_request('/test?x=y', "HTTP_HOST" => 'www2.example.org')
     new_key(request).must_equal "http://www2.example.org/test?x=y"
   end
+
+  it "ignores params based on configuration" do
+    begin
+      Rack::Cache::Key.query_string_ignore = proc { |k, v| k == 'a' }
+
+      request = mock_request('/test?a=first&z=last')
+      new_key(request).wont_include('a=first')
+      new_key(request).must_include('z=last')
+
+    ensure
+      Rack::Cache::Key.query_string_ignore = nil
+    end
+  end
 end

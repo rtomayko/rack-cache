@@ -4,6 +4,21 @@ module Rack::Cache
   class Key
     include Rack::Utils
 
+    # A proc for ignoring parts of query strings when generating a key. This is
+    # useful when you have parameters like `utm` or `trk` that don't affect the
+    # content on the page and are unique per-visitor or campaign. Parameters
+    # like these will be part of the key and cause a lot of churn.
+    #
+    # The block will be passed a key and value which are the name and value of
+    # that parameter.
+    #
+    # Example:
+    #   `Rack::Cache::Key.query_string_ignore = proc { |k, v| k =~ /^(trk|utm)_/ }`
+    #
+    class << self
+      attr_accessor :query_string_ignore
+    end
+
     # Implement .call, since it seems like the "Rack-y" thing to do. Plus, it
     # opens the door for cache key generators to just be blocks.
     def self.call(request)
@@ -45,6 +60,7 @@ module Rack::Cache
       @request.query_string.split(/[&;] */n).
         map { |p| p.split('=', 2).map{ |s| unescape(s) } }.
         sort.
+        reject(&self.class.query_string_ignore).
         map { |k,v| "#{escape(k)}=#{escape(v)}" }.
         join('&')
     end
