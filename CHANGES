@@ -1,3 +1,7 @@
+## 1.11.1
+
+ * when ignoring parts of the query, remove query in key when all params are ignored
+
 ## 1.11.0
 
  * Add a proc to allow ignoring parts of the query string in the key
