@@ -12,6 +12,13 @@ describe Rack::Cache::Key do
     Rack::Cache::Key.call(request)
   end
 
+  def with_query_string_ignore(proc)
+    Rack::Cache::Key.query_string_ignore = proc
+    yield
+  ensure
+    Rack::Cache::Key.query_string_ignore = nil
+  end
+
   it "sorts params" do
     request = mock_request('/test?z=last&a=first')
     new_key(request).must_include('a=first&z=last')
@@ -62,26 +69,17 @@ describe Rack::Cache::Key do
   end
 
   it "ignores params based on configuration" do
-    begin
-      Rack::Cache::Key.query_string_ignore = proc { |k, v| k == 'a' }
-
+    with_query_string_ignore proc { |k, _v| k == 'a' } do
       request = mock_request('/test?a=first&z=last')
       new_key(request).wont_include('a=first')
       new_key(request).must_include('z=last')
-
-    ensure
-      Rack::Cache::Key.query_string_ignore = nil
     end
   end
 
   it "does not include query when all params are ignored" do
-    begin
-      Rack::Cache::Key.query_string_ignore = proc { |k, v| k == 'a' }
-
+    with_query_string_ignore proc { |k, _v| k == 'a' } do
       request = mock_request('/test?a=a')
       new_key(request).wont_include('?')
-    ensure
-      Rack::Cache::Key.query_string_ignore = nil
     end
   end
 end
