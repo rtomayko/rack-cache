@@ -73,4 +73,15 @@ describe Rack::Cache::Key do
       Rack::Cache::Key.query_string_ignore = nil
     end
   end
+
+  it "does not include query when all params are ignored" do
+    begin
+      Rack::Cache::Key.query_string_ignore = proc { |k, v| k == 'a' }
+
+      request = mock_request('/test?a=a')
+      new_key(request).wont_include('?')
+    ensure
+      Rack::Cache::Key.query_string_ignore = nil
+    end
+  end
 end
