@@ -62,7 +62,7 @@ module Rack::Cache
       parts.sort!
       parts.reject!(&self.class.query_string_ignore)
       parts.map! { |k,v| "#{escape(k)}=#{escape(v)}" }
-      parts.join('&')
+      parts.empty? ? nil : parts.join('&')
     end
   end
 end
