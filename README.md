@@ -16,7 +16,7 @@ validation (Last-Modified, ETag) information:
 
 For more information about Rack::Cache features and usage, see:
 
-http://rtomayko.github.com/rack-cache/
+https://rtomayko.github.com/rack-cache/
 
 Rack::Cache is not overly optimized for performance. The main goal of the
 project is to provide a portable, easy-to-configure, and standards-based
@@ -70,7 +70,7 @@ You should now see `Rack::Cache` listed in the middleware pipeline:
 
     rake middleware
 
-[more information](http://snippets.aktagon.com/snippets/302-how-to-setup-and-use-rack-cache-with-rails)
+[more information](https://snippets.aktagon.com/snippets/302-how-to-setup-and-use-rack-cache-with-rails)
 
 Using with Dalli
 ----------------
