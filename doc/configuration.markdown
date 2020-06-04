@@ -140,3 +140,9 @@ policy.
 
 If using `memcached`, it will speed up misses slightly as the middleware won't
 need to fetch metadata and check timestamps.
+
+### `fault_tolerant`
+
+Boolean specifying whether fault tolerant caching is enabled. When this option
+is enabled (`rack-cache.fault_tolerant`is `true`), stale cached results can be
+returned if the downstream service is unavailable.

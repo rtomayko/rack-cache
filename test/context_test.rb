@@ -377,6 +377,43 @@ describe Rack::Cache::Context do
     cache.trace.must_include :store
   end
 
+  it 'returns a stale cache entry when max-age request directive is exceeded ' +
+     'when allow_revalidate and fault_tolerant options are set to true and ' +
+     'the remote server returns a connection error' do
+    count = 0
+    respond_with do |req, res|
+      count += 1
+      raise Timeout::Error, 'Connection failed' if count == 2
+      res['Cache-Control'] = 'max-age=10000'
+      res['ETag'] = count.to_s
+      res.body = (count == 1) ? ['Hello World'] : ['Goodbye World']
+    end
+
+    get '/'
+    assert response.ok?
+    response.body.must_equal 'Hello World'
+    cache.trace.must_include :store
+
+    get '/',
+      'rack-cache.allow_revalidate' => true,
+      'rack-cache.fault_tolerant' => true,
+      'HTTP_CACHE_CONTROL' => 'max-age=0'
+    assert response.ok?
+    response.body.must_equal 'Hello World'
+    cache.trace.must_include :stale
+    cache.trace.must_include :connnection_failed
+
+    # Once the server comes back, the request should be revalidated.
+    get '/',
+      'rack-cache.allow_revalidate' => true,
+      'HTTP_CACHE_CONTROL' => 'max-age=0'
+    assert response.ok?
+    response.body.must_equal 'Goodbye World'
+    cache.trace.must_include :stale
+    cache.trace.must_include :invalid
+    cache.trace.must_include :store
+  end
+
   it 'does not revalidate fresh cache entry when enable_revalidate option is set false (default)' do
     count = 0
     respond_with do |req,res|

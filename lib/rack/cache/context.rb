@@ -161,10 +161,12 @@ module Rack::Cache
     end
 
     # Try to serve the response from cache. When a matching cache entry is
-    # found and is fresh, use it as the response without forwarding any
-    # request to the backend. When a matching cache entry is found but is
-    # stale, attempt to #validate the entry with the backend using conditional
-    # GET. When no matching cache entry is found, trigger #miss processing.
+    # found and is fresh, use it as the response without forwarding any request
+    # to the backend. When a matching cache entry is found but is stale, attempt
+    # to #validate the entry with the backend using conditional GET.
+    # If validation raises an exception and fault tolerant caching is enabled,
+    # serve the stale cache entry.
+    # When no matching cache entry is found, trigger miss processing.
     def lookup
       if @request.no_cache? && allow_reload?
         record :reload
@@ -183,11 +185,28 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate(entry)
+            validate_with_stale_cache_failover(entry)
           end
         else
           record :miss
           fetch
+        end
+      end
+    end
+
+    # Returns stale cache on exception.
+    def validate_with_stale_cache_failover(entry)
+      begin
+        validate(entry)
+      rescue => e
+        if fault_tolerant?
+          record :connnection_failed
+          age = entry.age.to_s
+          entry.headers['Age'] = age
+          record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e}"
+          entry
+        else
+          raise
         end
       end
     end
