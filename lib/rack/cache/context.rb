@@ -185,7 +185,11 @@ module Rack::Cache
             entry
           else
             record :stale
-            validate_with_stale_cache_failover(entry)
+            if fault_tolerant?
+              validate_with_stale_cache_failover(entry)
+            else
+              validate(entry)
+            end
           end
         else
           record :miss
@@ -196,19 +200,13 @@ module Rack::Cache
 
     # Returns stale cache on exception.
     def validate_with_stale_cache_failover(entry)
-      begin
-        validate(entry)
-      rescue => e
-        if fault_tolerant?
-          record :connnection_failed
-          age = entry.age.to_s
-          entry.headers['Age'] = age
-          record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e}"
-          entry
-        else
-          raise
-        end
-      end
+      validate(entry)
+    rescue => e
+      record :connnection_failed
+      age = entry.age.to_s
+      entry.headers['Age'] = age
+      record "Fail-over to stale cache data with age #{age} due to #{e.class.name}: #{e}"
+      entry
     end
 
     # Validate that the cache entry is fresh. The original request is used
