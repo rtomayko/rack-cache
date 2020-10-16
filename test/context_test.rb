@@ -992,6 +992,29 @@ describe Rack::Cache::Context do
     cache.trace.must_include :pass
   end
 
+  it 'does not cache when Cache-Control response header changed to private (reset @cache_control on dup)' do
+    count = 0
+    respond_with do |req,res|
+      count+= 1
+      res['Cache-Control'] = (count == 1) ? 'public' : 'private, no-store'
+      res['ETag'] = count.to_s
+      res.status = (count == 1) ? 200 : 304
+    end
+
+    get '/'
+    assert app.called?
+    assert response.ok?
+    cache.trace.must_include :miss
+    cache.trace.must_include :store
+
+    get '/'
+    assert app.called?
+    assert response.ok?
+    cache.trace.must_include :stale
+    cache.trace.must_include :valid
+    cache.trace.wont_include :store
+  end
+
   it 'logs to rack.logger if available' do
     logger = Class.new do
       attr_reader :logged_level

@@ -40,6 +40,7 @@ module Rack::Cache
     def initialize_copy(other)
       super
       @headers = other.headers.dup
+      @cache_control = nil
     end
 
     # Return the status, headers, and body in a three-tuple.
