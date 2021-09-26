@@ -1,3 +1,7 @@
+## 1.13.0
+
+ * Support lowercase Vary and Age headers
+
 ## 1.12.0
 
  * Add a fault_tolerant flag to fail-over to stale cache
