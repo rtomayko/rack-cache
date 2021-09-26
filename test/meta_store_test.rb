@@ -249,7 +249,7 @@ module RackCacheMetaStoreImplementation
 
       # Vary =======================================================================
 
-      %w[Vary vary VARY vArY].each do |vary|
+      %w[Vary vary].each do |vary|
         it 'does not return entries that Vary with #lookup' do
           req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
           req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
@@ -301,7 +301,7 @@ module RackCacheMetaStoreImplementation
 
       # Age ====================================================================
 
-      %w[Age age AGE AgE].each do |age|
+      %w[Age age].each do |age|
         it 'removes the Age response header before storing' do
           response = mock_response(200, {age => "100"}, ['foo'])
           @store.store(@request, response, @entity_store)
