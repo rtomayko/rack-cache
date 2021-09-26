@@ -34,7 +34,7 @@ module Rack::Cache
 
       # find a cached entry that matches the request.
       env = request.env
-      match = entries.detect{|req,res| requests_match?(res['Vary'], env, req)}
+      match = entries.detect{ |req,res| requests_match?((res['Vary'] || res['vary']), env, req) }
       return nil if match.nil?
 
       _, res = match
@@ -90,13 +90,14 @@ module Rack::Cache
       # the list
       vary = response.vary
       entries =
-        read(key).reject do |env,res|
-          (vary == res['Vary']) &&
+        read(key).reject do |env, res|
+          (vary == (res['Vary'] || res['vary'])) &&
             requests_match?(vary, env, stored_env)
         end
 
       headers = persist_response(response)
-      headers.delete 'Age'
+      headers.delete('Age')
+      headers.delete('age')
 
       entries.unshift [stored_env, headers]
       if request.env['rack-cache.use_native_ttl'] && response.fresh?

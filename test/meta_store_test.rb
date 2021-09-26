@@ -249,52 +249,64 @@ module RackCacheMetaStoreImplementation
 
       # Vary =======================================================================
 
-      it 'does not return entries that Vary with #lookup' do
-        req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
-        req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
-        res = mock_response(200, {'Vary' => 'Foo Bar'}, ['test'])
-        @store.store(req1, res, @entity_store)
+      %w[Vary vary].each do |vary|
+        it 'does not return entries that Vary with #lookup' do
+          req1 = mock_request('/test', {'HTTP_FOO' => 'Foo', 'HTTP_BAR' => 'Bar'})
+          req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+          res = mock_response(200, {vary => 'Foo Bar'}, ['test'])
+          @store.store(req1, res, @entity_store)
 
-        @store.lookup(req2, @entity_store).must_be_nil
+          @store.lookup(req2, @entity_store).must_be_nil
+        end
+
+        it 'stores multiple responses for each Vary combination' do
+          req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+          res1 = mock_response(200, {vary => 'Foo Bar'}, ['test 1'])
+          key = @store.store(req1, res1, @entity_store)
+
+          req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+          res2 = mock_response(200, {vary => 'Foo Bar'}, ['test 2'])
+          @store.store(req2, res2, @entity_store)
+
+          req3 = mock_request('/test', {'HTTP_FOO' => 'Baz',   'HTTP_BAR' => 'Boom'})
+          res3 = mock_response(200, {vary => 'Foo Bar'}, ['test 3'])
+          @store.store(req3, res3, @entity_store)
+
+          slurp(@store.lookup(req3, @entity_store).body).must_equal 'test 3'
+          slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 1'
+          slurp(@store.lookup(req2, @entity_store).body).must_equal 'test 2'
+
+          @store.read(key).length.must_equal 3
+        end
+
+        it 'overwrites non-varying responses with #store' do
+          req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+          res1 = mock_response(200, {vary => 'Foo Bar'}, ['test 1'])
+          key = @store.store(req1, res1, @entity_store)
+          slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 1'
+
+          req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
+          res2 = mock_response(200, {vary => 'Foo Bar'}, ['test 2'])
+          @store.store(req2, res2, @entity_store)
+          slurp(@store.lookup(req2, @entity_store).body).must_equal 'test 2'
+
+          req3 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
+          res3 = mock_response(200, {vary => 'Foo Bar'}, ['test 3'])
+          @store.store(req3, res3, @entity_store)
+          slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 3'
+
+          @store.read(key).length.must_equal 2
+        end
       end
 
-      it 'stores multiple responses for each Vary combination' do
-        req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
-        res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-        key = @store.store(req1, res1, @entity_store)
+      # Age ====================================================================
 
-        req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
-        res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
-        @store.store(req2, res2, @entity_store)
-
-        req3 = mock_request('/test', {'HTTP_FOO' => 'Baz',   'HTTP_BAR' => 'Boom'})
-        res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
-        @store.store(req3, res3, @entity_store)
-
-        slurp(@store.lookup(req3, @entity_store).body).must_equal 'test 3'
-        slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 1'
-        slurp(@store.lookup(req2, @entity_store).body).must_equal 'test 2'
-
-        @store.read(key).length.must_equal 3
-      end
-
-      it 'overwrites non-varying responses with #store' do
-        req1 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
-        res1 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 1'])
-        key = @store.store(req1, res1, @entity_store)
-        slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 1'
-
-        req2 = mock_request('/test', {'HTTP_FOO' => 'Bling', 'HTTP_BAR' => 'Bam'})
-        res2 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 2'])
-        @store.store(req2, res2, @entity_store)
-        slurp(@store.lookup(req2, @entity_store).body).must_equal 'test 2'
-
-        req3 = mock_request('/test', {'HTTP_FOO' => 'Foo',   'HTTP_BAR' => 'Bar'})
-        res3 = mock_response(200, {'Vary' => 'Foo Bar'}, ['test 3'])
-        @store.store(req3, res3, @entity_store)
-        slurp(@store.lookup(req1, @entity_store).body).must_equal 'test 3'
-
-        @store.read(key).length.must_equal 2
+      %w[Age age].each do |age|
+        it 'removes the Age response header before storing' do
+          response = mock_response(200, {age => "100"}, ['foo'])
+          @store.store(@request, response, @entity_store)
+          @store.lookup(@request, @entity_store).headers['Age'].must_be_nil
+        end
       end
 
       # TTL ====================================================================
