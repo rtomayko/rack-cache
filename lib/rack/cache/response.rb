@@ -51,10 +51,11 @@ module Rack::Cache
     # Status codes of responses that MAY be stored by a cache or used in reply
     # to a subsequent request.
     #
-    # http://tools.ietf.org/html/rfc2616#section-13.4
+    # https://datatracker.ietf.org/doc/html/rfc2616/#section-13.4
     CACHEABLE_RESPONSE_CODES = [
       200, # OK
       203, # Non-Authoritative Information
+      204, # No Content
       300, # Multiple Choices
       301, # Moved Permanently
       302, # Found
