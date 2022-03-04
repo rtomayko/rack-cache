@@ -1,3 +1,5 @@
+# Moved to https://github.com/rack/rack-cache
+
 Rack::Cache
 ===========
 
